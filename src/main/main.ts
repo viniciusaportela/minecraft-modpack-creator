@@ -12,7 +12,6 @@ import path from 'path';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import * as os from 'os';
 import { readdir, readFile } from 'node:fs/promises';
-import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
 let mainWindow: BrowserWindow | null = null;
@@ -65,6 +64,7 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
+    resizable: true,
     icon: getAssetPath('icon.png'),
     frame: false,
     webPreferences: {
@@ -91,8 +91,49 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
+  ipcMain.handle('getCurseForgeFolder', () => {
+    if (process.platform === 'linux') {
+      const home = os.homedir();
+      return path.join(
+        home,
+        'Documents',
+        'curseforge',
+        'minecraft',
+        'Instances',
+      );
+    }
+
+    return null;
+  });
+
+  ipcMain.on('on-open-project', () => {
+    mainWindow!.setSize(1280, 720);
+    mainWindow!.maximize();
+  });
+
+  ipcMain.handle('readFile', (ev, path: string) => {
+    return readFile(path, 'utf8');
+  });
+
+  ipcMain.handle('readDir', (ev, path: string) => {
+    return readdir(path);
+  });
+
+  ipcMain.handle('close', () => {
+    mainWindow!.close();
+  });
+
+  ipcMain.handle('maximize', () => {
+    if (mainWindow!.isMaximized()) {
+      mainWindow!.unmaximize();
+    } else {
+      mainWindow!.maximize();
+    }
+  });
+
+  ipcMain.handle('minimize', () => {
+    mainWindow!.minimize();
+  });
 
   // Open urls in the user's browser
   mainWindow.webContents.setWindowOpenHandler((edata) => {
@@ -116,35 +157,6 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
-    ipcMain.handle('getCurseForgeFolder', () => {
-      if (process.platform === 'linux') {
-        const home = os.homedir();
-        return path.join(
-          home,
-          'Documents',
-          'curseforge',
-          'minecraft',
-          'Instances',
-        );
-      }
-
-      return null;
-    });
-
-    ipcMain.handle('readFile', (ev, path: string) => {
-      return readFile(path, 'utf8');
-    });
-
-    ipcMain.handle('readDir', (ev, path: string) => {
-      return readdir(path);
-    });
-
-    ipcMain.handle('close', () => {});
-
-    ipcMain.handle('maximize', () => {});
-
-    ipcMain.handle('minimize', () => {});
-
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

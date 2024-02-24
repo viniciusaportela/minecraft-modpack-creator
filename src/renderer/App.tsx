@@ -4,9 +4,9 @@ import { NextUIProvider } from '@nextui-org/react';
 import { IProjectMeta } from './typings/project-meta.interface';
 import { PageContext } from './context/page.context';
 import { ProjectContext } from './context/project.context';
-import Projects from './pages/projects/projects';
-import AppBar from './components/app-bar/app-bar';
-import Project from './pages/project/project';
+import Projects from './pages/projects/Projects';
+import AppBar from './components/app-bar/AppBar';
+import Project from './pages/project/Project';
 
 export default function App() {
   const [page, setPage] = useState('projects');
@@ -19,15 +19,13 @@ export default function App() {
   );
 
   return (
-    <main className="dark text-foreground bg-background">
-      <NextUIProvider>
+    <main className="dark text-foreground border-[0.5px] bg-zinc-900 border-solid border-zinc-600 flex flex-col">
+      <NextUIProvider className="h-[100vh] flex flex-col">
         <PageContext.Provider value={pageContext}>
           <ProjectContext.Provider value={projectContext}>
-            <div className="w-[100vw] h-[100vh] flex flex-col border-[0.5px] border-solid border-zinc-700 bg-zinc-900">
-              <AppBar />
-              {page === 'projects' && <Projects />}
-              {page === 'project' && <Project />}
-            </div>
+            <AppBar />
+            {page === 'projects' && <Projects />}
+            {page === 'project' && <Project />}
           </ProjectContext.Provider>
         </PageContext.Provider>
       </NextUIProvider>

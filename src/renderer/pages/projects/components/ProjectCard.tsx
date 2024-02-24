@@ -22,16 +22,15 @@ export default function ProjectCard({ title, path, onOpen }: ProjectCardProps) {
   const [loadingProjectMetadata, setLoadingProjectMetadata] = useState(true);
 
   useEffect(() => {
-    // console.log(path);
-    // filesystem
-    //   .readFile(`${path}/minecraftinstance.json`)
-    //   .then((data) => {
-    //     const res = JSON.parse(data);
-    //     setProjectMetadata(res);
-    //     console.log('res', JSON.stringify(res, null, 2));
-    //   })
-    //   .catch((err) => console.log('err', JSON.stringify(err)))
-    //   .finally(() => setLoadingProjectMetadata(false));
+    console.log(path);
+    window.ipcRenderer
+      .invoke('readFile', `${path}/minecraftinstance.json`)
+      .then((data) => {
+        const res = JSON.parse(data);
+        setProjectMetadata(res);
+      })
+      .catch((err) => err)
+      .finally(() => setLoadingProjectMetadata(false));
   }, []);
 
   return (

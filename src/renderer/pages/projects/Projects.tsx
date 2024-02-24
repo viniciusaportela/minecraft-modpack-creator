@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { IProjectMeta } from '../../typings/project-meta.interface';
 import { usePage } from '../../context/page.context';
 import { useProject } from '../../context/project.context';
-import ProjectCard from './components/project-card';
-import AddProject from './components/add-project';
+import ProjectCard from './components/ProjectCard';
+import AddProject from './components/AddProject';
 
 export default function Projects() {
   const { setPage } = usePage();
@@ -12,28 +12,30 @@ export default function Projects() {
 
   const loadProjects = async () => {
     const curseFolder = await window.ipcRenderer.invoke('getCurseForgeFolder');
-    console.log(curseFolder);
 
-    // if (curseFolder) {
-    //   try {
-    //     const folder = await filesystem.readDirectory(curseFolder);
-    //     setProjects(folder.map((f) => ({ name: f.entry, path: `${curseFolder}/${f.entry}` })));
-    //   } catch (err) {
-    //     console.error(JSON.stringify(err));
-    //   }
-    // }
+    if (curseFolder) {
+      try {
+        const folder = await window.ipcRenderer.invoke('readDir', curseFolder);
+        console.log(folder);
+        setProjects(
+          folder.map((folder: string) => ({
+            name: folder,
+            path: `${curseFolder}/${folder}`,
+          })),
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    }
   };
 
   const open = (path: string, metadata: IProjectMeta | null) => {
-    // setPage('project');
-    // neuWindow.setSize({
-    //   height: 800,
-    //   width: 1200
-    // });
-    // neuWindow.maximize();
-    // if (metadata) {
-    //   setProject(metadata);
-    // }
+    setPage('project');
+    console.log(window.ipcRenderer);
+    window.ipcRenderer.send('on-open-project');
+    if (metadata) {
+      setProject(metadata);
+    }
   };
 
   useEffect(() => {
