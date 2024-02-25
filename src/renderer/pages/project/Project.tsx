@@ -16,6 +16,8 @@ import Recipes from '../../components/recipes/Recipes';
 import { useAppStore } from '../../store/app.store';
 import { useProjectStore } from '../../store/project.store';
 import { IProjectStore } from '../../store/interfaces/project-store.interface';
+import { pluginByMod } from '../../components/plugins/plugin-by-mod';
+import DefaultPlugin from '../../components/plugins/default/DefaultPlugin';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -170,6 +172,27 @@ export default function Project() {
     setOpenedModTabs(newTabs);
   }
 
+  function isSelectedTabFromMod() {
+    return !['recipes', 'items', 'blocks', 'progression'].includes(selectedTab);
+  }
+
+  function getAddonFromTab(tab: string) {
+    return project?.installedAddons.find((addon) => addon.name === tab)!;
+  }
+
+  function getModViewFromTab(tab: string) {
+    const Plugin =
+      pluginByMod[
+        getAddonFromTab(selectedTab).addonID as keyof typeof pluginByMod
+      ];
+
+    return Plugin ? (
+      <Plugin mod={getAddonFromTab(selectedTab)} />
+    ) : (
+      <DefaultPlugin mod={getAddonFromTab(selectedTab)} />
+    );
+  }
+
   return (
     <div className="flex flex-1 min-h-0">
       <div className="w-80 border-[0.5px] border-solid border-zinc-800 border-t-0 flex flex-col">
@@ -220,11 +243,12 @@ export default function Project() {
             <Tab key="recipes" title="Recipes" />
             <Tab key="items" title="Items" />
             <Tab key="blocks" title="Blocks" />
+            <Tab key="progression" title="Progression" />
             {openedModTabs.map((addon) => (
               <Tab
                 key={addon.name}
                 title={
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center">
                     <span>{addon.name}</span>
                     <Button
                       className="min-w-5 w-5 min-h-5 h-5 p-0"
@@ -240,6 +264,7 @@ export default function Project() {
           </Tabs>
         </ScrollShadow>
         {selectedTab === 'recipes' && <Recipes />}
+        {isSelectedTabFromMod() && getModViewFromTab(selectedTab)}
       </div>
     </div>
   );

@@ -53,13 +53,18 @@ const installExtensions = async () => {
 
 const createChildWindow = async (childPage: string) => {
   childWindow = new BrowserWindow({
-    show: true,
+    show: false,
     width: 550,
     height: 550,
     parent: mainWindow!,
+    alwaysOnTop: true,
+    roundedCorners: true,
+    x: mainWindow!.getPosition()[0] + mainWindow!.getSize()[0] / 2 - 225,
+    y: mainWindow!.getPosition()[1] + mainWindow!.getSize()[1] / 2 - 225,
     resizable: true,
     frame: false,
     webPreferences: {
+      devTools: false,
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
@@ -70,7 +75,10 @@ const createChildWindow = async (childPage: string) => {
     `${resolveHtmlPath('index.html')}?${new URLSearchParams({ childPage }).toString()}`,
   );
 
-  childWindow.webContents.openDevTools();
+  childWindow.on('ready-to-show', () => {
+    mainWindow.getPosition();
+    childWindow.show();
+  });
 
   childWindow!.on('close', () => {
     console.log('child closed');
@@ -101,8 +109,8 @@ const createWindow = async () => {
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728,
+    width: 800,
+    height: 600,
     resizable: true,
     image: getAssetPath('icon.png'),
     frame: false,
@@ -146,8 +154,7 @@ const createWindow = async () => {
   });
 
   ipcMain.on('on-open-project', () => {
-    mainWindow!.setSize(1280, 720);
-    mainWindow!.maximize();
+    mainWindow!.setSize(1280, 900);
   });
 
   ipcMain.handle('readFile', (ev, path: string) => {
@@ -237,6 +244,35 @@ const createWindow = async () => {
     if (childWindow) {
       childWindow.close();
     }
+  });
+
+  ipcMain.handle('getEditTreeConfig', async (_, modpackPath: string) => {
+    const basePath = path.join(
+      modpackPath,
+      'skilltree',
+      'editor',
+      'data',
+      'skilltree',
+    );
+
+    const skillTree = JSON.parse(
+      await readFile(
+        path.join(basePath, 'skill_trees', 'main_tree.json'),
+        'utf8',
+      ),
+    );
+
+    const skills = [];
+    const files = await readdir(path.join(basePath, 'skills'));
+    for await (const fileName of files) {
+      const file = await readFile(
+        path.join(basePath, 'skills', fileName),
+        'utf8',
+      );
+      skills.push(JSON.parse(file));
+    }
+
+    return { skillTree, skills };
   });
 
   // Open urls in the user's browser

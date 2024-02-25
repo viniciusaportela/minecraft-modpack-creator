@@ -1,6 +1,6 @@
 enum ModId {
-  Create = 328085,
   KubeJS = 238086,
+  PassiveSkillTree = 850298,
 }
 
 export default ModId;

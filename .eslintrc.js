@@ -18,6 +18,7 @@ module.exports = {
     'react/require-default-props': 'off',
     'compat/compat': 'off',
     'no-plusplus': 'off',
+    'no-use-before-define': 'off',
   },
   parserOptions: {
     ecmaVersion: 2022,
