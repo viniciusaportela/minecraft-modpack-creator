@@ -74,11 +74,9 @@ export default function Project() {
         if (item === null) {
           str += ' ';
         } else {
-          const [alias, id] = Object.entries(mapping).find(
-            ([alias, id]) => id === item,
+          const [alias] = Object.entries(mapping).find(
+            ([_, id]) => id === item,
           );
-
-          console.log([alias, id]);
 
           str += alias;
         }
@@ -105,10 +103,10 @@ export default function Project() {
       for await (const recipe of recipes) {
         await window.ipcRenderer.invoke(
           'writeFile',
-          `${project?.installPath}server_scripts/create-recipe-${index}.js`,
+          `${project?.installPath}kubejs/server_scripts/create-recipe-${index}.js`,
           `ServerEvents.recipes(event => {
             event.shaped(
-              Item.of(${recipe.output}, ${recipe.outputCount}),
+              Item.of('${recipe.output}', ${recipe.outputCount}),
               ${JSON.stringify(getGrid(recipe))},
               ${JSON.stringify(getMapping(recipe))}
             )
