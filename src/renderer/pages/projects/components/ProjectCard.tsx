@@ -12,7 +12,7 @@ import { IProjectMeta } from '../../../typings/project-meta.interface';
 interface ProjectCardProps {
   title: string;
   path: string;
-  onOpen?: (path: string, projectMeta: IProjectMeta | null) => void;
+  onOpen?: (modpackFolder: string, projectMeta: IProjectMeta | null) => void;
 }
 
 export default function ProjectCard({ title, path, onOpen }: ProjectCardProps) {
@@ -22,7 +22,6 @@ export default function ProjectCard({ title, path, onOpen }: ProjectCardProps) {
   const [loadingProjectMetadata, setLoadingProjectMetadata] = useState(true);
 
   useEffect(() => {
-    console.log(path);
     window.ipcRenderer
       .invoke('readFile', `${path}/minecraftinstance.json`)
       .then((data) => {

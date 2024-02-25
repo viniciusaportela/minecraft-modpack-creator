@@ -11,10 +11,14 @@
 import path from 'path';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import * as os from 'os';
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { existsSync, mkdirSync } from 'node:fs';
 import { resolveHtmlPath } from './util';
 
 let mainWindow: BrowserWindow | null = null;
+let childWindow: BrowserWindow | null = null;
+
+let promiseWaitingForChildResponse: ((value: unknown) => void) | null = null;
 
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
@@ -47,6 +51,41 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 
+const createChildWindow = async (childPage: string) => {
+  childWindow = new BrowserWindow({
+    show: true,
+    width: 550,
+    height: 550,
+    parent: mainWindow!,
+    resizable: true,
+    frame: false,
+    webPreferences: {
+      preload: app.isPackaged
+        ? path.join(__dirname, 'preload.js')
+        : path.join(__dirname, '../../.erb/dll/preload.js'),
+    },
+  });
+
+  childWindow.loadURL(
+    `${resolveHtmlPath('index.html')}?${new URLSearchParams({ childPage }).toString()}`,
+  );
+
+  childWindow.webContents.openDevTools();
+
+  childWindow!.on('close', () => {
+    console.log('child closed');
+
+    if (promiseWaitingForChildResponse) {
+      promiseWaitingForChildResponse(undefined);
+      promiseWaitingForChildResponse = null;
+    }
+  });
+
+  childWindow.on('closed', () => {
+    childWindow = null;
+  });
+};
+
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
@@ -65,7 +104,7 @@ const createWindow = async () => {
     width: 1024,
     height: 728,
     resizable: true,
-    icon: getAssetPath('icon.png'),
+    image: getAssetPath('icon.png'),
     frame: false,
     webPreferences: {
       preload: app.isPackaged
@@ -119,6 +158,27 @@ const createWindow = async () => {
     return readdir(path);
   });
 
+  ipcMain.handle('writeFile', (ev, savePath: string, value: string) => {
+    console.log(savePath);
+    const doesExists = existsSync(savePath.split('/').slice(0, -1).join('/'));
+
+    if (!doesExists) {
+      const parts = savePath.split('/').slice(0, -1).slice(1);
+      console.log(parts);
+      let currentPath = '';
+      parts.forEach((part) => {
+        currentPath = `${currentPath}/${part}`;
+        console.log('verify', currentPath, existsSync(currentPath));
+        if (!existsSync(currentPath)) {
+          console.log('Creating folder', currentPath);
+          mkdirSync(currentPath);
+        }
+      });
+    }
+
+    return writeFile(savePath, value);
+  });
+
   ipcMain.handle('close', () => {
     mainWindow!.close();
   });
@@ -135,10 +195,61 @@ const createWindow = async () => {
     mainWindow!.minimize();
   });
 
+  ipcMain.handle('readConfig', async (_, modpackFolder: string) => {
+    const filePath = path.join(modpackFolder, 'config.json');
+
+    const fileExists = existsSync(filePath);
+
+    if (!fileExists) {
+      await writeFile(filePath, JSON.stringify({ modpackFolder }));
+      return { modpackFolder };
+    }
+
+    const file = await readFile(filePath, 'utf8');
+
+    return JSON.parse(file);
+  });
+
+  ipcMain.handle(
+    'writeConfig',
+    async (ev, modpackFolder: string, newJson: Record<string, unknown>) => {
+      await writeFile(
+        path.join(modpackFolder, 'config.json'),
+        JSON.stringify(newJson),
+      );
+    },
+  );
+
+  ipcMain.handle('openPicker', () => {
+    return new Promise((resolve) => {
+      createChildWindow('picker');
+
+      promiseWaitingForChildResponse = resolve;
+    });
+  });
+
+  ipcMain.on('pickerSelect', (_, selected: string) => {
+    if (promiseWaitingForChildResponse) {
+      promiseWaitingForChildResponse(selected);
+      promiseWaitingForChildResponse = null;
+    }
+
+    if (childWindow) {
+      childWindow.close();
+    }
+  });
+
   // Open urls in the user's browser
   mainWindow.webContents.setWindowOpenHandler((edata) => {
     shell.openExternal(edata.url);
     return { action: 'deny' };
+  });
+
+  mainWindow.webContents.on('focus', () => {
+    console.log('focus here');
+    if (childWindow) {
+      childWindow.close();
+    }
   });
 };
 
