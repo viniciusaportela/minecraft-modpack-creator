@@ -74,10 +74,12 @@
     "electron-log": "^4.4.8",
     "electron-updater": "^6.1.4",
     "framer-motion": "^11.0.6",
+    "node-stream-zip": "^1.15.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.16.0",
     "reactflow": "^11.10.4",
+    "realm": "^12.6.1",
     "zustand": "^4.5.1"
   },
   "devDependencies": {

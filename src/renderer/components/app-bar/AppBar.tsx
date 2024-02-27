@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@nextui-org/react';
 import { CaretLeft, CornersOut, Minus, X } from '@phosphor-icons/react';
 import { useShallow } from 'zustand/react/shallow';
+import { ipcRenderer } from 'electron';
 import { useAppStore } from '../../store/app.store';
 
 export default function AppBar() {
@@ -16,16 +17,16 @@ export default function AppBar() {
   const [isMaximize, setMaximize] = useState(false);
 
   const close = () => {
-    window.ipcRenderer.invoke('close');
+    ipcRenderer.invoke('close');
   };
 
   const maximize = () => {
     setMaximize(!isMaximize);
-    window.ipcRenderer.invoke('maximize');
+    ipcRenderer.invoke('maximize');
   };
 
   const minimize = () => {
-    window.ipcRenderer.invoke('minimize');
+    ipcRenderer.invoke('minimize');
   };
 
   return (

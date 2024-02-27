@@ -10,19 +10,26 @@ import {
 } from '@nextui-org/react';
 import { Hammer, X } from '@phosphor-icons/react';
 import { useShallow } from 'zustand/react/shallow';
+import { ipcRenderer } from 'electron';
 import { IMod } from '../../typings/project-meta.interface';
 import useHorizontalScroll from '../../utils/useHorizontalScroll';
-import Recipes from '../../components/recipes/Recipes';
+import Recipes from '../recipes/Recipes';
 import { useAppStore } from '../../store/app.store';
 import { useProjectStore } from '../../store/project.store';
 import { IProjectStore } from '../../store/interfaces/project-store.interface';
-import { pluginByMod } from '../../components/plugins/plugin-by-mod';
-import DefaultPlugin from '../../components/plugins/default/DefaultPlugin';
+import { pageByMod } from '../../constants/page-by-mod';
+import DefaultPlugin from '../mods/default/DefaultPlugin';
+import { usePager } from '../../components/pager/hooks/usePager';
 
 export default function Project() {
   useHorizontalScroll('tabs');
+
+  const { navigate } = usePager();
+
   const recipes = useProjectStore((st) => st.recipes);
   const [isBuilding, setIsBuilding] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadingText, setLoadingText] = useState('');
 
   const { setTitle, setGoBack, setCustomRightElement } = useAppStore(
     useShallow((st) => ({
@@ -32,12 +39,13 @@ export default function Project() {
     })),
   );
 
-  const { project, setPage } = useAppStore(
+  const { project } = useAppStore(
     useShallow((st) => ({
       project: st.projectMeta,
-      setPage: st.setPage,
     })),
   );
+
+  console.log('Project', project);
 
   const [openedModTabs, setOpenedModTabs] = useState<any[]>([]);
   const [selectedTab, setSelectedTab] = useState('recipes');
@@ -99,11 +107,8 @@ export default function Project() {
       // TODO generated based on type
 
       let index = 0;
-      console.log(
-        `${project?.installPath}server_scripts/create-recipe-${index}.js`,
-      );
       for await (const recipe of recipes) {
-        await window.ipcRenderer.invoke(
+        await ipcRenderer.invoke(
           'writeFile',
           `${project?.installPath}kubejs/server_scripts/create-recipe-${index}.js`,
           `ServerEvents.recipes(event => {
@@ -142,7 +147,7 @@ export default function Project() {
   useEffect(() => {
     if (project) {
       setTitle(project.name);
-      setGoBack(() => setPage('projects'));
+      setGoBack(() => navigate('projects'));
     }
   }, [project]);
 
@@ -172,25 +177,27 @@ export default function Project() {
     setOpenedModTabs(newTabs);
   }
 
-  function isSelectedTabFromMod() {
-    return !['recipes', 'items', 'blocks', 'progression'].includes(selectedTab);
-  }
-
   function getAddonFromTab(tab: string) {
     return project?.installedAddons.find((addon) => addon.name === tab)!;
   }
 
   function getModViewFromTab(tab: string) {
     const Plugin =
-      pluginByMod[
-        getAddonFromTab(selectedTab).addonID as keyof typeof pluginByMod
-      ];
+      pageByMod[getAddonFromTab(tab).addonID as keyof typeof pageByMod];
 
     return Plugin ? (
-      <Plugin mod={getAddonFromTab(selectedTab)} />
+      <Plugin mod={getAddonFromTab(tab)} isVisible={isVisible(tab)} key={tab} />
     ) : (
-      <DefaultPlugin mod={getAddonFromTab(selectedTab)} />
+      <DefaultPlugin
+        mod={getAddonFromTab(tab)}
+        isVisible={isVisible(tab)}
+        key={tab}
+      />
     );
+  }
+
+  function isVisible(current: string) {
+    return current === selectedTab;
   }
 
   return (
@@ -263,8 +270,8 @@ export default function Project() {
             ))}
           </Tabs>
         </ScrollShadow>
-        {selectedTab === 'recipes' && <Recipes />}
-        {isSelectedTabFromMod() && getModViewFromTab(selectedTab)}
+        <Recipes isVisible={isVisible('recipes')} />
+        {openedModTabs.map((addon) => getModViewFromTab(addon.name))}
       </div>
     </div>
   );

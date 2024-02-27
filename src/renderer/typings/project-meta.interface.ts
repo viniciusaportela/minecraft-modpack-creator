@@ -4,9 +4,6 @@ export interface IMod {
   primaryAuthor: string;
   thumbnailUrl: string;
   webSiteURL: string;
-  /**
-   * Status 5 means the mod is installed but disabled
-   */
   status: number;
 }
 

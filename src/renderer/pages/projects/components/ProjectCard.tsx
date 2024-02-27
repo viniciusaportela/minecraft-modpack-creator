@@ -7,6 +7,7 @@ import {
   CardHeader,
   Skeleton,
 } from '@nextui-org/react';
+import { ipcRenderer } from 'electron';
 import { IProjectMeta } from '../../../typings/project-meta.interface';
 
 interface ProjectCardProps {
@@ -22,7 +23,7 @@ export default function ProjectCard({ title, path, onOpen }: ProjectCardProps) {
   const [loadingProjectMetadata, setLoadingProjectMetadata] = useState(true);
 
   useEffect(() => {
-    window.ipcRenderer
+    ipcRenderer
       .invoke('readFile', `${path}/minecraftinstance.json`)
       .then((data) => {
         const res = JSON.parse(data);

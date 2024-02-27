@@ -1,17 +1,23 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { ipcRenderer } from 'electron';
 import { IProjectMeta } from '../../typings/project-meta.interface';
 import ProjectCard from './components/ProjectCard';
 import AddProject from './components/AddProject';
 import { useAppStore } from '../../store/app.store';
 import { readConfigFromModpack } from '../../store/project.store';
+import { usePager } from '../../components/pager/hooks/usePager';
+
+const fs = window.require('fs');
+
+console.log(fs);
 
 export default function Projects() {
-  const { setGoBack, setPage, setProject, setTitle, setCustomRightElement } =
+  const { navigate } = usePager();
+  const { setGoBack, setProject, setTitle, setCustomRightElement } =
     useAppStore(
       useShallow((st) => ({
         setGoBack: st.setGoBack,
-        setPage: st.setPage,
         setProject: st.setProjectMeta,
         setTitle: st.setTitle,
         setCustomRightElement: st.setCustomRightElement,
@@ -25,12 +31,14 @@ export default function Projects() {
     setCustomRightElement(null);
   }, []);
 
+  useEffect(() => {}, []);
+
   const loadProjects = async () => {
-    const curseFolder = await window.ipcRenderer.invoke('getCurseForgeFolder');
+    const curseFolder = await ipcRenderer.invoke('getCurseForgeFolder');
 
     if (curseFolder) {
       try {
-        const folder = await window.ipcRenderer.invoke('readDir', curseFolder);
+        const folder = await ipcRenderer.invoke('readDir', curseFolder);
         setProjects(
           folder.map((f: string) => ({
             name: f,
@@ -45,8 +53,8 @@ export default function Projects() {
 
   const open = async (path: string, metadata: IProjectMeta | null) => {
     await readConfigFromModpack(path);
-    setPage('project');
-    window.ipcRenderer.send('on-open-project');
+    navigate('project');
+    ipcRenderer.send('on-open-project');
     if (metadata) {
       setProject(metadata);
     }

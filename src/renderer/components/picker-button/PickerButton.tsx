@@ -1,4 +1,5 @@
 import { Button } from '@nextui-org/react';
+import { ipcRenderer } from 'electron';
 
 interface PickerButtonProps {
   value: string | null;
@@ -7,7 +8,7 @@ interface PickerButtonProps {
 
 export default function PickerButton({ value, onPick }: PickerButtonProps) {
   const onPress = async () => {
-    const picked = await window.ipcRenderer.invoke('openPicker');
+    const picked = await ipcRenderer.invoke('open', 'picker');
     if (picked) {
       onPick(picked);
     }

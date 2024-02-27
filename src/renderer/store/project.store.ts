@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { ipcRenderer } from 'electron';
 import { IProjectStore } from './interfaces/project-store.interface';
 
 const DEFAULTS_VALUES = {
@@ -24,7 +25,7 @@ export const useProjectStore = create(
       },
       setItem: async (name, value) => {
         if (value.state.modpackFolder) {
-          await window.ipcRenderer.invoke(
+          await ipcRenderer.invoke(
             'writeConfig',
             value.state.modpackFolder,
             value.state,
@@ -37,7 +38,7 @@ export const useProjectStore = create(
 );
 
 export async function readConfigFromModpack(modpackFolder: string) {
-  const config = await window.ipcRenderer.invoke('readConfig', modpackFolder);
+  const config = await ipcRenderer.invoke('readConfig', modpackFolder);
   if (config.recipes) {
     useProjectStore.setState(config);
   } else {

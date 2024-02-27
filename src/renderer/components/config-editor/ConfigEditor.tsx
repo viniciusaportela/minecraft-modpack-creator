@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ipcRenderer } from 'electron';
 
 interface IConfiguration {
   type: 'server' | 'client' | 'common';
@@ -21,7 +22,7 @@ export default function ConfigEditor({
   }, []);
 
   async function updateConfigurations() {
-    const config = await window.ipcRenderer.invoke('getConfigurationsFromMod');
+    const config = await ipcRenderer.invoke('getConfigurationsFromMod');
   }
 
   // Look for client / server / common configs

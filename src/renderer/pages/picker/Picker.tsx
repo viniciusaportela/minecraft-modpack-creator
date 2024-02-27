@@ -1,10 +1,13 @@
 import { Button, Divider, Image, Input } from '@nextui-org/react';
 import { Cards, MagnifyingGlass } from '@phosphor-icons/react';
-import { VanillaItemsBlocks } from './constants/vanilla-items-blocks';
 import { useState } from 'react';
+import { ipcRenderer } from 'electron';
+import { VanillaItemsBlocks } from './constants/vanilla-items-blocks';
+import useParams from '../../utils/useParams';
 
 export default function Picker() {
   const [inputText, setInputText] = useState('');
+  const requestId = useParams('requestId');
 
   const filteredBlocks = inputText
     ? VanillaItemsBlocks.filter(
@@ -15,7 +18,7 @@ export default function Picker() {
     : [];
 
   const select = (block: string) => {
-    window.ipcRenderer.send('pickerSelect', block);
+    ipcRenderer.send('windowResponse', requestId, block);
   };
 
   return (

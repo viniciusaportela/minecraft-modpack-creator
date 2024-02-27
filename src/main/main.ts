@@ -9,22 +9,16 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, protocol, net } from 'electron';
 import * as os from 'os';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync, mkdirSync } from 'node:fs';
+import StreamZip from 'node-stream-zip';
+import * as crypto from 'crypto';
 import { resolveHtmlPath } from './util';
+import WindowManager from './core/WindowManager';
 
 let mainWindow: BrowserWindow | null = null;
-let childWindow: BrowserWindow | null = null;
-
-let promiseWaitingForChildResponse: ((value: unknown) => void) | null = null;
-
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -51,49 +45,6 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 
-const createChildWindow = async (childPage: string) => {
-  childWindow = new BrowserWindow({
-    show: false,
-    width: 550,
-    height: 550,
-    parent: mainWindow!,
-    alwaysOnTop: true,
-    roundedCorners: true,
-    x: mainWindow!.getPosition()[0] + mainWindow!.getSize()[0] / 2 - 225,
-    y: mainWindow!.getPosition()[1] + mainWindow!.getSize()[1] / 2 - 225,
-    resizable: true,
-    frame: false,
-    webPreferences: {
-      devTools: false,
-      preload: app.isPackaged
-        ? path.join(__dirname, 'preload.js')
-        : path.join(__dirname, '../../.erb/dll/preload.js'),
-    },
-  });
-
-  childWindow.loadURL(
-    `${resolveHtmlPath('index.html')}?${new URLSearchParams({ childPage }).toString()}`,
-  );
-
-  childWindow.on('ready-to-show', () => {
-    mainWindow.getPosition();
-    childWindow.show();
-  });
-
-  childWindow!.on('close', () => {
-    console.log('child closed');
-
-    if (promiseWaitingForChildResponse) {
-      promiseWaitingForChildResponse(undefined);
-      promiseWaitingForChildResponse = null;
-    }
-  });
-
-  childWindow.on('closed', () => {
-    childWindow = null;
-  });
-};
-
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
@@ -115,9 +66,8 @@ const createWindow = async () => {
     image: getAssetPath('icon.png'),
     frame: false,
     webPreferences: {
-      preload: app.isPackaged
-        ? path.join(__dirname, 'preload.js')
-        : path.join(__dirname, '../../.erb/dll/preload.js'),
+      nodeIntegration: true,
+      contextIsolation: false,
     },
   });
 
@@ -227,23 +177,22 @@ const createWindow = async () => {
     },
   );
 
-  ipcMain.handle('openPicker', () => {
+  ipcMain.handle('open', (_, page: string) => {
     return new Promise((resolve) => {
-      createChildWindow('picker');
+      const requestId = crypto.randomBytes(16).toString('hex');
+      console.log('open', requestId);
 
-      promiseWaitingForChildResponse = resolve;
+      WindowManager.create({
+        parent: mainWindow!,
+        page,
+        requestId,
+        respondRequester: resolve,
+      });
     });
   });
 
-  ipcMain.on('pickerSelect', (_, selected: string) => {
-    if (promiseWaitingForChildResponse) {
-      promiseWaitingForChildResponse(selected);
-      promiseWaitingForChildResponse = null;
-    }
-
-    if (childWindow) {
-      childWindow.close();
-    }
+  ipcMain.on('windowResponse', (_, requestId: string, params: any) => {
+    WindowManager.onWindowMessage(requestId, params);
   });
 
   ipcMain.handle('getEditTreeConfig', async (_, modpackPath: string) => {
@@ -275,17 +224,108 @@ const createWindow = async () => {
     return { skillTree, skills };
   });
 
+  ipcMain.handle(
+    'loadTexture',
+    async (ev, modId: string, modJarPath: string, texturePath: string) => {
+      console.log(
+        `load texture of mod ${modId} from ${modJarPath}, texture path ${texturePath}`,
+      );
+
+      const imgFolderPath = path.join(
+        app.getPath('userData'),
+        'textures',
+        modId,
+      );
+
+      const splittedTexture = texturePath.split('/');
+      const textureName = splittedTexture.splice(-1);
+      const finalPath = path.join(
+        imgFolderPath,
+        `${splittedTexture.join('_')}__${textureName}`,
+      );
+
+      if (existsSync(finalPath)) {
+        return `textures://${finalPath}`;
+      }
+
+      const zip = new StreamZip.async({ file: modJarPath });
+
+      const img = await zip.entryData(
+        `assets/${modId}/textures/${texturePath}`,
+      );
+
+      if (!existsSync(path.join(app.getPath('userData'), 'textures'))) {
+        mkdirSync(path.join(app.getPath('userData'), 'textures'));
+      }
+
+      if (!existsSync(imgFolderPath)) {
+        mkdirSync(imgFolderPath);
+      }
+
+      await writeFile(finalPath, img);
+
+      return `textures://${finalPath}`;
+    },
+  );
+
+  ipcMain.handle(
+    'loadAllTextures',
+    async (_, modId: string, modJarPath: string) => {
+      const exportedFolderPath = path.join(
+        app.getPath('userData'),
+        'textures',
+        modId,
+      );
+
+      if (existsSync(path.join(exportedFolderPath, '.migrated'))) {
+        return readdir(exportedFolderPath);
+      }
+
+      const modpackTexturesFolder = path.join(
+        app.getPath('userData'),
+        'textures',
+        modId,
+      );
+      if (!existsSync(modpackTexturesFolder)) {
+        mkdirSync(modpackTexturesFolder, { recursive: true });
+      }
+
+      const zip = new StreamZip.async({ file: modJarPath });
+      const textures = [];
+
+      const entries = await zip.entries();
+
+      for await (const entry of Object.values(entries)) {
+        console.log(entry);
+        if (
+          entry.name.startsWith(`assets/${modId}/textures`) &&
+          entry.name.endsWith('.png')
+        ) {
+          const img = await zip.entryData(entry.name);
+
+          const splittedTexture = entry.name
+            .replace(`assets/${modId}/textures/`, '')
+            .split('/');
+          const textureName = splittedTexture.splice(-1);
+          const finalPath = path.join(
+            modpackTexturesFolder,
+            `${splittedTexture.join('_')}__${textureName}`,
+          );
+
+          textures.push(finalPath);
+
+          await writeFile(finalPath, img);
+        }
+      }
+
+      await writeFile(path.join(exportedFolderPath, '.migrated'), '');
+    },
+  );
+
   // Open urls in the user's browser
   mainWindow.webContents.setWindowOpenHandler((edata) => {
     shell.openExternal(edata.url);
     return { action: 'deny' };
-  });
-
-  mainWindow.webContents.on('focus', () => {
-    console.log('focus here');
-    if (childWindow) {
-      childWindow.close();
-    }
   });
 };
 
@@ -304,7 +344,12 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
+    protocol.handle('textures', (request) => {
+      return net.fetch(`file://${request.url.slice('textures://'.length)}`);
+    });
+
     createWindow();
+
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.

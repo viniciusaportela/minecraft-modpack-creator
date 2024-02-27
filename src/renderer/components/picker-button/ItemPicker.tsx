@@ -1,4 +1,5 @@
 import { Button, Image } from '@nextui-org/react';
+import { ipcRenderer } from 'electron';
 import { VanillaItemsBlocks } from '../../pages/picker/constants/vanilla-items-blocks';
 
 interface ItemPickerProps {
@@ -12,7 +13,7 @@ export default function ItemPicker({ value, onPick }: ItemPickerProps) {
     : null;
 
   const press = async () => {
-    const picked = await window.ipcRenderer.invoke('openPicker');
+    const picked = await ipcRenderer.invoke('open', 'picker');
     onPick(picked);
   };
 
