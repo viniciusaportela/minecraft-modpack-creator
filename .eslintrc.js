@@ -20,6 +20,7 @@ module.exports = {
     'no-plusplus': 'off',
     'no-use-before-define': 'off',
     'react/no-unescaped-entities': 'off',
+    'import/no-cycle': 'warn',
   },
   parserOptions: {
     ecmaVersion: 2022,

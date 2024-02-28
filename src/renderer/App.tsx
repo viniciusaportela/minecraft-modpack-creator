@@ -10,6 +10,7 @@ import { TextureModel } from './core/models/texture.model';
 import { ItemModel } from './core/models/item.model';
 import { BlockModel } from './core/models/block.model';
 import { ModModel } from './core/models/mod.model';
+import { GlobalStateModel } from './core/models/global-state.model';
 
 const MainApp = lazy(() => import('./MainApp'));
 const Picker = lazy(() => import('./pages/picker/Picker'));
@@ -26,12 +27,31 @@ export default function App() {
       console.log('exists', exists);
       const dataFolder = await ipcRenderer.invoke('getPath', 'userData');
       const r = await Realm.open({
-        schema: [ProjectModel, TextureModel, ItemModel, BlockModel, ModModel],
+        schema: [
+          ProjectModel,
+          TextureModel,
+          ItemModel,
+          BlockModel,
+          ModModel,
+          GlobalStateModel,
+        ],
+        deleteRealmIfMigrationNeeded: true,
         path: `${dataFolder}/minecraft_toolkit.realm`,
       });
       setRealm(r);
       const tasks = r.objects(ProjectModel);
       console.log('tasks', tasks);
+
+      if (!r.objects(GlobalStateModel)[0]) {
+        r.write(() => {
+          r.create(GlobalStateModel.schema.name, {
+            _id: new Realm.BSON.ObjectID(),
+            hasCheckedForCurseForge: false,
+            version: 1,
+          });
+        });
+      }
+
       setLoading(false);
     })();
   }, []);

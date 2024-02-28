@@ -1,12 +1,32 @@
-import type { ObjectSchema } from 'realm';
-
-const Realm = window.require('realm');
+import Realm, { BSON, ObjectSchema } from 'realm';
+import { ProjectModel } from './project.model';
 
 export class ModModel extends Realm.Object {
+  _id!: BSON.ObjectId;
+
+  modId!: string;
+
+  version!: string;
+
+  name!: string;
+
+  jarPath!: string;
+
+  category?: string;
+
+  config!: string;
+
+  dependencies!: string[];
+
+  project!: ProjectModel;
+
   static schema: ObjectSchema = {
     name: 'Mod',
     properties: {
-      _id: 'objectId',
+      _id: {
+        type: 'objectId',
+        default: () => new Realm.BSON.ObjectId(),
+      },
       modId: 'string',
       version: 'string',
       name: 'string',

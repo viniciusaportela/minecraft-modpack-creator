@@ -1,5 +1,4 @@
-import { app, BrowserWindow } from 'electron';
-import path from 'path';
+import { BrowserWindow } from 'electron';
 import { ICreateWindow } from '../interfaces/create-window.interface';
 import windowConfigs from './window-configs';
 import { resolveHtmlPath } from '../util';
