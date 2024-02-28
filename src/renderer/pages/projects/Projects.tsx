@@ -8,10 +8,6 @@ import { useAppStore } from '../../store/app.store';
 import { readConfigFromModpack } from '../../store/project.store';
 import { usePager } from '../../components/pager/hooks/usePager';
 
-const fs = window.require('fs');
-
-console.log(fs);
-
 export default function Projects() {
   const { navigate } = usePager();
   const { setGoBack, setProject, setTitle, setCustomRightElement } =

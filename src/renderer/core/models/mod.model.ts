@@ -1,7 +1,9 @@
+import type { ObjectSchema } from 'realm';
+
 const Realm = window.require('realm');
 
-export class ModConfigModel extends Realm.Object {
-  static schema = {
+export class ModModel extends Realm.Object {
+  static schema: ObjectSchema = {
     name: 'Mod',
     properties: {
       _id: 'objectId',

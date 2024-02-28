@@ -1,7 +1,9 @@
+import type { ObjectSchema } from 'realm';
+
 const Realm = window.require('realm');
 
 export class ItemModel extends Realm.Object {
-  static schema = {
+  static schema: ObjectSchema = {
     name: 'Item',
     properties: {
       _id: 'objectId',

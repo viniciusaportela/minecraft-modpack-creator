@@ -16,7 +16,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import StreamZip from 'node-stream-zip';
 import * as crypto from 'crypto';
 import { resolveHtmlPath } from './util';
-import WindowManager from './core/WindowManager';
+import WindowManager from './core/window-manager';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -227,10 +227,6 @@ const createWindow = async () => {
   ipcMain.handle(
     'loadTexture',
     async (ev, modId: string, modJarPath: string, texturePath: string) => {
-      console.log(
-        `load texture of mod ${modId} from ${modJarPath}, texture path ${texturePath}`,
-      );
-
       const imgFolderPath = path.join(
         app.getPath('userData'),
         'textures',
@@ -321,6 +317,10 @@ const createWindow = async () => {
       await writeFile(path.join(exportedFolderPath, '.migrated'), '');
     },
   );
+
+  ipcMain.handle('getPath', async (ev, name) => {
+    return app.getPath(name);
+  });
 
   // Open urls in the user's browser
   mainWindow.webContents.setWindowOpenHandler((edata) => {

@@ -3,7 +3,7 @@ import { Cards, MagnifyingGlass } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { ipcRenderer } from 'electron';
 import { VanillaItemsBlocks } from './constants/vanilla-items-blocks';
-import useParams from '../../utils/useParams';
+import useParams from '../../hooks/useParams';
 
 export default function Picker() {
   const [inputText, setInputText] = useState('');

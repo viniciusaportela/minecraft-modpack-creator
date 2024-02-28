@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { ICreateWindow } from '../interfaces/create-window.interface';
-import windowConfigs from './windowConfigs';
+import windowConfigs from './window-configs';
 import { resolveHtmlPath } from '../util';
 import { IWindowContext } from '../interfaces/window-context.interface';
 
@@ -38,9 +38,8 @@ export default class WindowManager {
       frame: false,
       webPreferences: {
         devTools: false,
-        preload: app.isPackaged
-          ? path.join(__dirname, '..', 'preload.js')
-          : path.join(__dirname, '..', '../../.erb/dll/preload.js'),
+        nodeIntegration: true,
+        contextIsolation: false,
       },
     });
 

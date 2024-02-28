@@ -12,7 +12,7 @@ import { Hammer, X } from '@phosphor-icons/react';
 import { useShallow } from 'zustand/react/shallow';
 import { ipcRenderer } from 'electron';
 import { IMod } from '../../typings/project-meta.interface';
-import useHorizontalScroll from '../../utils/useHorizontalScroll';
+import useHorizontalScroll from '../../hooks/useHorizontalScroll';
 import Recipes from '../recipes/Recipes';
 import { useAppStore } from '../../store/app.store';
 import { useProjectStore } from '../../store/project.store';

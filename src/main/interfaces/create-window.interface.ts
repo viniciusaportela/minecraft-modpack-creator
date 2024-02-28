@@ -1,5 +1,5 @@
 import { BrowserWindow } from 'electron';
-import windowConfigs from '../core/windowConfigs';
+import windowConfigs from '../core/window-configs';
 
 export interface ICreateWindow {
   parent: BrowserWindow;

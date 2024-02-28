@@ -153,8 +153,8 @@
     "webpack-merge": "^5.9.0"
   },
   "build": {
-    "productName": "Modpack Creator",
-    "appId": "net.viniciusaportela.modpack-creator",
+    "productName": "Minecraft Toolkit",
+    "appId": "net.viniciusaportela.minecraft-toolkit",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
