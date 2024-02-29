@@ -15,11 +15,9 @@ export default class WindowManager {
     }
 
     if (config.keepAlive) {
-      console.log('keepAlive', this.windows);
       const windowCtx = this.windows.find((ctx) => ctx.config.page === page);
 
       if (windowCtx) {
-        console.log('hasWindowCtx');
         windowCtx.respondRequester = respondRequester;
         windowCtx.window.show();
         return;
@@ -74,8 +72,6 @@ export default class WindowManager {
     });
 
     window.on('close', () => {
-      console.log('child closed', requestId);
-
       if (config.type === 'response') {
         this.respond(ctx, null);
       }
@@ -87,7 +83,6 @@ export default class WindowManager {
   }
 
   private static respond(ctx: IWindowContext, params: any) {
-    console.log('respond', ctx.config, params);
     if (ctx.respondRequester) {
       ctx.respondRequester(params);
       ctx.respondRequester = null;

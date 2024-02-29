@@ -21,6 +21,7 @@ module.exports = {
     'no-use-before-define': 'off',
     'react/no-unescaped-entities': 'off',
     'import/no-cycle': 'warn',
+    'no-underscore-dangle': 'off',
   },
   parserOptions: {
     ecmaVersion: 2022,

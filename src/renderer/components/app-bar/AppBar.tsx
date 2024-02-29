@@ -6,11 +6,11 @@ import { ipcRenderer } from 'electron';
 import { useAppStore } from '../../store/app.store';
 
 export default function AppBar() {
-  const { goBack, title, customRightElement } = useAppStore(
+  const { goBack, title, customMiddleComponent } = useAppStore(
     useShallow((st) => ({
       goBack: st.goBack,
       title: st.title,
-      customRightElement: st.customRightElement,
+      customMiddleComponent: st.headerMiddleComponent,
     })),
   );
 
@@ -41,11 +41,10 @@ export default function AppBar() {
           <CaretLeft size={20} />
         </Button>
       )}
-      <span className="text-xl font-bold bg-gradient-to-br from-blue-500 to-green-400 bg-clip-text text-transparent ml-5">
+      <span className="text-xl font-bold bg-gradient-to-br from-blue-500 to-green-400 bg-clip-text text-transparent ml-5 min-w-fit">
         {title}
       </span>
-      <div className="flex-1 h-full app-bar-drag" />
-      {customRightElement}
+      {customMiddleComponent ?? <div className="flex-1 app-bar-drag h-full" />}
       <div className="flex gap-1 ml-2">
         <Button
           isIconOnly
@@ -55,7 +54,7 @@ export default function AppBar() {
           variant="flat"
           className="bg-zinc-800"
         >
-          <Minus />
+          <Minus className="text-zinc-200" />
         </Button>
         <Button
           isIconOnly
@@ -66,7 +65,7 @@ export default function AppBar() {
           variant="flat"
           className="bg-zinc-800"
         >
-          <CornersOut />
+          <CornersOut className="text-zinc-200" />
         </Button>
         <Button
           isIconOnly
@@ -77,7 +76,7 @@ export default function AppBar() {
           variant="flat"
           className="bg-zinc-800"
         >
-          <X />
+          <X className="text-zinc-200" />
         </Button>
       </div>
     </div>

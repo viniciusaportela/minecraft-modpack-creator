@@ -26,5 +26,6 @@ export class ItemModel extends Realm.Object {
         property: 'items',
       },
     },
+    primaryKey: '_id',
   };
 }

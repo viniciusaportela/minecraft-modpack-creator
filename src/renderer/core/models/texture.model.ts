@@ -28,5 +28,6 @@ export class TextureModel extends Realm.Object {
         property: 'textures',
       },
     },
+    primaryKey: '_id',
   };
 }

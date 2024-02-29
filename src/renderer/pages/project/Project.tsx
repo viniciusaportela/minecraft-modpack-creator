@@ -20,6 +20,9 @@ import { IProjectStore } from '../../store/interfaces/project-store.interface';
 import { pageByMod } from '../../constants/page-by-mod';
 import DefaultPlugin from '../mods/default/DefaultPlugin';
 import { usePager } from '../../components/pager/hooks/usePager';
+import AppBarHeader, {
+  AppBarHeaderContainer,
+} from '../../components/app-bar/AppBarHeader';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -28,14 +31,12 @@ export default function Project() {
 
   const recipes = useProjectStore((st) => st.recipes);
   const [isBuilding, setIsBuilding] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [loadingText, setLoadingText] = useState('');
 
   const { setTitle, setGoBack, setCustomRightElement } = useAppStore(
     useShallow((st) => ({
       setTitle: st.setTitle,
       setGoBack: st.setGoBack,
-      setCustomRightElement: st.setCustomRightElement,
+      setCustomRightElement: st.setHeaderMiddleComponent,
     })),
   );
 
@@ -44,8 +45,6 @@ export default function Project() {
       project: st.projectMeta,
     })),
   );
-
-  console.log('Project', project);
 
   const [openedModTabs, setOpenedModTabs] = useState<any[]>([]);
   const [selectedTab, setSelectedTab] = useState('recipes');
@@ -202,6 +201,12 @@ export default function Project() {
 
   return (
     <div className="flex flex-1 min-h-0">
+      <AppBarHeader
+        title={project?.name ?? ''}
+        goBack={() => navigate('projects')}
+      >
+        <AppBarHeaderContainer />
+      </AppBarHeader>
       <div className="w-80 border-[0.5px] border-solid border-zinc-800 border-t-0 flex flex-col">
         <span className="text-lg p-5 pb-3">
           {project?.installedAddons.length} mods

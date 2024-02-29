@@ -25,6 +25,8 @@ export class ProjectModel extends Realm.Object {
 
   modsChecksum?: string;
 
+  amountInstalledMods?: number;
+
   textures?: TextureModel[];
 
   items?: ItemModel[];
@@ -36,14 +38,22 @@ export class ProjectModel extends Realm.Object {
   static schema: ObjectSchema = {
     name: 'Project',
     properties: {
+      _id: {
+        type: 'objectId',
+        default: () => new BSON.ObjectId(),
+      },
       name: 'string',
       path: 'string',
       minecraftVersion: 'string',
       loaderVersion: 'string',
       loader: 'string',
+      amountInstalledMods: 'int',
       fromCurseForge: 'bool',
       version: 'int',
-      loaded: 'bool',
+      loaded: {
+        type: 'bool',
+        default: false,
+      },
       modsChecksum: 'string?',
       textures: {
         type: 'list',
@@ -66,6 +76,6 @@ export class ProjectModel extends Realm.Object {
         default: [],
       },
     },
-    primaryKey: 'name',
+    primaryKey: '_id',
   };
 }

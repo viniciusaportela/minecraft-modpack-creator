@@ -18,6 +18,8 @@ export class ModModel extends Realm.Object {
 
   dependencies!: string[];
 
+  tags!: string[];
+
   project!: ProjectModel;
 
   static schema: ObjectSchema = {
@@ -34,11 +36,17 @@ export class ModModel extends Realm.Object {
       category: 'string',
       config: 'string',
       dependencies: 'string[]',
+      tags: {
+        type: 'list',
+        objectType: 'string',
+        default: [],
+      },
       project: {
         type: 'linkingObjects',
         objectType: 'Project',
         property: 'mods',
       },
     },
+    primaryKey: '_id',
   };
 }

@@ -28,5 +28,6 @@ export class BlockModel extends Realm.Object {
         property: 'blocks',
       },
     },
+    primaryKey: '_id',
   };
 }

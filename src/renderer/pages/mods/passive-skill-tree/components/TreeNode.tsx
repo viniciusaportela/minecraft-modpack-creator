@@ -16,7 +16,6 @@ export default memo(({ data }: { data: any }) => {
         'skilltree:textures/',
         '',
       );
-      console.log(texturePath);
 
       const texture = await ipcRenderer.invoke(
         'loadTexture',

@@ -9,7 +9,15 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain, protocol, net } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  shell,
+  ipcMain,
+  protocol,
+  net,
+  dialog,
+} from 'electron';
 import * as os from 'os';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync, mkdirSync } from 'node:fs';
@@ -88,21 +96,6 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
-  ipcMain.handle('getCurseForgeFolder', () => {
-    if (process.platform === 'linux') {
-      const home = os.homedir();
-      return path.join(
-        home,
-        'Documents',
-        'curseforge',
-        'minecraft',
-        'Instances',
-      );
-    }
-
-    return null;
-  });
-
   ipcMain.on('on-open-project', () => {
     mainWindow!.setSize(1280, 900);
   });
@@ -116,18 +109,14 @@ const createWindow = async () => {
   });
 
   ipcMain.handle('writeFile', (ev, savePath: string, value: string) => {
-    console.log(savePath);
     const doesExists = existsSync(savePath.split('/').slice(0, -1).join('/'));
 
     if (!doesExists) {
       const parts = savePath.split('/').slice(0, -1).slice(1);
-      console.log(parts);
       let currentPath = '';
       parts.forEach((part) => {
         currentPath = `${currentPath}/${part}`;
-        console.log('verify', currentPath, existsSync(currentPath));
         if (!existsSync(currentPath)) {
-          console.log('Creating folder', currentPath);
           mkdirSync(currentPath);
         }
       });
@@ -180,7 +169,6 @@ const createWindow = async () => {
   ipcMain.handle('open', (_, page: string) => {
     return new Promise((resolve) => {
       const requestId = crypto.randomBytes(16).toString('hex');
-      console.log('open', requestId);
 
       WindowManager.create({
         parent: mainWindow!,
@@ -292,7 +280,6 @@ const createWindow = async () => {
       const entries = await zip.entries();
 
       for await (const entry of Object.values(entries)) {
-        console.log(entry);
         if (
           entry.name.startsWith(`assets/${modId}/textures`) &&
           entry.name.endsWith('.png')
@@ -320,6 +307,10 @@ const createWindow = async () => {
 
   ipcMain.handle('getPath', async (ev, name) => {
     return app.getPath(name);
+  });
+
+  ipcMain.handle('openDialog', async (ev, options) => {
+    return dialog.showOpenDialog(options);
   });
 
   // Open urls in the user's browser

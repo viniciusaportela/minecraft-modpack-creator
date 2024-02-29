@@ -9,6 +9,7 @@ const DEFAULTS_VALUES = {
   kubejsScripts: [],
 };
 
+// TODO remove
 export const useProjectStore = create(
   persist<IProjectStore>(() => ({ ...DEFAULTS_VALUES }), {
     name: 'project-store',
@@ -36,12 +37,3 @@ export const useProjectStore = create(
     },
   }),
 );
-
-export async function readConfigFromModpack(modpackFolder: string) {
-  const config = await ipcRenderer.invoke('readConfig', modpackFolder);
-  if (config.recipes) {
-    useProjectStore.setState(config);
-  } else {
-    useProjectStore.setState({ ...DEFAULTS_VALUES, modpackFolder });
-  }
-}

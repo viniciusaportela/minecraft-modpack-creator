@@ -33,17 +33,14 @@ export default function EditTree() {
   );
   const onEdgesChange = useCallback(
     (changes) => {
-      console.log(changes);
       return setFlowEdges((eds) => applyEdgeChanges(changes, eds));
     },
     [setFlowEdges],
   );
   const onConnect = useCallback(
     (connection) => {
-      console.log('onConnect', connection, 'nodes', flowNodes);
       setFlowEdges((edges) => {
         const filtered = flowNodes.filter((n) => n.id === connection.source);
-        console.log('filtered', filtered);
         const reduced = filtered.reduce((edgs, node) => {
           return addEdge(
             {
@@ -55,7 +52,6 @@ export default function EditTree() {
             edgs,
           );
         }, edges);
-        console.log('reduced', reduced);
 
         return reduced;
       });
@@ -66,7 +62,6 @@ export default function EditTree() {
 
   const onEdgeDelete = useCallback(
     (edges) => {
-      console.log('onEdgeDelete', edges);
       setFlowEdges((eds) => {
         return eds.filter((e) => !edges.includes(e.id));
       });
@@ -103,7 +98,6 @@ export default function EditTree() {
   }
 
   function configToEdges(config: any) {
-    console.log(config);
     const edges = [];
 
     config.skills.forEach((cfg) => {
