@@ -1,6 +1,7 @@
 import StreamZip, { StreamZipAsync } from 'node-stream-zip';
 import * as toml from 'toml';
-import { IModsToml } from './interfaces/mods-toml';
+import { IModsToml } from './interfaces/mods-toml.interface';
+import { IProcessItemContext } from './interfaces/jar-loader.interface';
 
 export default class JarLoader {
   private jarPath: string;
@@ -26,9 +27,46 @@ export default class JarLoader {
     return toml.parse(buffer.toString());
   }
 
-  getTextures() {}
+  async processTextures(
+    perTextureCallback: (
+      extract: (outputPath: string) => Promise<void>,
+      texturePath: string,
+    ) => Promise<void>,
+  ) {
+    const entries = await this.zip.entries();
+    const textures = Object.values(entries).filter(
+      (e) => /assets\/.*\/textures/g.test(e.name) && e.name.endsWith('.png'),
+    );
 
-  getBlocks() {}
+    for await (const texture of textures) {
+      await perTextureCallback(async (outputPath: string) => {
+        await this.zip.extract(texture.name, outputPath);
+      }, texture.name);
+    }
+  }
 
-  getItems() {}
+  async processBlocks() {}
+
+  async processItems(
+    perItemCallback: (context: IProcessItemContext) => Promise<void>,
+  ) {
+    const entries = await this.zip.entries();
+    const items = Object.values(entries).filter((e) =>
+      /assets\/.*\/models\/item/g.test(e.name),
+    );
+
+    for await (const item of items) {
+      const modelJson = JSON.parse(
+        (await this.zip.entryData(item.name)).toString(),
+      );
+
+      const fullItemId = item.name.replace(/assets\/.*\/models\/item\//g, '');
+
+      await perItemCallback({
+        fullItemId,
+        itemId: fullItemId.split('/')[1],
+        modelJson,
+      });
+    }
+  }
 }

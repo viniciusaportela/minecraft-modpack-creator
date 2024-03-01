@@ -2,7 +2,7 @@ import Realm from 'realm';
 import { existsSync } from 'node:fs';
 import CurseForgeStrategy from './curse-forge.strategy';
 import MinecraftStrategy from './minecraft.strategy';
-import BusinessLogicError from '../errors/business-logic-error';
+import BusinessLogicError from '../../errors/business-logic-error';
 
 export default class ProjectsServiceClass {
   private realm: Realm;

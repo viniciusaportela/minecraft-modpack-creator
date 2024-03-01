@@ -11,7 +11,7 @@ import { ItemModel } from './core/models/item.model';
 import { BlockModel } from './core/models/block.model';
 import { ModModel } from './core/models/mod.model';
 import { GlobalStateModel } from './core/models/global-state.model';
-import ProjectsServiceClass from './core/services/projects-service-class';
+import ProjectsServiceClass from './core/services/projects/projects-service-class';
 import { useAppStore } from './store/app.store';
 
 const MainApp = lazy(() => import('./MainApp'));

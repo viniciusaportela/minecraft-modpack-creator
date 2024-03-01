@@ -27,13 +27,13 @@ export class ProjectModel extends Realm.Object {
 
   amountInstalledMods?: number;
 
-  textures?: TextureModel[];
+  textures!: TextureModel[];
 
-  items?: ItemModel[];
+  items!: ItemModel[];
 
-  blocks?: BlockModel[];
+  blocks!: BlockModel[];
 
-  mods?: ModModel[];
+  mods!: ModModel[];
 
   static schema: ObjectSchema = {
     name: 'Project',

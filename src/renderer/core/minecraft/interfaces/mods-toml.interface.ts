@@ -8,11 +8,14 @@ export interface IModsToml {
     logoFile: string;
     authors: string;
     description: string;
-  };
-  dependencies: {
-    modId: string;
-    mandatory: boolean;
-    versionRange: string;
-    side: string;
   }[];
+  dependencies: Record<
+    string,
+    {
+      modId: string;
+      mandatory: boolean;
+      versionRange: string;
+      side: string;
+    }[]
+  >;
 }

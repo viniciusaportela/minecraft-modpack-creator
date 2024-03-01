@@ -33,7 +33,7 @@ export class ModModel extends Realm.Object {
       version: 'string',
       name: 'string',
       jarPath: 'string',
-      category: 'string',
+      category: 'string?',
       config: 'string',
       dependencies: 'string[]',
       tags: {

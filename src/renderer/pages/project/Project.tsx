@@ -11,7 +11,6 @@ import {
 import { Hammer, X } from '@phosphor-icons/react';
 import { useShallow } from 'zustand/react/shallow';
 import { ipcRenderer } from 'electron';
-import { IMod } from '../../typings/project-meta.interface';
 import useHorizontalScroll from '../../hooks/useHorizontalScroll.hook';
 import Recipes from '../recipes/Recipes';
 import { useAppStore } from '../../store/app.store';
@@ -23,6 +22,7 @@ import { usePager } from '../../components/pager/hooks/usePager';
 import AppBarHeader, {
   AppBarHeaderContainer,
 } from '../../components/app-bar/AppBarHeader';
+import { IMod } from '../../core/minecraft/interfaces/curse-metadata.interface';
 
 export default function Project() {
   useHorizontalScroll('tabs');

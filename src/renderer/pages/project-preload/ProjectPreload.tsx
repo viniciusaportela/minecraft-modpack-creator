@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Progress } from '@nextui-org/react';
 import * as crypto from 'crypto';
+import { ipcRenderer } from 'electron';
+import path from 'path';
+import { mkdir } from 'node:fs/promises';
 import { usePager } from '../../components/pager/hooks/usePager';
 import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
 import { ProjectModel } from '../../core/models/project.model';
@@ -8,8 +11,8 @@ import AppBarHeader from '../../components/app-bar/AppBarHeader';
 import JarLoader from '../../core/minecraft/jar-loader';
 import { useRealm } from '../../store/realm.context';
 import { GlobalStateModel } from '../../core/models/global-state.model';
-import { MinecraftDirectory } from '../../core/minecraft/minecraft-directory';
-import { ModModel } from '../../core/models/mod.model';
+import { CurseDirectory } from '../../core/minecraft/directory/curse-directory';
+import { JarHandler } from '../../core/minecraft/jarHandler';
 
 export default function ProjectPreload() {
   const realm = useRealm();
@@ -25,65 +28,124 @@ export default function ProjectPreload() {
 
   useEffect(() => {
     loadProject();
+    ipcRenderer.send('resize', 400, 150);
+    ipcRenderer.send('make-no-resizable');
+
+    return () => {
+      ipcRenderer.send('make-resizable');
+    };
   }, []);
 
   async function loadProject() {
-    if (project) {
-      if (project.loaded) {
-        navigate('project');
-      } else {
-        setIsInderterminate(false);
+    try {
+      if (project) {
+        if (project.loaded) {
+          navigate('project');
+        } else {
+          setIsInderterminate(false);
 
-        const mods = await new MinecraftDirectory(project.path).getModJars();
-        const shaHash = crypto.createHash('sha1');
-        shaHash.update(
-          mods.reduce((finalStr, modFile) => finalStr + modFile, ''),
-        );
-        const modsChecksum = shaHash.digest('hex');
+          const directory = new CurseDirectory(project.path);
+          const mods = await directory.getModJarPaths();
+          const shaHash = crypto.createHash('sha1');
+          shaHash.update(
+            mods.reduce((finalStr, modFile) => finalStr + modFile, ''),
+          );
+          const modsChecksum = shaHash.digest('hex');
+          console.log('generated modsChecksum', modsChecksum);
 
-        realm.write(() => {
-          const project = realm.objectForPrimaryKey(
-            ProjectModel,
-            globalState.selectedProjectId!,
-          )!;
+          setTotalProgress(mods.length);
+
+          realm.beginTransaction();
           project.modsChecksum = modsChecksum;
-        });
 
-        setTotalProgress(mods.length);
+          const minecraftMod = project.mods?.find(
+            (m) => m.modId === 'minecraft',
+          );
 
-        // TODO load minecraft jar too
-        realm.write(() => {
-          // check if already exists
-          // create
-        });
-        // await loadJarFiles();
+          console.log(project.path, minecraftMod?.toJSON());
+          if (!minecraftMod) {
+            const minecraftJarPath = await directory.getMinecraftJarPath();
+            console.log(minecraftJarPath);
 
-        for await (const modFile of mods) {
-          const jar = await JarLoader.load(modFile);
+            // load everything for minecraft jar
+            const minecraftJar = await JarLoader.load(minecraftJarPath);
 
-          const metadata = await jar.getMetadata();
+            const handler = new JarHandler(minecraftJar, project, realm);
 
-          let createdMod: ModModel = null as unknown as ModModel;
-          realm.write(() => {
-            createdMod = realm.create(ModModel, {
-              jarPath: modFile,
-              project,
-              modId: metadata.mods.modId,
-              name: metadata.mods.displayName,
-              dependencies: metadata.dependencies
-                .filter((d) => d.mandatory)
-                .map((d) => d.modId),
-              // TODO add category
-            });
-          });
+            await handler.handleTextures();
+            // await handler.handleItems();
+            // await handler.handleBlocks();
 
-          await loadJarFiles(jar);
+            // await minecraftJar.processBlocks();
+
+            // const createdMinecraftMod = realm.create(ModModel, {
+            //   jarPath: `${project.path}/mods/minecraft.jar`,
+            //   project,
+            //   modId: 'minecraft',
+            //   name: 'Minecraft',
+            //   config: '{}',
+            //   version: project.minecraftVersion,
+            //   dependencies: [],
+            // });
+            //
+            // project.mods!.push(createdMinecraftMod);
+          }
+
+          console.log('project.mods', project.mods);
+
+          const migratedMods = project.mods!;
+
+          // const migratedMods = realm
+          //   .objects(ModModel)
+          //   .filtered('project = $0', project);
+
+          const allMods = await directory.getModJarPaths();
+
+          console.log(allMods);
+
+          const modsToMigrate = allMods.filter(
+            (modPath) =>
+              migratedMods.find((m) => path.basename(m.jarPath) === modPath) ===
+              undefined,
+          );
+          console.log('modsToMigrate', modsToMigrate);
+
+          // go for each mod, verify if already registered
+
+          for await (const modFile of mods) {
+            // const jar = await JarLoader.load(modFile);
+            //
+            // const metadata = await jar.getMetadata();
+            //
+            // console.log(metadata);
+            //
+            // const { modId } = metadata.mods[0];
+            //
+            // const createdMod = realm.create(ModModel, {
+            //   jarPath: modFile,
+            //   project,
+            //   modId,
+            //   name: metadata.mods[0].displayName,
+            //   dependencies: metadata.dependencies[modId]
+            //     .filter((d) => d.mandatory)
+            //     .map((d) => d.modId),
+            //   // TODO add category
+            // });
+            //
+            // project.mods!.push(createdMod);
+            // await loadJarFiles(jar);
+          }
+
+          realm.commitTransaction();
+
+          // navigate('project');
         }
-
-        // navigate('project');
+      } else {
+        console.warn('Project is undefined');
       }
-    } else {
-      console.warn('Project is undefined');
+    } catch (err) {
+      console.error(err?.stack);
+      if (realm.isInTransaction) realm.cancelTransaction();
     }
   }
 
@@ -96,7 +158,7 @@ export default function ProjectPreload() {
   }
 
   return (
-    <div className="flex-1 flex flex-col justify-center h-full p-20">
+    <div className="flex-1 flex flex-col justify-center h-full p-5 pt-0">
       <AppBarHeader title="My Projects" goBack={null}>
         {null}
       </AppBarHeader>

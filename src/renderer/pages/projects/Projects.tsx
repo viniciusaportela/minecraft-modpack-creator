@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ipcRenderer } from 'electron';
 import { Button, Divider, Input, useDisclosure } from '@nextui-org/react';
 import { ArrowClockwise, MagnifyingGlass } from '@phosphor-icons/react';
@@ -14,7 +14,7 @@ import AppBarHeader, {
 } from '../../components/app-bar/AppBarHeader';
 import LoadProjectModal from './components/LoadProjectModal';
 import { ProjectsService } from '../../App';
-import getCurseForgeFolder from '../../core/helpers/get-curse-forge-folder';
+import getCurseForgeFolder from '../../core/minecraft/helpers/get-curse-forge-folder';
 
 export default function Projects() {
   const realm = useRealm();
@@ -34,6 +34,12 @@ export default function Projects() {
 
   useEffect(() => {
     findProjects().catch(console.error);
+    ipcRenderer.send('resize', 800, 600);
+    ipcRenderer.send('make-no-resizable');
+
+    return () => {
+      ipcRenderer.send('make-resizable');
+    };
   }, []);
 
   const onAddNewProject = async (modpackFolder: string) => {
@@ -86,8 +92,6 @@ export default function Projects() {
     });
 
     navigate('project-preload');
-
-    ipcRenderer.send('on-open-project');
   };
 
   const filteredProjects = filterText

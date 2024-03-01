@@ -18,7 +18,6 @@ import {
   net,
   dialog,
 } from 'electron';
-import * as os from 'os';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync, mkdirSync } from 'node:fs';
 import StreamZip from 'node-stream-zip';
@@ -94,6 +93,18 @@ const createWindow = async () => {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+  });
+
+  ipcMain.on('resize', (_, width: number, height: number) => {
+    mainWindow!.setSize(width, height);
+  });
+
+  ipcMain.on('make-no-resizable', (_) => {
+    mainWindow!.setResizable(false);
+  });
+
+  ipcMain.on('make-resizable', (_) => {
+    mainWindow!.setResizable(true);
   });
 
   ipcMain.on('on-open-project', () => {

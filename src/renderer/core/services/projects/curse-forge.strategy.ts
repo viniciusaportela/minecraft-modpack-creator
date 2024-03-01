@@ -1,8 +1,8 @@
 import Realm from 'realm';
 import { readFile } from 'node:fs/promises';
-import { IProjectStrategy } from './interfaces/project-strategy.interface';
-import { ProjectModel } from '../models/project.model';
-import { CURRENT_VERSION } from '../../constants/current_version';
+import { IProjectStrategy } from '../interfaces/project-strategy.interface';
+import { ProjectModel } from '../../models/project.model';
+import { CURRENT_VERSION } from '../../../constants/current_version';
 
 export default class CurseForgeStrategy implements IProjectStrategy {
   private realm: Realm;
