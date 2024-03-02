@@ -4,6 +4,7 @@ export interface IMod {
   primaryAuthor: string;
   thumbnailUrl: string;
   webSiteURL: string;
+  fileNameOnDisk: string;
   status: number;
 }
 

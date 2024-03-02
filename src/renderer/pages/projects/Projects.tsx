@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ipcRenderer } from 'electron';
 import { Button, Divider, Input, useDisclosure } from '@nextui-org/react';
 import { ArrowClockwise, MagnifyingGlass } from '@phosphor-icons/react';
+import { readdir } from 'node:fs/promises';
 import ProjectCard from './components/ProjectCard';
 import AddProject from './components/AddProject';
 import { usePager } from '../../components/pager/hooks/usePager';
@@ -57,7 +58,7 @@ export default function Projects() {
 
       if (curseFolder) {
         try {
-          const folders = await ipcRenderer.invoke('readDir', curseFolder);
+          const folders = await readdir(curseFolder);
           const promises = folders.map((f: string) =>
             ProjectsService.createProjectFromFolder(`${curseFolder}/${f}`),
           );

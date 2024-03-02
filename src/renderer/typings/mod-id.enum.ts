@@ -1,6 +1,7 @@
 enum ModId {
-  KubeJS = 238086,
-  PassiveSkillTree = 850298,
+  Minecraft = 'minecraft',
+  KubeJS = 'kubejs',
+  PassiveSkillTree = 'skilltree',
 }
 
 export default ModId;

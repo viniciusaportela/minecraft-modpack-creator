@@ -1,9 +1,7 @@
-import Realm, { BSON, ObjectSchema } from 'realm';
+import Realm, { ObjectSchema } from 'realm';
 import { ProjectModel } from './project.model';
 
 export class BlockModel extends Realm.Object {
-  _id!: BSON.ObjectId;
-
   id!: string;
 
   name!: string;
@@ -15,10 +13,6 @@ export class BlockModel extends Realm.Object {
   static schema: ObjectSchema = {
     name: 'Block',
     properties: {
-      _id: {
-        type: 'objectId',
-        default: () => new Realm.BSON.ObjectId(),
-      },
       id: 'string',
       name: 'string',
       model: 'string',
@@ -28,6 +22,6 @@ export class BlockModel extends Realm.Object {
         property: 'blocks',
       },
     },
-    primaryKey: '_id',
+    primaryKey: 'id',
   };
 }

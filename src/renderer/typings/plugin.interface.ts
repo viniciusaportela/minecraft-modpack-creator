@@ -1,6 +1,6 @@
-import { IMod } from '../core/minecraft/interfaces/curse-metadata.interface';
+import { ModModel } from '../core/models/mod.model';
 
 export interface IModPageProps {
-  mod: IMod;
+  mod: ModModel;
   isVisible: boolean;
 }

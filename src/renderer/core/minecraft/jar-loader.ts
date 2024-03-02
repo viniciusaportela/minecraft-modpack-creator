@@ -1,10 +1,13 @@
 import StreamZip, { StreamZipAsync } from 'node-stream-zip';
-import * as toml from 'toml';
+import toml from 'toml';
+import {
+  IProcessBlockContext,
+  IProcessItemContext,
+} from './interfaces/jar-loader.interface';
 import { IModsToml } from './interfaces/mods-toml.interface';
-import { IProcessItemContext } from './interfaces/jar-loader.interface';
 
 export default class JarLoader {
-  private jarPath: string;
+  readonly jarPath: string;
 
   private zip!: StreamZipAsync;
 
@@ -23,8 +26,8 @@ export default class JarLoader {
   }
 
   async getMetadata(): Promise<IModsToml> {
-    const buffer = await this.zip.entryData('META-INF/mods.toml');
-    return toml.parse(buffer.toString());
+    const rawToml = await this.zip.entryData('META-INF/mods.toml');
+    return toml.parse(rawToml.toString());
   }
 
   async processTextures(
@@ -35,24 +38,59 @@ export default class JarLoader {
   ) {
     const entries = await this.zip.entries();
     const textures = Object.values(entries).filter(
-      (e) => /assets\/.*\/textures/g.test(e.name) && e.name.endsWith('.png'),
+      (e) =>
+        /assets\/.*\/textures/g.test(e.name) &&
+        e.name.endsWith('.png') &&
+        e.isFile,
     );
 
-    for await (const texture of textures) {
+    const promises = textures.map(async (texture) => {
       await perTextureCallback(async (outputPath: string) => {
         await this.zip.extract(texture.name, outputPath);
       }, texture.name);
-    }
+    });
+
+    return Promise.all(promises);
   }
 
-  async processBlocks() {}
+  async processBlocks(
+    perBlockCallback: (context: IProcessBlockContext) => Promise<void>,
+  ) {
+    const entries = await this.zip.entries();
+    const blocks = Object.values(entries).filter(
+      (e) =>
+        /assets\/.*\/models\/block/g.test(e.name) &&
+        e.isFile &&
+        e.name.endsWith('.json'),
+    );
+
+    for await (const block of blocks) {
+      console.log('block', block);
+      const modelJson = JSON.parse(
+        (await this.zip.entryData(block.name)).toString(),
+      );
+
+      const modId = /assets\/(.*)\/models\/block/g.exec(block.name)?.[1];
+      const blockId = block.name
+        .replace(/assets\/.*\/models\/block\//g, '')
+        .replace('.json', '');
+
+      await perBlockCallback({
+        fullBlockId: `${modId}:${blockId}`,
+        modelJson,
+      });
+    }
+  }
 
   async processItems(
     perItemCallback: (context: IProcessItemContext) => Promise<void>,
   ) {
     const entries = await this.zip.entries();
-    const items = Object.values(entries).filter((e) =>
-      /assets\/.*\/models\/item/g.test(e.name),
+    const items = Object.values(entries).filter(
+      (e) =>
+        /assets\/.*\/models\/item/g.test(e.name) &&
+        e.isFile &&
+        e.name.endsWith('.json'),
     );
 
     for await (const item of items) {
@@ -60,11 +98,13 @@ export default class JarLoader {
         (await this.zip.entryData(item.name)).toString(),
       );
 
-      const fullItemId = item.name.replace(/assets\/.*\/models\/item\//g, '');
+      const modId = /assets\/(.*)\/models\/item/g.exec(item.name)?.[1];
+      const itemId = item.name
+        .replace(/assets\/.*\/models\/item\//g, '')
+        .replace('.json', '');
 
       await perItemCallback({
-        fullItemId,
-        itemId: fullItemId.split('/')[1],
+        fullItemId: `${modId}:${itemId}`,
         modelJson,
       });
     }

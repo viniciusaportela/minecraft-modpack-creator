@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useState } from 'react';
 import {
   Button,
   Card,
@@ -9,11 +9,9 @@ import {
   Tabs,
 } from '@nextui-org/react';
 import { Hammer, X } from '@phosphor-icons/react';
-import { useShallow } from 'zustand/react/shallow';
 import { ipcRenderer } from 'electron';
 import useHorizontalScroll from '../../hooks/useHorizontalScroll.hook';
 import Recipes from '../recipes/Recipes';
-import { useAppStore } from '../../store/app.store';
 import { useProjectStore } from '../../store/project.store';
 import { IProjectStore } from '../../store/interfaces/project-store.interface';
 import { pageByMod } from '../../constants/page-by-mod';
@@ -22,29 +20,39 @@ import { usePager } from '../../components/pager/hooks/usePager';
 import AppBarHeader, {
   AppBarHeaderContainer,
 } from '../../components/app-bar/AppBarHeader';
-import { IMod } from '../../core/minecraft/interfaces/curse-metadata.interface';
+import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
+import { GlobalStateModel } from '../../core/models/global-state.model';
+import { ProjectModel } from '../../core/models/project.model';
+import ModId from '../../typings/mod-id.enum';
+import { ModModel } from '../../core/models/mod.model';
 
 export default function Project() {
   useHorizontalScroll('tabs');
 
   const { navigate } = usePager();
 
+  // TODO add loading state on start
+
   const recipes = useProjectStore((st) => st.recipes);
   const [isBuilding, setIsBuilding] = useState(false);
 
-  const { setTitle, setGoBack, setCustomRightElement } = useAppStore(
-    useShallow((st) => ({
-      setTitle: st.setTitle,
-      setGoBack: st.setGoBack,
-      setCustomRightElement: st.setHeaderMiddleComponent,
-    })),
-  );
+  const globalState = useQueryFirst(GlobalStateModel);
+  const projectDb = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
 
-  const { project } = useAppStore(
-    useShallow((st) => ({
-      project: st.projectMeta,
-    })),
-  );
+  const project = useMemo(() => {
+    return {
+      ...projectDb.toJSON(),
+      mods: projectDb.mods.map((mod) => ({
+        ...mod.toJSON(),
+        // TODO add proxy to when save this, also save on db
+        config: JSON.parse(mod.config),
+      })),
+    } as ProjectModel;
+  }, [projectDb]);
+
+  useLayoutEffect(() => {
+    ipcRenderer.send('resize', 1280, 900);
+  }, []);
 
   const [openedModTabs, setOpenedModTabs] = useState<any[]>([]);
   const [selectedTab, setSelectedTab] = useState('recipes');
@@ -109,7 +117,7 @@ export default function Project() {
       for await (const recipe of recipes) {
         await ipcRenderer.invoke(
           'writeFile',
-          `${project?.installPath}kubejs/server_scripts/create-recipe-${index}.js`,
+          `${project.path}kubejs/server_scripts/create-recipe-${index}.js`,
           `ServerEvents.recipes(event => {
             event.shaped(
               Item.of('${recipe.output}', ${recipe.outputCount}),
@@ -125,32 +133,7 @@ export default function Project() {
     }
   }
 
-  useEffect(() => {
-    if (project) {
-      setCustomRightElement(
-        <Button
-          startContent={isBuilding ? undefined : <Hammer size={16} />}
-          className="my-3"
-          color="primary"
-          size="sm"
-          disabled={isBuilding}
-          isLoading={isBuilding}
-          onPress={() => build()}
-        >
-          Build
-        </Button>,
-      );
-    }
-  }, [isBuilding, build]);
-
-  useEffect(() => {
-    if (project) {
-      setTitle(project.name);
-      setGoBack(() => navigate('projects'));
-    }
-  }, [project]);
-
-  function clickOnMod(addon: IMod) {
+  function clickOnMod(addon: ModModel) {
     const exists = openedModTabs.find((tab) => tab.name === addon.name);
 
     if (!exists) {
@@ -177,12 +160,12 @@ export default function Project() {
   }
 
   function getAddonFromTab(tab: string) {
-    return project?.installedAddons.find((addon) => addon.name === tab)!;
+    return project?.mods.find((addon) => addon.name === tab)!;
   }
 
   function getModViewFromTab(tab: string) {
     const Plugin =
-      pageByMod[getAddonFromTab(tab).addonID as keyof typeof pageByMod];
+      pageByMod[getAddonFromTab(tab).modId as keyof typeof pageByMod];
 
     return Plugin ? (
       <Plugin mod={getAddonFromTab(tab)} isVisible={isVisible(tab)} key={tab} />
@@ -199,40 +182,58 @@ export default function Project() {
     return current === selectedTab;
   }
 
+  const filteredMods = project?.mods.filter(
+    (mod) => mod.modId !== ModId.Minecraft,
+  );
+
   return (
     <div className="flex flex-1 min-h-0">
       <AppBarHeader
         title={project?.name ?? ''}
         goBack={() => navigate('projects')}
       >
-        <AppBarHeaderContainer />
+        <AppBarHeaderContainer>
+          <div className="flex-1 app-bar-drag h-full" />
+          <Button
+            startContent={isBuilding ? undefined : <Hammer size={16} />}
+            className="my-3"
+            color="primary"
+            size="sm"
+            disabled={isBuilding}
+            isLoading={isBuilding}
+            onPress={() => build()}
+          >
+            Build
+          </Button>
+        </AppBarHeaderContainer>
       </AppBarHeader>
       <div className="w-80 border-[0.5px] border-solid border-zinc-800 border-t-0 flex flex-col">
         <span className="text-lg p-5 pb-3">
-          {project?.installedAddons.length} mods
+          {project?.mods.length - 1} mods
         </span>
 
         <div className="flex-1 min-h-0">
           <ScrollShadow className="flex flex-col gap-2 h-full max-h-full pb-5 px-5">
-            {project?.installedAddons.map((addon) => (
+            {filteredMods.map((mod) => (
               <div>
                 <Card
                   className="w-full"
                   isPressable
-                  key={addon.name}
+                  key={mod.name}
                   isHoverable
-                  onPress={() => clickOnMod(addon)}
+                  onPress={() => clickOnMod(mod)}
                 >
                   <CardBody className="min-h-fit flex flex-row">
                     <Image
-                      src={addon.thumbnailUrl}
+                      // TODO type config
+                      src={mod.config.thumbnail}
                       className="w-full h-full"
                       classNames={{
                         wrapper: 'min-w-10 min-h-10 w-10 h-10 mr-3',
                       }}
                     />
                     <span className="font-bold text-left flex-1">
-                      {addon.name}
+                      {mod.name}
                     </span>
                   </CardBody>
                 </Card>

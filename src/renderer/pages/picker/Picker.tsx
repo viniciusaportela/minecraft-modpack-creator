@@ -1,25 +1,30 @@
-import { Button, Divider, Image, Input } from '@nextui-org/react';
+import { Button, Divider, Input } from '@nextui-org/react';
 import { Cards, MagnifyingGlass } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { ipcRenderer } from 'electron';
-import { VanillaItemsBlocks } from './constants/vanilla-items-blocks';
+import { FixedSizeList as List } from 'react-window';
 import useParams from '../../hooks/useParams.hook';
+import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
+import { GlobalStateModel } from '../../core/models/global-state.model';
+import { ProjectModel } from '../../core/models/project.model';
+import PickerItem from './components/PickerItem';
 
 export default function Picker() {
   const [inputText, setInputText] = useState('');
   const requestId = useParams('requestId');
 
-  const filteredBlocks = inputText
-    ? VanillaItemsBlocks.filter(
-        (block) =>
-          block.name.toLowerCase().includes(inputText.toLowerCase()) ||
-          block.id.toLowerCase().includes(inputText.toLowerCase()),
-      )
-    : [];
+  const globalState = useQueryFirst(GlobalStateModel);
+  const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
+  const { items } = project;
 
   const select = (block: string) => {
     ipcRenderer.send('windowResponse', requestId, block);
   };
+
+  const filteredItems = items.filter((item) => {
+    if (inputText.trim() === '') return true;
+    return item.name.toLowerCase().includes(inputText.toLowerCase());
+  });
 
   return (
     <div>
@@ -38,18 +43,6 @@ export default function Picker() {
       </div>
       <Divider />
       <div className="flex flex-col p-2">
-        {inputText.trim() === '' &&
-          VanillaItemsBlocks.map((block) => (
-            <Button
-              key={block.name}
-              className="justify-start min-h-7 h-7"
-              variant="light"
-              onPress={() => select(block.id)}
-            >
-              <Image src={block.image} className="w-5 h-5 mr-1" />
-              {block.name}
-            </Button>
-          ))}
         {inputText.trim() !== '' && (
           <Button
             className="justify-start min-h-7 h-7"
@@ -59,17 +52,20 @@ export default function Picker() {
             minecraft:{inputText}
           </Button>
         )}
-        {filteredBlocks.map((block) => (
-          <Button
-            key={block.name}
-            className="justify-start min-h-7 h-7"
-            variant="light"
-            onPress={() => select(block.id)}
-          >
-            <Image src={block.image} className="w-5 h-5 mr-1" />
-            {block.name}
-          </Button>
-        ))}
+        <List
+          itemCount={filteredItems.length}
+          itemSize={28}
+          width={540}
+          height={445}
+        >
+          {({ index, style }) => (
+            <PickerItem
+              block={filteredItems[index]}
+              onPress={() => select(filteredItems[index].id)}
+              style={style}
+            />
+          )}
+        </List>
       </div>
     </div>
   );

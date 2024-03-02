@@ -3,7 +3,6 @@ import { Progress } from '@nextui-org/react';
 import * as crypto from 'crypto';
 import { ipcRenderer } from 'electron';
 import path from 'path';
-import { mkdir } from 'node:fs/promises';
 import { usePager } from '../../components/pager/hooks/usePager';
 import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
 import { ProjectModel } from '../../core/models/project.model';
@@ -12,7 +11,9 @@ import JarLoader from '../../core/minecraft/jar-loader';
 import { useRealm } from '../../store/realm.context';
 import { GlobalStateModel } from '../../core/models/global-state.model';
 import { CurseDirectory } from '../../core/minecraft/directory/curse-directory';
-import { JarHandler } from '../../core/minecraft/jarHandler';
+import { JarHandler } from '../../core/minecraft/jar-handler';
+import { ModModel } from '../../core/models/mod.model';
+import { ModsFactory } from '../../core/mods/mods-factory';
 
 export default function ProjectPreload() {
   const realm = useRealm();
@@ -21,7 +22,7 @@ export default function ProjectPreload() {
   const globalState = useQueryFirst(GlobalStateModel);
   const project = useQueryById(ProjectModel, globalState.selectedProjectId!);
 
-  const progressTextRef = useRef(null);
+  const progressTextRef = useRef<HTMLSpanElement>(null);
   const [isInderterminate, setIsInderterminate] = useState(true);
   const [totalProgress, setTotalProgress] = useState(1);
   const [currentProgress, setCurrentProgress] = useState(0);
@@ -51,7 +52,6 @@ export default function ProjectPreload() {
             mods.reduce((finalStr, modFile) => finalStr + modFile, ''),
           );
           const modsChecksum = shaHash.digest('hex');
-          console.log('generated modsChecksum', modsChecksum);
 
           setTotalProgress(mods.length);
 
@@ -62,46 +62,38 @@ export default function ProjectPreload() {
             (m) => m.modId === 'minecraft',
           );
 
-          console.log(project.path, minecraftMod?.toJSON());
           if (!minecraftMod) {
             const minecraftJarPath = await directory.getMinecraftJarPath();
-            console.log(minecraftJarPath);
 
-            // load everything for minecraft jar
             const minecraftJar = await JarLoader.load(minecraftJarPath);
 
             const handler = new JarHandler(minecraftJar, project, realm);
 
+            progressTextRef.current!.innerText =
+              'Minecraft: Loading textures...';
             await handler.handleTextures();
-            // await handler.handleItems();
-            // await handler.handleBlocks();
+            progressTextRef.current!.innerText = 'Minecraft: Loading items...';
+            await handler.handleItems();
+            progressTextRef.current!.innerText = 'Minecraft: Loading blocks...';
+            await handler.handleBlocks();
 
-            // await minecraftJar.processBlocks();
+            const createdMinecraftMod = realm.create(ModModel, {
+              jarPath: `${project.path}/mods/minecraft.jar`,
+              project,
+              modId: 'minecraft',
+              name: 'Minecraft',
+              config: '{}',
+              version: project.minecraftVersion,
+              dependencies: [],
+            });
 
-            // const createdMinecraftMod = realm.create(ModModel, {
-            //   jarPath: `${project.path}/mods/minecraft.jar`,
-            //   project,
-            //   modId: 'minecraft',
-            //   name: 'Minecraft',
-            //   config: '{}',
-            //   version: project.minecraftVersion,
-            //   dependencies: [],
-            // });
-            //
-            // project.mods!.push(createdMinecraftMod);
+            project.mods!.push(createdMinecraftMod);
           }
 
-          console.log('project.mods', project.mods);
+          realm.commitTransaction();
 
           const migratedMods = project.mods!;
-
-          // const migratedMods = realm
-          //   .objects(ModModel)
-          //   .filtered('project = $0', project);
-
           const allMods = await directory.getModJarPaths();
-
-          console.log(allMods);
 
           const modsToMigrate = allMods.filter(
             (modPath) =>
@@ -110,35 +102,57 @@ export default function ProjectPreload() {
           );
           console.log('modsToMigrate', modsToMigrate);
 
-          // go for each mod, verify if already registered
+          for await (const modFile of modsToMigrate) {
+            const jar = await JarLoader.load(modFile);
 
-          for await (const modFile of mods) {
-            // const jar = await JarLoader.load(modFile);
-            //
-            // const metadata = await jar.getMetadata();
-            //
-            // console.log(metadata);
-            //
-            // const { modId } = metadata.mods[0];
-            //
-            // const createdMod = realm.create(ModModel, {
-            //   jarPath: modFile,
-            //   project,
-            //   modId,
-            //   name: metadata.mods[0].displayName,
-            //   dependencies: metadata.dependencies[modId]
-            //     .filter((d) => d.mandatory)
-            //     .map((d) => d.modId),
-            //   // TODO add category
-            // });
-            //
-            // project.mods!.push(createdMod);
-            // await loadJarFiles(jar);
+            const handler = new JarHandler(jar, project, realm);
+
+            const metadata = await jar.getMetadata();
+            const { modId } = metadata.mods[0];
+            const formattedModId =
+              modId.charAt(0).toUpperCase() + modId.slice(1);
+
+            progressTextRef.current!.innerText = `${formattedModId}: Loading textures...`;
+            await handler.handleTextures();
+
+            realm.beginTransaction();
+            progressTextRef.current!.innerText = `${formattedModId}: Loading items...`;
+            await handler.handleItems();
+            progressTextRef.current!.innerText = `${formattedModId}: Loading blocks...`;
+            await handler.handleBlocks();
+            realm.commitTransaction();
+
+            const mod = ModsFactory.create(jar, metadata.mods[0].modId);
+
+            realm.beginTransaction();
+            const createdMod = realm.create<ModModel>(ModModel.schema.name, {
+              jarPath: modFile,
+              project,
+              modId: metadata.mods[0].modId,
+              name: metadata.mods[0].displayName,
+              // TODO has to consider case where version is gotten from MANIFEST.MF
+              version: metadata.mods[0].version,
+              config: JSON.stringify(await mod.generateConfig()),
+              dependencies:
+                metadata.dependencies?.[modId]
+                  .filter((d) => d.mandatory)
+                  .map((d) => d.modId) || [],
+              // TODO add category
+            });
+
+            project.mods!.push(createdMod);
+            realm.commitTransaction();
+
+            setCurrentProgress((prev) => prev + 1);
           }
+
+          realm.beginTransaction();
+
+          project.loaded = true;
 
           realm.commitTransaction();
 
-          // navigate('project');
+          navigate('project');
         }
       } else {
         console.warn('Project is undefined');
@@ -149,14 +163,6 @@ export default function ProjectPreload() {
     }
   }
 
-  async function loadJarFiles(jar: JarLoader) {
-    // load textures
-    // load items
-    // load blocks
-
-    setCurrentProgress((cur) => cur + 1);
-  }
-
   return (
     <div className="flex-1 flex flex-col justify-center h-full p-5 pt-0">
       <AppBarHeader title="My Projects" goBack={null}>
@@ -165,7 +171,11 @@ export default function ProjectPreload() {
       <span id="progress-text" className="mb-2" ref={progressTextRef}>
         Loading...
       </span>
-      <Progress isIndeterminate={isInderterminate} size="sm" />
+      <Progress
+        isIndeterminate={isInderterminate}
+        size="sm"
+        value={(currentProgress / totalProgress) * 100}
+      />
     </div>
   );
 }

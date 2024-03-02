@@ -31,10 +31,10 @@ export default class WindowManager {
       parent: parent!,
       x: parent!.getPosition()[0] + parent!.getSize()[0] / 2 - 225,
       y: parent!.getPosition()[1] + parent!.getSize()[1] / 2 - 225,
-      resizable: true,
+      resizable: config.resizable,
       frame: false,
       webPreferences: {
-        devTools: false,
+        devTools: true,
         nodeIntegration: true,
         contextIsolation: false,
       },

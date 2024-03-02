@@ -3,4 +3,5 @@ export interface IWindowConfig {
   type: 'standalone' | 'response';
   closeOnBlur: boolean;
   keepAlive: boolean;
+  resizable: boolean;
 }

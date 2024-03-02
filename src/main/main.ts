@@ -107,35 +107,6 @@ const createWindow = async () => {
     mainWindow!.setResizable(true);
   });
 
-  ipcMain.on('on-open-project', () => {
-    mainWindow!.setSize(1280, 900);
-  });
-
-  ipcMain.handle('readFile', (ev, path: string) => {
-    return readFile(path, 'utf8');
-  });
-
-  ipcMain.handle('readDir', (ev, path: string) => {
-    return readdir(path);
-  });
-
-  ipcMain.handle('writeFile', (ev, savePath: string, value: string) => {
-    const doesExists = existsSync(savePath.split('/').slice(0, -1).join('/'));
-
-    if (!doesExists) {
-      const parts = savePath.split('/').slice(0, -1).slice(1);
-      let currentPath = '';
-      parts.forEach((part) => {
-        currentPath = `${currentPath}/${part}`;
-        if (!existsSync(currentPath)) {
-          mkdirSync(currentPath);
-        }
-      });
-    }
-
-    return writeFile(savePath, value);
-  });
-
   ipcMain.handle('close', () => {
     mainWindow!.close();
   });
@@ -151,31 +122,6 @@ const createWindow = async () => {
   ipcMain.handle('minimize', () => {
     mainWindow!.minimize();
   });
-
-  ipcMain.handle('readConfig', async (_, modpackFolder: string) => {
-    const filePath = path.join(modpackFolder, 'config.json');
-
-    const fileExists = existsSync(filePath);
-
-    if (!fileExists) {
-      await writeFile(filePath, JSON.stringify({ modpackFolder }));
-      return { modpackFolder };
-    }
-
-    const file = await readFile(filePath, 'utf8');
-
-    return JSON.parse(file);
-  });
-
-  ipcMain.handle(
-    'writeConfig',
-    async (ev, modpackFolder: string, newJson: Record<string, unknown>) => {
-      await writeFile(
-        path.join(modpackFolder, 'config.json'),
-        JSON.stringify(newJson),
-      );
-    },
-  );
 
   ipcMain.handle('open', (_, page: string) => {
     return new Promise((resolve) => {
@@ -222,99 +168,6 @@ const createWindow = async () => {
 
     return { skillTree, skills };
   });
-
-  ipcMain.handle(
-    'loadTexture',
-    async (ev, modId: string, modJarPath: string, texturePath: string) => {
-      const imgFolderPath = path.join(
-        app.getPath('userData'),
-        'textures',
-        modId,
-      );
-
-      const splittedTexture = texturePath.split('/');
-      const textureName = splittedTexture.splice(-1);
-      const finalPath = path.join(
-        imgFolderPath,
-        `${splittedTexture.join('_')}__${textureName}`,
-      );
-
-      if (existsSync(finalPath)) {
-        return `textures://${finalPath}`;
-      }
-
-      const zip = new StreamZip.async({ file: modJarPath });
-
-      const img = await zip.entryData(
-        `assets/${modId}/textures/${texturePath}`,
-      );
-
-      if (!existsSync(path.join(app.getPath('userData'), 'textures'))) {
-        mkdirSync(path.join(app.getPath('userData'), 'textures'));
-      }
-
-      if (!existsSync(imgFolderPath)) {
-        mkdirSync(imgFolderPath);
-      }
-
-      await writeFile(finalPath, img);
-
-      return `textures://${finalPath}`;
-    },
-  );
-
-  ipcMain.handle(
-    'loadAllTextures',
-    async (_, modId: string, modJarPath: string) => {
-      const exportedFolderPath = path.join(
-        app.getPath('userData'),
-        'textures',
-        modId,
-      );
-
-      if (existsSync(path.join(exportedFolderPath, '.migrated'))) {
-        return readdir(exportedFolderPath);
-      }
-
-      const modpackTexturesFolder = path.join(
-        app.getPath('userData'),
-        'textures',
-        modId,
-      );
-      if (!existsSync(modpackTexturesFolder)) {
-        mkdirSync(modpackTexturesFolder, { recursive: true });
-      }
-
-      const zip = new StreamZip.async({ file: modJarPath });
-      const textures = [];
-
-      const entries = await zip.entries();
-
-      for await (const entry of Object.values(entries)) {
-        if (
-          entry.name.startsWith(`assets/${modId}/textures`) &&
-          entry.name.endsWith('.png')
-        ) {
-          const img = await zip.entryData(entry.name);
-
-          const splittedTexture = entry.name
-            .replace(`assets/${modId}/textures/`, '')
-            .split('/');
-          const textureName = splittedTexture.splice(-1);
-          const finalPath = path.join(
-            modpackTexturesFolder,
-            `${splittedTexture.join('_')}__${textureName}`,
-          );
-
-          textures.push(finalPath);
-
-          await writeFile(finalPath, img);
-        }
-      }
-
-      await writeFile(path.join(exportedFolderPath, '.migrated'), '');
-    },
-  );
 
   ipcMain.handle('getPath', async (ev, name) => {
     return app.getPath(name);

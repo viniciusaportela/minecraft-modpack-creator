@@ -1,5 +1,9 @@
 export interface IProcessItemContext {
   fullItemId: string;
-  itemId: string;
+  modelJson: Record<string, any>;
+}
+
+export interface IProcessBlockContext {
+  fullBlockId: string;
   modelJson: Record<string, any>;
 }

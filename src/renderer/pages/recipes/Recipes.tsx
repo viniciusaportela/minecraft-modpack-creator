@@ -5,15 +5,20 @@ import RecipeList from './subpages/RecipeList';
 import { Page, Pager } from '../../components/pager/Pager';
 import AddRecipeList from './subpages/AddRecipeList';
 import AddShaped from './subpages/AddShaped';
+import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
+import { ProjectModel } from '../../core/models/project.model';
+import { GlobalStateModel } from '../../core/models/global-state.model';
 
 interface IRecipeProps {
   isVisible: boolean;
 }
 
 export default function Recipes({ isVisible }: IRecipeProps) {
-  const projectMeta = useAppStore((st) => st.projectMeta);
-  const isKubeJSEnabled = projectMeta?.installedAddons.find(
-    (mod) => mod.addonID === ModId.KubeJS,
+  const globalState = useQueryFirst(GlobalStateModel);
+  const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
+
+  const isKubeJSEnabled = project?.mods.find(
+    (mod) => mod.modId === ModId.KubeJS,
   );
 
   return (

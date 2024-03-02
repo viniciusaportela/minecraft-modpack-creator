@@ -6,6 +6,7 @@ const windowConfigs: Record<string, IWindowConfig> = {
     type: 'response',
     closeOnBlur: true,
     keepAlive: true,
+    resizable: false,
   },
 };
 

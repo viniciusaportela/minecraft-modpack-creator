@@ -22,6 +22,7 @@ module.exports = {
     'react/no-unescaped-entities': 'off',
     'import/no-cycle': 'warn',
     'no-underscore-dangle': 'off',
+    'class-methods-use-this': 'warn',
   },
   parserOptions: {
     ecmaVersion: 2022,

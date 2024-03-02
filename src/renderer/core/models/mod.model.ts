@@ -1,4 +1,4 @@
-import Realm, { BSON, ObjectSchema } from 'realm';
+import Realm, { BSON, ObjectSchema, Types } from 'realm';
 import { ProjectModel } from './project.model';
 
 export class ModModel extends Realm.Object {

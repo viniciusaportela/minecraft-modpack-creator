@@ -5,6 +5,7 @@ export interface IModsToml {
     modId: string;
     displayName: string;
     displayURL: string;
+    version: string;
     logoFile: string;
     authors: string;
     description: string;
