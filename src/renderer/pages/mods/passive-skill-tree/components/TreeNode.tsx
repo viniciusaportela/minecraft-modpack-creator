@@ -1,40 +1,21 @@
 import { Handle, Position, useStore } from 'reactflow';
-import { memo, useEffect, useState } from 'react';
-import { Image } from '@nextui-org/react';
-import { ipcRenderer } from 'electron';
+import { memo, useLayoutEffect, useState } from 'react';
+import LazyTexture from '../../../../components/lazy-image/LazyTexture';
+import { TextureLoader } from '../../../../core/domains/minecraft/texture/texture-loader';
 
 export default memo(({ data }: { data: any }) => {
   const isConnecting = useStore((state) => !!state.connectionNodeId);
-  const [iconImg, setIconImg] = useState(null);
-  const [backgroundImg, setBackgroundImg] = useState(null);
+  const [backgroundImg, setBackgroundImg] = useState<string | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const [modId, path] = data.iconTexture.split(':textures/');
-      const texturePath = data.iconTexture.replace('skilltree:textures/', '');
-      const backgroundPath = data.backgroundTexture.replace(
-        'skilltree:textures/',
-        '',
-      );
+  console.log('TreeNode', data);
 
-      const texture = await ipcRenderer.invoke(
-        'loadTexture',
-        'skilltree',
-        `${data.modpackFolder}/mods/PassiveSkillTree-1.20.1-BETA-0.6.10a-all.jar`,
-        texturePath,
-      );
-
-      setIconImg(texture);
-
-      const texture2 = await ipcRenderer.invoke(
-        'loadTexture',
-        'skilltree',
-        `${data.modpackFolder}/mods/PassiveSkillTree-1.20.1-BETA-0.6.10a-all.jar`,
-        backgroundPath,
-      );
-
-      setBackgroundImg(texture2);
-    })();
+  useLayoutEffect(() => {
+    const textureId = data.backgroundTexture
+      .replace('textures/', '')
+      .replace('.png', '');
+    TextureLoader.load(data.projectId, textureId).then(() => {
+      setBackgroundImg(TextureLoader.getTextureSource(textureId) as string);
+    });
   }, []);
 
   return (
@@ -51,12 +32,13 @@ export default memo(({ data }: { data: any }) => {
           : undefined
       }
     >
-      {iconImg && (
-        <Image
-          src={iconImg}
-          className="pixelated h-3 w-3 object-contain rounded-none"
-        />
-      )}
+      <LazyTexture
+        textureId={data.iconTexture
+          .replace('textures/', '')
+          .replace('.png', '')}
+        projectId={data.projectId}
+        className="pixelated h-3 w-3 object-contain rounded-none"
+      />
 
       <Handle
         type="source"

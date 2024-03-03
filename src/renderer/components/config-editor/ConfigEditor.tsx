@@ -6,15 +6,7 @@ interface IConfiguration {
   path: string;
 }
 
-export default function ConfigEditor({
-  modId,
-  setPage,
-}: {
-  modId: number;
-  setPage: React.Dispatch<
-    React.SetStateAction<'dashboard' | 'config-editor' | 'edit-tree'>
-  >;
-}) {
+export default function ConfigEditor({ modId }: { modId: string }) {
   const [configurations, setConfigurations] = useState<IConfiguration[]>([]);
 
   useEffect(() => {

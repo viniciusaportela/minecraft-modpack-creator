@@ -139,35 +139,6 @@ const createWindow = async () => {
     WindowManager.onWindowMessage(requestId, params);
   });
 
-  ipcMain.handle('getEditTreeConfig', async (_, modpackPath: string) => {
-    const basePath = path.join(
-      modpackPath,
-      'skilltree',
-      'editor',
-      'data',
-      'skilltree',
-    );
-
-    const skillTree = JSON.parse(
-      await readFile(
-        path.join(basePath, 'skill_trees', 'main_tree.json'),
-        'utf8',
-      ),
-    );
-
-    const skills = [];
-    const files = await readdir(path.join(basePath, 'skills'));
-    for await (const fileName of files) {
-      const file = await readFile(
-        path.join(basePath, 'skills', fileName),
-        'utf8',
-      );
-      skills.push(JSON.parse(file));
-    }
-
-    return { skillTree, skills };
-  });
-
   ipcMain.handle('getPath', async (ev, name) => {
     return app.getPath(name);
   });
