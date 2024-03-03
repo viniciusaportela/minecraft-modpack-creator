@@ -10,7 +10,6 @@ module.exports = {
     'import/no-unresolved': 'off',
     'import/no-import-module-exports': 'off',
     'no-shadow': 'off',
-    '@typescript-eslint/no-shadow': 'error',
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': 'error',
     'import/prefer-default-export': 'off',
@@ -23,6 +22,9 @@ module.exports = {
     'import/no-cycle': 'warn',
     'no-underscore-dangle': 'off',
     'class-methods-use-this': 'warn',
+    'no-useless-constructor': 'off',
+    '@typescript-eslint/no-shadow': 'warn',
+    'no-empty-function': 'off',
   },
   parserOptions: {
     ecmaVersion: 2022,

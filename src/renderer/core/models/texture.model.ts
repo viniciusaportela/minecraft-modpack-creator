@@ -1,28 +1,33 @@
-import Realm, { ObjectSchema } from 'realm';
-import { ProjectModel } from './project.model';
+import Realm, { ObjectSchema, Types } from 'realm';
 
 export class TextureModel extends Realm.Object {
   textureId!: string;
 
-  name!: string;
-
   path!: string;
 
-  type!: string;
+  prefix!: string;
 
-  project!: ProjectModel;
+  project!: Types.ObjectId;
+
+  mod!: Types.ObjectId;
+
+  getName() {
+    return this.path.split('/').pop();
+  }
 
   static schema: ObjectSchema = {
     name: 'Texture',
     properties: {
       textureId: 'string',
-      name: 'string',
       path: 'string',
-      type: 'string',
+      mod: {
+        indexed: true,
+        type: 'objectId',
+      },
+      prefix: 'string',
       project: {
-        type: 'linkingObjects',
-        objectType: 'Project',
-        property: 'textures',
+        indexed: true,
+        type: 'objectId',
       },
     },
     primaryKey: 'textureId',

@@ -1,5 +1,4 @@
 import Realm, { BSON, ObjectSchema, Types } from 'realm';
-import { ProjectModel } from './project.model';
 
 export class ModModel extends Realm.Object {
   _id!: BSON.ObjectId;
@@ -20,7 +19,18 @@ export class ModModel extends Realm.Object {
 
   tags!: string[];
 
-  project!: ProjectModel;
+  project!: Types.ObjectId;
+
+  loadedTextures?: boolean;
+
+  loadedItems?: boolean;
+
+  loadedBlocks?: boolean;
+
+  getConfig() {
+    console.log('this.realm', this.realm);
+    return JSON.parse(this.config);
+  }
 
   static schema: ObjectSchema = {
     name: 'Mod',
@@ -36,15 +46,26 @@ export class ModModel extends Realm.Object {
       category: 'string?',
       config: 'string',
       dependencies: 'string[]',
+      loadedTextures: {
+        type: 'bool',
+        default: false,
+      },
+      loadedItems: {
+        type: 'bool',
+        default: false,
+      },
+      loadedBlocks: {
+        type: 'bool',
+        default: false,
+      },
       tags: {
         type: 'list',
         objectType: 'string',
         default: [],
       },
       project: {
-        type: 'linkingObjects',
-        objectType: 'Project',
-        property: 'mods',
+        type: 'objectId',
+        indexed: true,
       },
     },
     primaryKey: '_id',

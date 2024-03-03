@@ -1,14 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { BSON } from 'realm';
-import { useRealm } from '../store/realm.context';
+import { BSON, Types } from 'realm';
 import { GenericModel } from '../typings/generic-model.interface';
+import { useAppStore } from '../store/app.store';
 
 // TODO type
 export function useQuery<T extends GenericModel>(
   model: T,
   filter?: (collection: any) => any,
 ): InstanceType<T>[] {
-  const realm = useRealm();
+  const realm = useAppStore((st) => st.realm);
 
   const getResults = () => {
     const res = realm.objects(model.schema.name);
@@ -39,9 +39,9 @@ export function useQuery<T extends GenericModel>(
 
 export function useQueryById<T extends GenericModel>(
   model: T,
-  id: string,
+  id: Types.ObjectId,
 ): InstanceType<T> | null {
-  const realm = useRealm();
+  const realm = useAppStore((st) => st.realm);
 
   const getObject = () => {
     return realm.objectForPrimaryKey(model.schema.name, new BSON.ObjectId(id))!;
@@ -66,7 +66,7 @@ export function useQueryById<T extends GenericModel>(
 }
 
 export function useQueryFirst<T extends GenericModel>(model: T) {
-  const realm = useRealm();
+  const realm = useAppStore((st) => st.realm);
 
   const getFirst = () => {
     return realm.objects(model.schema.name)[0];

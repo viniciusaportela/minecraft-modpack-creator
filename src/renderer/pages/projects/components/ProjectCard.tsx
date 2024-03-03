@@ -8,6 +8,7 @@ import {
   Image,
   Skeleton,
 } from '@nextui-org/react';
+import { Types } from 'realm';
 import CurseForgeLogo from '../../../assets/curse-forge-logo.svg';
 import MinecraftLogo from '../../../assets/minecraft.png';
 import { useQueryById } from '../../../hooks/realm.hook';
@@ -15,8 +16,8 @@ import { ProjectModel } from '../../../core/models/project.model';
 
 interface ProjectCardProps {
   title: string;
-  projectId: string;
-  onOpen?: (projectId: string) => void;
+  projectId: Types.ObjectId;
+  onOpen?: (projectId: Types.ObjectId) => void;
   isCurseForge?: boolean;
 }
 
@@ -67,7 +68,7 @@ export default function ProjectCard({
         </Skeleton>
         <Skeleton isLoaded={!loadingProjectMetadata}>
           <small className="text-sm">
-            {project?.amountInstalledMods ?? 0} Mods
+            {project?.cachedAmountInstalledMods ?? '-'} Mods
           </small>
         </Skeleton>
       </CardBody>

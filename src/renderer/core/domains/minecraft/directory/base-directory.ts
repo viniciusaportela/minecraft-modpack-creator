@@ -2,7 +2,7 @@ import { readdir } from 'node:fs/promises';
 import path from 'path';
 
 export abstract class BaseDirectory {
-  protected readonly modpackFolder: string;
+  readonly modpackFolder: string;
 
   constructor(modpackFolder: string) {
     this.modpackFolder = modpackFolder;

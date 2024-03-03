@@ -18,10 +18,9 @@ import {
   net,
   dialog,
 } from 'electron';
-import { readdir, readFile, writeFile } from 'node:fs/promises';
-import { existsSync, mkdirSync } from 'node:fs';
-import StreamZip from 'node-stream-zip';
+import { readdir, readFile } from 'node:fs/promises';
 import * as crypto from 'crypto';
+import { mkdirSync } from 'node:fs';
 import { resolveHtmlPath } from './util';
 import WindowManager from './core/window-manager';
 
@@ -201,6 +200,10 @@ app
   .then(() => {
     protocol.handle('textures', (request) => {
       return net.fetch(`file://${request.url.slice('textures://'.length)}`);
+    });
+
+    mkdirSync(path.join(app.getPath('userData'), 'app_logs'), {
+      recursive: true,
     });
 
     createWindow();

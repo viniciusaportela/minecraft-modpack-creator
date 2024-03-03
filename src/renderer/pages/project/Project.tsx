@@ -12,7 +12,6 @@ import { Hammer, X } from '@phosphor-icons/react';
 import { ipcRenderer } from 'electron';
 import useHorizontalScroll from '../../hooks/useHorizontalScroll.hook';
 import Recipes from '../recipes/Recipes';
-import { useProjectStore } from '../../store/project.store';
 import { IProjectStore } from '../../store/interfaces/project-store.interface';
 import { pageByMod } from '../../constants/page-by-mod';
 import DefaultPlugin from '../mods/default/DefaultPlugin';
@@ -20,7 +19,7 @@ import { usePager } from '../../components/pager/hooks/usePager';
 import AppBarHeader, {
   AppBarHeaderContainer,
 } from '../../components/app-bar/AppBarHeader';
-import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
+import { useQuery, useQueryById, useQueryFirst } from '../../hooks/realm.hook';
 import { GlobalStateModel } from '../../core/models/global-state.model';
 import { ProjectModel } from '../../core/models/project.model';
 import ModId from '../../typings/mod-id.enum';
@@ -32,23 +31,13 @@ export default function Project() {
   const { navigate } = usePager();
 
   // TODO add loading state on start
-
-  const recipes = useProjectStore((st) => st.recipes);
   const [isBuilding, setIsBuilding] = useState(false);
 
   const globalState = useQueryFirst(GlobalStateModel);
-  const projectDb = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
-
-  const project = useMemo(() => {
-    return {
-      ...projectDb.toJSON(),
-      mods: projectDb.mods.map((mod) => ({
-        ...mod.toJSON(),
-        // TODO add proxy to when save this, also save on db
-        config: JSON.parse(mod.config),
-      })),
-    } as ProjectModel;
-  }, [projectDb]);
+  const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
+  const mods = useQuery(ModModel, (obj) =>
+    obj.filtered('modId != $0 AND project = $1', ModId.Minecraft, project._id),
+  );
 
   useLayoutEffect(() => {
     ipcRenderer.send('resize', 1280, 900);
@@ -107,27 +96,27 @@ export default function Project() {
   async function build() {
     setIsBuilding(true);
     try {
-      console.log('Building project...');
-      console.log(recipes);
-
-      // TODO delete old data
-      // TODO generated based on type
-
-      let index = 0;
-      for await (const recipe of recipes) {
-        await ipcRenderer.invoke(
-          'writeFile',
-          `${project.path}kubejs/server_scripts/create-recipe-${index}.js`,
-          `ServerEvents.recipes(event => {
-            event.shaped(
-              Item.of('${recipe.output}', ${recipe.outputCount}),
-              ${JSON.stringify(getGrid(recipe))},
-              ${JSON.stringify(getMapping(recipe))}
-            )
-          })`,
-        );
-        index += 1;
-      }
+      // console.log('Building project...');
+      // console.log(recipes);
+      //
+      // // TODO delete old data
+      // // TODO generated based on type
+      //
+      // let index = 0;
+      // for await (const recipe of recipes) {
+      //   await ipcRenderer.invoke(
+      //     'writeFile',
+      //     `${project.path}kubejs/server_scripts/create-recipe-${index}.js`,
+      //     `ServerEvents.recipes(event => {
+      //       event.shaped(
+      //         Item.of('${recipe.output}', ${recipe.outputCount}),
+      //         ${JSON.stringify(getGrid(recipe))},
+      //         ${JSON.stringify(getMapping(recipe))}
+      //       )
+      //     })`,
+      //   );
+      //   index += 1;
+      // }
     } finally {
       setIsBuilding(false);
     }
@@ -160,7 +149,7 @@ export default function Project() {
   }
 
   function getAddonFromTab(tab: string) {
-    return project?.mods.find((addon) => addon.name === tab)!;
+    return mods.find((addon) => addon.name === tab)!;
   }
 
   function getModViewFromTab(tab: string) {
@@ -181,10 +170,6 @@ export default function Project() {
   function isVisible(current: string) {
     return current === selectedTab;
   }
-
-  const filteredMods = project?.mods.filter(
-    (mod) => mod.modId !== ModId.Minecraft,
-  );
 
   return (
     <div className="flex flex-1 min-h-0">
@@ -208,13 +193,11 @@ export default function Project() {
         </AppBarHeaderContainer>
       </AppBarHeader>
       <div className="w-80 border-[0.5px] border-solid border-zinc-800 border-t-0 flex flex-col">
-        <span className="text-lg p-5 pb-3">
-          {project?.mods.length - 1} mods
-        </span>
+        <span className="text-lg p-5 pb-3">{mods.length - 1} mods</span>
 
         <div className="flex-1 min-h-0">
           <ScrollShadow className="flex flex-col gap-2 h-full max-h-full pb-5 px-5">
-            {filteredMods.map((mod) => (
+            {mods.map((mod) => (
               <div>
                 <Card
                   className="w-full"
@@ -226,7 +209,7 @@ export default function Project() {
                   <CardBody className="min-h-fit flex flex-row">
                     <Image
                       // TODO type config
-                      src={mod.config.thumbnail}
+                      src={mod.getConfig().thumbnail}
                       className="w-full h-full"
                       classNames={{
                         wrapper: 'min-w-10 min-h-10 w-10 h-10 mr-3',

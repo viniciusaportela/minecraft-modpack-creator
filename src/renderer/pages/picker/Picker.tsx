@@ -15,7 +15,9 @@ export default function Picker() {
 
   const globalState = useQueryFirst(GlobalStateModel);
   const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
-  const { items } = project;
+
+  return <></>;
+  /* const { items } = project;
 
   const select = (block: string) => {
     ipcRenderer.send('windowResponse', requestId, block);
@@ -68,5 +70,5 @@ export default function Picker() {
         </List>
       </div>
     </div>
-  );
+  ); */
 }

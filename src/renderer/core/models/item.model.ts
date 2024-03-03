@@ -1,27 +1,29 @@
-import Realm, { ObjectSchema } from 'realm';
-import { ProjectModel } from './project.model';
+import Realm, { ObjectSchema, Types } from 'realm';
 
 export class ItemModel extends Realm.Object {
-  id!: string;
+  itemId!: string;
 
   name!: string;
 
-  model!: string;
+  modelJson!: string;
 
-  project!: ProjectModel;
+  project!: Types.ObjectId;
+
+  getModel() {
+    return JSON.parse(this.modelJson);
+  }
 
   static schema: ObjectSchema = {
     name: 'Item',
     properties: {
-      id: 'string',
+      itemId: 'string',
       name: 'string',
-      model: 'string',
+      modelJson: 'string',
       project: {
-        type: 'linkingObjects',
-        objectType: 'Project',
-        property: 'items',
+        type: 'objectId',
+        indexed: true,
       },
     },
-    primaryKey: 'id',
+    primaryKey: 'itemId',
   };
 }

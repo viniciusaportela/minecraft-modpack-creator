@@ -5,6 +5,7 @@ import {
   IProcessItemContext,
 } from './interfaces/jar-loader.interface';
 import { IModsToml } from './interfaces/mods-toml.interface';
+import isJSONValid from '../../../helpers/isJSONValid';
 
 export default class JarLoader {
   readonly jarPath: string;
@@ -25,16 +26,22 @@ export default class JarLoader {
     return this;
   }
 
-  async getMetadata(): Promise<IModsToml> {
-    const rawToml = await this.zip.entryData('META-INF/mods.toml');
-    return toml.parse(rawToml.toString());
+  async isMinecraft() {
+    return !(await this.getMetadata());
+  }
+
+  async getMetadata(): Promise<IModsToml | undefined> {
+    try {
+      const rawToml = await this.zip.entryData('META-INF/mods.toml');
+      return toml.parse(rawToml.toString());
+    } catch (error) {
+      console.error('Error while reading mods.toml', error);
+      return undefined;
+    }
   }
 
   async processTextures(
-    perTextureCallback: (
-      extract: (outputPath: string) => Promise<void>,
-      texturePath: string,
-    ) => Promise<void>,
+    perTextureCallback: (texturePath: string) => Promise<void>,
   ) {
     const entries = await this.zip.entries();
     const textures = Object.values(entries).filter(
@@ -45,9 +52,7 @@ export default class JarLoader {
     );
 
     const promises = textures.map(async (texture) => {
-      await perTextureCallback(async (outputPath: string) => {
-        await this.zip.extract(texture.name, outputPath);
-      }, texture.name);
+      await perTextureCallback(texture.name);
     });
 
     return Promise.all(promises);
@@ -65,10 +70,11 @@ export default class JarLoader {
     );
 
     for await (const block of blocks) {
-      console.log('block', block);
-      const modelJson = JSON.parse(
-        (await this.zip.entryData(block.name)).toString(),
-      );
+      let modelJson = {};
+      const rawJson = (await this.zip.entryData(block.name)).toString();
+      if (isJSONValid(rawJson)) {
+        modelJson = JSON.parse(rawJson);
+      }
 
       const modId = /assets\/(.*)\/models\/block/g.exec(block.name)?.[1];
       const blockId = block.name
@@ -94,9 +100,11 @@ export default class JarLoader {
     );
 
     for await (const item of items) {
-      const modelJson = JSON.parse(
-        (await this.zip.entryData(item.name)).toString(),
-      );
+      let modelJson = {};
+      const rawJson = (await this.zip.entryData(item.name)).toString();
+      if (isJSONValid(rawJson)) {
+        modelJson = JSON.parse(rawJson);
+      }
 
       const modId = /assets\/(.*)\/models\/item/g.exec(item.name)?.[1];
       const itemId = item.name

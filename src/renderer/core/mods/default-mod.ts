@@ -2,8 +2,8 @@ import { existsSync } from 'node:fs';
 import toml from 'toml';
 import { readFile } from 'node:fs/promises';
 import { IMod } from './interfaces/mod.interface';
-import JarLoader from '../minecraft/jar-loader';
-import { ICurseMetadata } from '../minecraft/interfaces/curse-metadata.interface';
+import JarLoader from '../domains/minecraft/jar-loader';
+import { ICurseMetadata } from '../domains/minecraft/interfaces/curse-metadata.interface';
 
 export class DefaultMod implements IMod {
   private jar: JarLoader;
@@ -15,30 +15,21 @@ export class DefaultMod implements IMod {
     this.modId = modId;
   }
 
-  async generateConfig() {
+  async generateConfig(): Promise<Record<string, unknown>> {
     const curseMeta = (await this.getCurseMetadata())!;
     return {
-      version: this.getVersion(),
       configs: await this.getUserConfigs(),
       thumbnail: curseMeta.thumbnailUrl,
       website: curseMeta.webSiteURL,
     };
   }
 
-  getVersion(): number {
-    return 1;
-  }
-
-  migrateConfig(oldConfig: Record<string, unknown>): Record<string, unknown> {
-    return {
-      ...this.generateConfig(),
-      ...oldConfig,
-      version: this.getVersion(),
-    };
-  }
-
   async getCurseMetadata() {
     const modpackFolder = this.jar.jarPath.replace(/mods\/.*/g, '');
+    console.log(
+      'getCurseMetadata() called.',
+      `${modpackFolder}/minecraftinstance.json`,
+    );
     const curseMeta = JSON.parse(
       await readFile(`${modpackFolder}/minecraftinstance.json`, 'utf-8'),
     ) as ICurseMetadata;

@@ -3,10 +3,11 @@ import { ipcRenderer } from 'electron';
 import Realm, { UpdateMode } from 'realm';
 import path from 'path';
 import JarLoader from './jar-loader';
-import { TextureModel } from '../models/texture.model';
-import { ProjectModel } from '../models/project.model';
-import { ItemModel } from '../models/item.model';
-import { BlockModel } from '../models/block.model';
+import { TextureModel } from '../../models/texture.model';
+import { ProjectModel } from '../../models/project.model';
+import { ItemModel } from '../../models/item.model';
+import { BlockModel } from '../../models/block.model';
+import { ModModel } from '../../models/mod.model';
 
 export class JarHandler {
   private jarLoader: JarLoader;
@@ -15,17 +16,27 @@ export class JarHandler {
 
   private project: ProjectModel;
 
-  constructor(jarLoader: JarLoader, project: ProjectModel, realm: Realm) {
+  private mod: ModModel;
+
+  constructor(
+    jarLoader: JarLoader,
+    project: ProjectModel,
+    realm: Realm,
+    mod: ModModel,
+  ) {
     this.jarLoader = jarLoader;
     this.project = project;
     this.realm = realm;
+    this.mod = mod;
   }
 
   async handleTextures() {
+    if (this.mod.loadedTextures) return;
+
     await this.createBaseFolder();
     const dataFolder = await ipcRenderer.invoke('getPath', 'userData');
 
-    await this.jarLoader.processTextures(async (extract, texturePath) => {
+    await this.jarLoader.processTextures(async (texturePath) => {
       const modId = /assets\/(.*)\/textures\//g.exec(texturePath)?.[1];
 
       if (modId) {
@@ -37,78 +48,67 @@ export class JarHandler {
         const modpackTexturesFolder = path.join(dataFolder, 'textures', modId);
         await mkdir(modpackTexturesFolder, { recursive: true });
 
-        const finalPath = path.join(
-          modpackTexturesFolder,
-          `${splittedTexture.join('_')}__${textureName}`,
-        );
-        await extract(finalPath);
-        this.realm.beginTransaction();
-        const createdTexture = this.realm.create<TextureModel>(
+        const finalFilename = `${splittedTexture.join('_')}__${textureName}`;
+        const finalPath = path.join(modpackTexturesFolder, finalFilename);
+
+        this.realm.create<TextureModel>(
           TextureModel.schema.name,
           {
-            type: splittedTexture.join('/'),
+            textureId: `${modId}:${splittedTexture.join('/')}${splittedTexture.length > 0 ? '/' : ''}${textureName}`,
             path: finalPath,
-            textureId: `${modId}:${splittedTexture.join('_')}__${textureName}`,
-            name: textureName,
-            project: this.project,
+            prefix: splittedTexture.join('/'),
+            project: this.project._id,
+            mod: this.mod._id,
           },
           UpdateMode.Modified,
         );
-
-        if (
-          !this.project.textures.find(
-            (t) => t.textureId === createdTexture.textureId,
-          )
-        ) {
-          this.project.textures.push(createdTexture);
-        }
-        this.realm.commitTransaction();
       } else {
         console.warn(`No mod id found in ${texturePath}`);
       }
     });
+
+    this.mod.loadedTextures = true;
   }
 
   async handleBlocks() {
+    if (this.mod.loadedBlocks) return;
     await this.createBaseFolder();
 
     await this.jarLoader.processBlocks(async ({ fullBlockId, modelJson }) => {
-      const createdBlock = this.realm.create<BlockModel>(
+      this.realm.create<BlockModel>(
         BlockModel.schema.name,
         {
-          name: fullBlockId,
-          id: fullBlockId,
-          model: JSON.stringify(modelJson),
-          project: this.project,
+          blockId: fullBlockId,
+          name: fullBlockId, // TODO get name from lang
+          modelJson: JSON.stringify(modelJson),
+          mod: this.mod._id,
+          project: this.project._id,
         },
         UpdateMode.Modified,
       );
-
-      if (!this.project.blocks.find((b) => b.id === createdBlock.id)) {
-        this.project.blocks.push(createdBlock);
-      }
     });
+
+    this.mod.loadedBlocks = true;
   }
 
   async handleItems() {
+    if (this.mod.loadedItems) return;
     await this.createBaseFolder();
 
     await this.jarLoader.processItems(async ({ fullItemId, modelJson }) => {
-      const createdItem = this.realm.create<ItemModel>(
+      this.realm.create<ItemModel>(
         ItemModel.schema.name,
         {
-          id: fullItemId,
-          project: this.project,
+          itemId: fullItemId,
+          project: this.project._id,
           name: fullItemId, // TODO get name from lang
-          model: JSON.stringify(modelJson),
+          modelJson: JSON.stringify(modelJson),
         },
         UpdateMode.Modified,
       );
-
-      if (!this.project.items.find((i) => i.id === createdItem.id)) {
-        this.project.items.push(createdItem);
-      }
     });
+
+    this.mod.loadedItems = true;
   }
 
   private async createBaseFolder() {

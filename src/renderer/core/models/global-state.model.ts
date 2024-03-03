@@ -1,14 +1,11 @@
-import Realm, { BSON } from 'realm';
-import { CURRENT_VERSION } from '../../constants/current_version';
+import Realm, { BSON, Types } from 'realm';
 
 export class GlobalStateModel extends Realm.Object {
   _id!: BSON.ObjectId;
 
   hasCheckedForProjects!: boolean;
 
-  selectedProjectId?: string;
-
-  version: number = 1;
+  selectedProjectId?: Types.ObjectId;
 
   static schema: Realm.ObjectSchema = {
     name: 'GlobalState',
@@ -17,11 +14,7 @@ export class GlobalStateModel extends Realm.Object {
         type: 'bool',
         default: false,
       },
-      selectedProjectId: 'string?',
-      version: {
-        type: 'int',
-        default: CURRENT_VERSION,
-      },
+      selectedProjectId: 'objectId?',
     },
   };
 }

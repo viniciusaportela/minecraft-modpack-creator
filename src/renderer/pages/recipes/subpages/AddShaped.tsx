@@ -3,7 +3,6 @@ import { Button, Input } from '@nextui-org/react';
 import { X } from '@phosphor-icons/react';
 import PickerButton from '../../../components/picker-button/PickerButton';
 import ItemPicker from '../../../components/picker-button/ItemPicker';
-import { useProjectStore } from '../../../store/project.store';
 import Title from '../../../components/title/Title';
 import { usePager } from '../../../components/pager/hooks/usePager';
 
@@ -26,17 +25,17 @@ export default function AddShaped() {
   };
 
   const addRecipe = () => {
-    useProjectStore.setState((st) => ({
-      recipes: [
-        ...st.recipes,
-        {
-          type: 'shaped',
-          input,
-          output: output!,
-          outputCount,
-        },
-      ],
-    }));
+    // useProjectStore.setState((st) => ({
+    //   recipes: [
+    //     ...st.recipes,
+    //     {
+    //       type: 'shaped',
+    //       input,
+    //       output: output!,
+    //       outputCount,
+    //     },
+    //   ],
+    // }));
 
     navigate('recipe-list');
   };

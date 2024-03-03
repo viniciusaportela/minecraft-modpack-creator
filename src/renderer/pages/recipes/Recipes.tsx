@@ -1,13 +1,13 @@
 import { Warning } from '@phosphor-icons/react';
 import ModId from '../../typings/mod-id.enum';
-import { useAppStore } from '../../store/app.store';
 import RecipeList from './subpages/RecipeList';
 import { Page, Pager } from '../../components/pager/Pager';
 import AddRecipeList from './subpages/AddRecipeList';
 import AddShaped from './subpages/AddShaped';
-import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
+import { useQuery, useQueryById, useQueryFirst } from '../../hooks/realm.hook';
 import { ProjectModel } from '../../core/models/project.model';
 import { GlobalStateModel } from '../../core/models/global-state.model';
+import { ModModel } from '../../core/models/mod.model';
 
 interface IRecipeProps {
   isVisible: boolean;
@@ -16,10 +16,11 @@ interface IRecipeProps {
 export default function Recipes({ isVisible }: IRecipeProps) {
   const globalState = useQueryFirst(GlobalStateModel);
   const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
-
-  const isKubeJSEnabled = project?.mods.find(
-    (mod) => mod.modId === ModId.KubeJS,
+  const mods = useQuery(ModModel, (obj) =>
+    obj.filtered('modId != $0 AND project = $1', ModId.Minecraft, project._id),
   );
+
+  const isKubeJSEnabled = mods.find((mod) => mod.modId === ModId.KubeJS);
 
   return (
     <div

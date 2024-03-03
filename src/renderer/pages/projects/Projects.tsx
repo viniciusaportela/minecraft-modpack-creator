@@ -2,23 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { ipcRenderer } from 'electron';
 import { Button, Divider, Input, useDisclosure } from '@nextui-org/react';
 import { ArrowClockwise, MagnifyingGlass } from '@phosphor-icons/react';
-import { readdir } from 'node:fs/promises';
+import { Types } from 'realm';
 import ProjectCard from './components/ProjectCard';
 import AddProject from './components/AddProject';
 import { usePager } from '../../components/pager/hooks/usePager';
 import { useQuery, useQueryFirst } from '../../hooks/realm.hook';
 import { ProjectModel } from '../../core/models/project.model';
-import { useRealm } from '../../store/realm.context';
 import { GlobalStateModel } from '../../core/models/global-state.model';
 import AppBarHeader, {
   AppBarHeaderContainer,
 } from '../../components/app-bar/AppBarHeader';
 import LoadProjectModal from './components/LoadProjectModal';
-import { ProjectsService } from '../../App';
-import getCurseForgeFolder from '../../core/minecraft/helpers/get-curse-forge-folder';
+import { useAppStore } from '../../store/app.store';
+import ProjectService from '../../core/domains/project/project-service';
+import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 
 export default function Projects() {
-  const realm = useRealm();
+  const handleError = useErrorHandler();
+
+  const realm = useAppStore((st) => st.realm)!;
   const { navigate } = usePager();
   const globalState = useQueryFirst(GlobalStateModel);
 
@@ -34,7 +36,7 @@ export default function Projects() {
   const [filterText, setFilterText] = useState('');
 
   useEffect(() => {
-    findProjects().catch(console.error);
+    ProjectService.populateProjects().catch(handleError);
     ipcRenderer.send('resize', 800, 600);
     ipcRenderer.send('make-no-resizable');
 
@@ -45,54 +47,23 @@ export default function Projects() {
 
   const onAddNewProject = async (modpackFolder: string) => {
     try {
-      await ProjectsService.createProjectFromFolder(modpackFolder);
+      await ProjectService.createFromFolder(modpackFolder);
       onModalClose();
     } catch (err) {
-      console.error(err);
+      await handleError(err);
     }
   };
 
-  const findProjects = async (force = false) => {
-    if (!globalState.hasCheckedForProjects || force) {
-      const curseFolder = getCurseForgeFolder();
-
-      if (curseFolder) {
-        try {
-          const folders = await readdir(curseFolder);
-          const promises = folders.map((f: string) =>
-            ProjectsService.createProjectFromFolder(`${curseFolder}/${f}`),
-          );
-          await Promise.all(promises);
-        } catch (err) {
-          // TODO add generic alert to user
-          console.error(err);
-        }
-      }
-
+  const open = async (projectId: Types.ObjectId) => {
+    try {
       realm.write(() => {
-        globalState.hasCheckedForProjects = true;
+        globalState.selectedProjectId = projectId;
       });
 
-      // TODO can have many version, need to choose one
-      // const minecraftFolder = getMinecraftFolder();
-      //
-      // if (minecraftFolder) {
-      //   try {
-      //     await ProjectsService.createProjectFromFolder(minecraftFolder);
-      //   } catch (err) {
-      //     // TODO add generic alert to user
-      //     console.error(err);
-      //   }
-      // }
+      navigate('project-preload');
+    } catch (e) {
+      await handleError(e);
     }
-  };
-
-  const open = async (projectId: string) => {
-    realm.write(() => {
-      globalState.selectedProjectId = projectId;
-    });
-
-    navigate('project-preload');
   };
 
   const filteredProjects = filterText
@@ -122,7 +93,9 @@ export default function Projects() {
           <div className="flex-1 app-bar-drag h-full" />
           <Button
             isIconOnly
-            onPress={() => findProjects(true)}
+            onPress={() =>
+              ProjectService.populateProjects(true).catch(handleError)
+            }
             size="sm"
             variant="flat"
             className="mr-2"
@@ -137,9 +110,9 @@ export default function Projects() {
         {filteredProjects.map((p) => (
           <ProjectCard
             title={p.name}
-            projectId={p._id.toString()}
+            projectId={p._id}
             key={p.name}
-            isCurseForge={p.fromCurseForge}
+            isCurseForge={p.source === 'curseforge'}
             onOpen={open}
           />
         ))}

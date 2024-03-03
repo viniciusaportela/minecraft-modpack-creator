@@ -10,7 +10,7 @@ import {
 } from '@nextui-org/react';
 import { ipcRenderer, OpenDialogOptions } from 'electron';
 import { Folder } from '@phosphor-icons/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface LoadProjectModalProps {
   isOpen: boolean;
@@ -36,6 +36,14 @@ export default function LoadProjectModal({
     setFolderPath(res.filePaths[0]);
   };
 
+  useEffect(() => {
+    if (!isOpen) {
+      setTimeout(() => {
+        setFolderPath('');
+      }, 200);
+    }
+  }, [isOpen]);
+
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <ModalContent>
@@ -45,10 +53,7 @@ export default function LoadProjectModal({
               Load Project
             </ModalHeader>
             <ModalBody>
-              <span>
-                Insert your modpack folder (<Code>.minecraft</Code> or your{' '}
-                <b>CurseForge Modpack</b> folder)
-              </span>
+              <span>Insert your CurseForge modpack folder</span>
               <div className="flex">
                 <Input
                   size="sm"

@@ -1,8 +1,4 @@
 import Realm, { BSON, ObjectSchema } from 'realm';
-import { TextureModel } from './texture.model';
-import { ModModel } from './mod.model';
-import { BlockModel } from './block.model';
-import { ItemModel } from './item.model';
 
 export class ProjectModel extends Realm.Object {
   _id!: BSON.ObjectId;
@@ -21,19 +17,17 @@ export class ProjectModel extends Realm.Object {
 
   loaded!: boolean;
 
-  fromCurseForge!: boolean;
+  source!: string;
+
+  cachedAmountInstalledMods?: number;
 
   modsChecksum?: string;
 
-  amountInstalledMods?: number;
+  recipes!: string;
 
-  textures!: TextureModel[];
-
-  items!: ItemModel[];
-
-  blocks!: BlockModel[];
-
-  mods!: ModModel[];
+  getRecipes() {
+    return JSON.parse(this.recipes!);
+  }
 
   static schema: ObjectSchema = {
     name: 'Project',
@@ -47,34 +41,14 @@ export class ProjectModel extends Realm.Object {
       minecraftVersion: 'string',
       loaderVersion: 'string',
       loader: 'string',
-      amountInstalledMods: 'int',
-      fromCurseForge: 'bool',
-      version: 'int',
+      source: 'string',
+      cachedAmountInstalledMods: 'int?',
+      modsChecksum: 'string?',
       loaded: {
         type: 'bool',
         default: false,
       },
-      modsChecksum: 'string?',
-      textures: {
-        type: 'list',
-        objectType: 'Texture',
-        default: [],
-      },
-      items: {
-        type: 'list',
-        objectType: 'Item',
-        default: [],
-      },
-      blocks: {
-        type: 'list',
-        objectType: 'Block',
-        default: [],
-      },
-      mods: {
-        type: 'list',
-        objectType: 'Mod',
-        default: [],
-      },
+      recipes: 'string',
     },
     primaryKey: '_id',
   };

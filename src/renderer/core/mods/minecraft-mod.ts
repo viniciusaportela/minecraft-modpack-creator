@@ -1,18 +1,20 @@
 import { DefaultMod } from './default-mod';
 import JarLoader from '../domains/minecraft/jar-loader';
 
-export class SkillTreeMod extends DefaultMod {
+export class MinecraftMod extends DefaultMod {
   constructor(jar: JarLoader) {
-    super(jar, 'skilltree');
+    super(jar, 'minecraft');
   }
 
   async generateConfig() {
+    return {};
+  }
+
+  async getUserConfigs() {
     return {
-      ...(await super.generateConfig()),
-      tree: {
-        nodes: [],
-        edges: [],
-      },
+      server: null,
+      client: null,
+      common: null,
     };
   }
 }
