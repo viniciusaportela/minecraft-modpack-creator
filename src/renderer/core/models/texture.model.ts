@@ -1,6 +1,8 @@
-import Realm, { ObjectSchema, Types } from 'realm';
+import Realm, { BSON, ObjectSchema, Types } from 'realm';
 
 export class TextureModel extends Realm.Object {
+  _id!: BSON.ObjectId;
+
   textureId!: string;
 
   path!: string;
@@ -18,7 +20,14 @@ export class TextureModel extends Realm.Object {
   static schema: ObjectSchema = {
     name: 'Texture',
     properties: {
-      textureId: 'string',
+      _id: {
+        type: 'objectId',
+        default: () => new BSON.ObjectId(),
+      },
+      textureId: {
+        type: 'string',
+        indexed: true,
+      },
       path: 'string',
       mod: {
         indexed: true,
@@ -30,6 +39,6 @@ export class TextureModel extends Realm.Object {
         type: 'objectId',
       },
     },
-    primaryKey: 'textureId',
+    primaryKey: '_id',
   };
 }

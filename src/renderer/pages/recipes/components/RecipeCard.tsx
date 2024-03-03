@@ -1,30 +1,21 @@
 import { Button, Card, CardBody } from '@nextui-org/react';
 import { Trash } from '@phosphor-icons/react';
-import { IProjectStore } from '../../../store/interfaces/project-store.interface';
 
-export default function RecipeCard({
-  index,
-}: IProjectStore['recipes'][0] & { index: number }) {
-  // const deleteRecipe = () => {
-  //   useProjectStore.setState((state) => {
-  //     state.recipes.splice(index, 1);
-  //
-  //     return {
-  //       recipes: [...state.recipes],
-  //     };
-  //   });
-  // };
-  //
-  // return (
-  //   <Card>
-  //     <CardBody>
-  //       <div className="flex items-center">
-  //         <span>Recipe</span>
-  //         <Button onPress={deleteRecipe} isIconOnly className="ml-auto">
-  //           <Trash />
-  //         </Button>
-  //       </div>
-  //     </CardBody>
-  //   </Card>
-  // );
+export interface RecipeCardProps {
+  onDelete: () => void;
+}
+
+export default function RecipeCard({ onDelete }: RecipeCardProps) {
+  return (
+    <Card>
+      <CardBody>
+        <div className="flex items-center">
+          <span>Recipe</span>
+          <Button onPress={onDelete} isIconOnly className="ml-auto">
+            <Trash />
+          </Button>
+        </div>
+      </CardBody>
+    </Card>
+  );
 }

@@ -51,17 +51,28 @@ export class JarHandler {
         const finalFilename = `${splittedTexture.join('_')}__${textureName}`;
         const finalPath = path.join(modpackTexturesFolder, finalFilename);
 
-        this.realm.create<TextureModel>(
-          TextureModel.schema.name,
-          {
-            textureId: `${modId}:${splittedTexture.join('/')}${splittedTexture.length > 0 ? '/' : ''}${textureName}`,
-            path: finalPath,
-            prefix: splittedTexture.join('/'),
-            project: this.project._id,
-            mod: this.mod._id,
-          },
-          UpdateMode.Modified,
-        );
+        const textureId = `${modId}:${splittedTexture.join('/')}${splittedTexture.length > 0 ? '/' : ''}${textureName}`;
+
+        const exists =
+          this.realm
+            .objects<TextureModel>(TextureModel.schema.name)
+            .filtered(
+              `textureId = $0 AND project = $1`,
+              textureId,
+              this.project._id,
+            ).length > 0;
+
+        if (exists) {
+          return;
+        }
+
+        this.realm.create<TextureModel>(TextureModel.schema.name, {
+          textureId,
+          path: finalPath,
+          prefix: splittedTexture.join('/'),
+          project: this.project._id,
+          mod: this.mod._id,
+        });
       } else {
         console.warn(`No mod id found in ${texturePath}`);
       }
@@ -75,17 +86,26 @@ export class JarHandler {
     await this.createBaseFolder();
 
     await this.jarLoader.processBlocks(async ({ fullBlockId, modelJson }) => {
-      this.realm.create<BlockModel>(
-        BlockModel.schema.name,
-        {
-          blockId: fullBlockId,
-          name: fullBlockId, // TODO get name from lang
-          modelJson: JSON.stringify(modelJson),
-          mod: this.mod._id,
-          project: this.project._id,
-        },
-        UpdateMode.Modified,
-      );
+      const exists =
+        this.realm
+          .objects<BlockModel>(BlockModel.schema.name)
+          .filtered(
+            `blockId = $0 AND project = $1`,
+            fullBlockId,
+            this.project._id,
+          ).length > 0;
+
+      if (exists) {
+        return;
+      }
+
+      this.realm.create<BlockModel>(BlockModel.schema.name, {
+        blockId: fullBlockId,
+        name: fullBlockId, // TODO get name from lang
+        modelJson: JSON.stringify(modelJson),
+        mod: this.mod._id,
+        project: this.project._id,
+      });
     });
 
     this.mod.loadedBlocks = true;
@@ -96,6 +116,19 @@ export class JarHandler {
     await this.createBaseFolder();
 
     await this.jarLoader.processItems(async ({ fullItemId, modelJson }) => {
+      const exists =
+        this.realm
+          .objects<ItemModel>(ItemModel.schema.name)
+          .filtered(
+            `itemId = $0 AND project = $1`,
+            fullItemId,
+            this.project._id,
+          ).length > 0;
+
+      if (exists) {
+        return;
+      }
+
       this.realm.create<ItemModel>(
         ItemModel.schema.name,
         {

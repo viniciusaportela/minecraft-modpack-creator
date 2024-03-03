@@ -1,6 +1,8 @@
-import Realm, { ObjectSchema, Types } from 'realm';
+import Realm, { BSON, ObjectSchema, Types } from 'realm';
 
 export class ItemModel extends Realm.Object {
+  _id!: BSON.ObjectId;
+
   itemId!: string;
 
   name!: string;
@@ -16,7 +18,14 @@ export class ItemModel extends Realm.Object {
   static schema: ObjectSchema = {
     name: 'Item',
     properties: {
-      itemId: 'string',
+      _id: {
+        type: 'objectId',
+        default: () => new BSON.ObjectId(),
+      },
+      itemId: {
+        type: 'string',
+        indexed: true,
+      },
       name: 'string',
       modelJson: 'string',
       project: {
@@ -24,6 +33,6 @@ export class ItemModel extends Realm.Object {
         indexed: true,
       },
     },
-    primaryKey: 'itemId',
+    primaryKey: '_id',
   };
 }

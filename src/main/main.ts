@@ -198,8 +198,15 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
+    const userData = app.getPath('userData');
+
     protocol.handle('textures', (request) => {
-      return net.fetch(`file://${request.url.slice('textures://'.length)}`);
+      console.log(
+        `fetch file://${userData}/textures/${request.url.slice('textures://'.length)}`,
+      );
+      return net.fetch(
+        `file://${userData}/textures/${request.url.slice('textures://'.length)}`,
+      );
     });
 
     mkdirSync(path.join(app.getPath('userData'), 'app_logs'), {

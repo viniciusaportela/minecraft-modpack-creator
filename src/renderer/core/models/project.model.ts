@@ -1,4 +1,5 @@
 import Realm, { BSON, ObjectSchema } from 'realm';
+import { useAppStore } from '../../store/app.store';
 
 export class ProjectModel extends Realm.Object {
   _id!: BSON.ObjectId;
@@ -25,8 +26,18 @@ export class ProjectModel extends Realm.Object {
 
   recipes!: string;
 
-  getRecipes() {
+  getRecipes(): Record<string, unknown>[] {
     return JSON.parse(this.recipes!);
+  }
+
+  removeRecipe(index: number) {
+    const recipes = this.getRecipes();
+    recipes.splice(index, 1);
+
+    const { realm } = useAppStore.getState();
+    realm.write(() => {
+      this.recipes = JSON.stringify(recipes);
+    });
   }
 
   static schema: ObjectSchema = {

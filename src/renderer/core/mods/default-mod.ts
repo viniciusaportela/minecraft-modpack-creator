@@ -26,10 +26,6 @@ export class DefaultMod implements IMod {
 
   async getCurseMetadata() {
     const modpackFolder = this.jar.jarPath.replace(/mods\/.*/g, '');
-    console.log(
-      'getCurseMetadata() called.',
-      `${modpackFolder}/minecraftinstance.json`,
-    );
     const curseMeta = JSON.parse(
       await readFile(`${modpackFolder}/minecraftinstance.json`, 'utf-8'),
     ) as ICurseMetadata;

@@ -28,7 +28,6 @@ export class ModModel extends Realm.Object {
   loadedBlocks?: boolean;
 
   getConfig() {
-    console.log('this.realm', this.realm);
     return JSON.parse(this.config);
   }
 

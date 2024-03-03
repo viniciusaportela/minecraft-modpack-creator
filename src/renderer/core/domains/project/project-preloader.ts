@@ -90,7 +90,6 @@ export class ProjectPreloader {
   private async getModInDb(modFile: string, jar: JarLoader) {
     const modId = await this.getModId(jar);
     const mod = ModsFactory.create(jar, modId);
-    console.log('getModInDb', modId, mod);
     const metadata = await jar.getMetadata();
 
     const foundMod = this.realm
