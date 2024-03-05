@@ -7,6 +7,7 @@ export const useAppStore = create<IAppStore>((set) => ({
   title: 'My Projects',
   goBack: null,
   realm: null as any,
+  selectedProjectId: null as any,
   headerMiddleComponent: null,
   setTitle: (title) => set({ title }),
   setGoBack: (goBack) => set({ goBack }),

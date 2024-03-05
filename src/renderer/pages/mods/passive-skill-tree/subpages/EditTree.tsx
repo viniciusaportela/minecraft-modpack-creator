@@ -91,8 +91,6 @@ export default function EditTree() {
       'skilltree',
     );
 
-    console.log(basePath);
-
     const skillTree = JSON.parse(
       await readFile(
         path.join(basePath, 'skill_trees', 'main_tree.json'),
@@ -107,7 +105,6 @@ export default function EditTree() {
         path.join(basePath, 'skills', fileName),
         'utf8',
       );
-      console.log('skills', JSON.parse(file));
       skills.push(JSON.parse(file));
     }
 

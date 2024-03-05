@@ -48,29 +48,44 @@ export default function Picker() {
       </div>
       <Divider />
       <div className="flex flex-col p-2">
-        {inputText.trim() !== '' && (
-          <Button
-            className="justify-start min-h-7 h-7"
-            variant="light"
-            onPress={() => select(`minecraft:${inputText}`)}
-          >
-            minecraft:{inputText}
-          </Button>
-        )}
         <List
-          itemCount={filteredItems.length}
+          itemCount={filteredItems.length + 1 + (inputText === '' ? 0 : 1)}
           itemSize={28}
           width={540}
           height={445}
         >
-          {({ index, style }) => (
-            <PickerItem
-              projectId={project._id}
-              item={filteredItems[index]}
-              onPress={() => select(filteredItems[index].id)}
-              style={style}
-            />
-          )}
+          {({ index, style }) =>
+            index === 0 ? (
+              <Button
+                className="justify-start min-h-7 h-7 w-full"
+                variant="light"
+                onPress={() => select(`@custom:removeItem`)}
+              >
+                Remove item
+              </Button>
+            ) : index === 1 && inputText.trim() !== '' ? (
+              <Button
+                className="justify-start min-h-7 h-7 w-full"
+                variant="light"
+                onPress={() => select(`minecraft:${inputText}`)}
+              >
+                minecraft:{inputText}
+              </Button>
+            ) : (
+              <PickerItem
+                item={
+                  filteredItems[index - 1 - (inputText.trim() === '' ? 0 : 1)]
+                }
+                onPress={() =>
+                  select(
+                    filteredItems[index - 1 - (inputText.trim() === '' ? 0 : 1)]
+                      .itemId,
+                  )
+                }
+                style={style}
+              />
+            )
+          }
         </List>
       </div>
     </div>

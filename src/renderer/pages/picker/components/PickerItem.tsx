@@ -1,26 +1,19 @@
-import { Button, Image } from '@nextui-org/react';
+import { Button } from '@nextui-org/react';
 import { CSSProperties } from 'react';
-import { Types } from 'realm';
-import { BlockModel } from '../../../core/models/block.model';
 import { ItemModel } from '../../../core/models/item.model';
 import LazyTexture from '../../../components/lazy-image/LazyTexture';
+import getTextureFromModel from '../../../core/domains/minecraft/helpers/getTextureFromModel';
+import TextureBox from '../../../components/texture-box/TextureBox';
+import getModelType from '../../../core/domains/minecraft/helpers/getModelType';
 
 interface PickerItemProps {
-  projectId: Types.ObjectId;
   item: ItemModel;
   onPress: () => void;
   style: CSSProperties;
 }
 
-export default function PickerItem({
-  item,
-  onPress,
-  style,
-  projectId,
-}: PickerItemProps) {
-  const getItemTexture = () => {
-    return item.getModel()?.textures?.layer0;
-  };
+export default function PickerItem({ item, onPress, style }: PickerItemProps) {
+  const itemType = getModelType(item.getModel());
 
   return (
     <Button
@@ -30,11 +23,22 @@ export default function PickerItem({
       style={style}
       onPress={onPress}
     >
-      <LazyTexture
-        textureId={getItemTexture()}
-        projectId={projectId}
-        className="w-5 h-5 mr-1"
-      />
+      {itemType === 'block' && (
+        <TextureBox
+          textureId={getTextureFromModel(
+            item.getModel(),
+            'block',
+            item.getParent(),
+          )}
+          className="w-5 h-5 mr-0.5 ml-0.5"
+        />
+      )}
+      {itemType === 'item' && (
+        <LazyTexture
+          textureId={getTextureFromModel(item.getModel(), 'item')}
+          className="w-5 h-5"
+        />
+      )}
       {item.name}
     </Button>
   );

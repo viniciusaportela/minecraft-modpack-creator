@@ -19,11 +19,6 @@ export class TextureLoader {
     const zip = await this.getZip(projectId, textureId);
 
     const [modId, insidePath] = textureId.split(':');
-    console.log(
-      `assets/${modId}/textures/${insidePath}.png`,
-      insidePath,
-      await this.getFullTextureSource(textureId),
-    );
     await zip.extract(
       `assets/${modId}/textures/${insidePath}.png`,
       await this.getFullTextureSource(textureId),
@@ -31,6 +26,7 @@ export class TextureLoader {
   }
 
   static getTextureSource(textureId: string) {
+    console.log('getTextureSource', textureId);
     if (!textureId) {
       return undefined;
     }
@@ -39,7 +35,7 @@ export class TextureLoader {
     const splitted = textureId.replace(`${modId}:`, '').split('/');
     const lastPart = splitted.splice(-1, 1)[0];
 
-    return `textures://${modId}/${splitted.join('_')}__${lastPart}.png`;
+    return `textures://${modId}/${splitted.join('_')}${splitted.length > 0 ? '__' : ''}${lastPart}.png`;
   }
 
   static async getFullTextureSource(textureId: string) {

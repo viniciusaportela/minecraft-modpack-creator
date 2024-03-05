@@ -24,6 +24,8 @@ export class ProjectModel extends Realm.Object {
 
   modsChecksum?: string;
 
+  orphan!: boolean;
+
   recipes!: string;
 
   getRecipes(): Record<string, unknown>[] {
@@ -55,6 +57,10 @@ export class ProjectModel extends Realm.Object {
       source: 'string',
       cachedAmountInstalledMods: 'int?',
       modsChecksum: 'string?',
+      orphan: {
+        type: 'bool',
+        default: false,
+      },
       loaded: {
         type: 'bool',
         default: false,

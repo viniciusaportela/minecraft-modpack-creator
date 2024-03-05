@@ -9,6 +9,7 @@ import {
   Skeleton,
 } from '@nextui-org/react';
 import { Types } from 'realm';
+import { Warning } from '@phosphor-icons/react';
 import CurseForgeLogo from '../../../assets/curse-forge-logo.svg';
 import MinecraftLogo from '../../../assets/minecraft.png';
 import { useQueryById } from '../../../hooks/realm.hook';
@@ -45,21 +46,33 @@ export default function ProjectCard({
       <CardBody className="pb-0 pt-5 px-4 flex-col items-start">
         <Skeleton isLoaded={!loadingProjectMetadata}>
           <h4 className="font-bold text-large">{title}</h4>
-          <Chip
-            variant="flat"
-            size="sm"
-            color="warning"
-            className="mb-2"
-            startContent={
-              <Image
-                src={isCurseForge ? CurseForgeLogo : MinecraftLogo}
-                width={20}
-                height={20}
-              />
-            }
-          >
-            {isCurseForge ? 'CurseForge' : 'Minecraft'}
-          </Chip>
+          {project.orphan ? (
+            <Chip
+              variant="flat"
+              size="sm"
+              color="danger"
+              className="mb-2"
+              startContent={<Warning className="text-danger" />}
+            >
+              This folder doesn't exists anymore
+            </Chip>
+          ) : (
+            <Chip
+              variant="flat"
+              size="sm"
+              color="warning"
+              className="mb-2"
+              startContent={
+                <Image
+                  src={isCurseForge ? CurseForgeLogo : MinecraftLogo}
+                  width={20}
+                  height={20}
+                />
+              }
+            >
+              {isCurseForge ? 'CurseForge' : 'Minecraft'}
+            </Chip>
+          )}
         </Skeleton>
         <Skeleton isLoaded={!loadingProjectMetadata}>
           <small className="text-sm">
@@ -78,6 +91,7 @@ export default function ProjectCard({
           size="sm"
           color="primary"
           className="ml-auto"
+          isDisabled={project.orphan}
           onPress={() => onOpen?.(projectId)}
         >
           Open

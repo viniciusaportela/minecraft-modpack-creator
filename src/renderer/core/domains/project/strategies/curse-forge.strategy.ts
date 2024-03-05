@@ -30,6 +30,7 @@ export default class CurseForgeStrategy implements IProjectStrategy {
         exists[0].loader = curseInstance.baseModLoader.name;
         exists[0].loaderVersion = curseInstance.baseModLoader.name;
         exists[0].minecraftVersion = curseInstance.gameVersion;
+        exists[0].orphan = false;
 
         return;
       }

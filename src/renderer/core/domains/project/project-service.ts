@@ -5,6 +5,7 @@ import BusinessLogicError from '../../errors/business-logic-error';
 import { useAppStore } from '../../../store/app.store';
 import { BusinessError } from '../../errors/business-error.enum';
 import getCurseForgeFolder from '../minecraft/helpers/get-curse-forge-folder';
+import { ProjectModel } from '../../models/project.model';
 
 export default class ProjectService {
   static async createFromFolder(modpackFolder: string) {
@@ -35,10 +36,8 @@ export default class ProjectService {
 
     const globalState = realm.objects('GlobalState')[0];
 
-    if (!force) {
-      if (globalState.hasCheckedForProjects) {
-        return;
-      }
+    if (!force && globalState.hasCheckedForProjects) {
+      return;
     }
 
     const curseFolder = getCurseForgeFolder();
@@ -49,6 +48,17 @@ export default class ProjectService {
         ProjectService.createFromFolder(`${curseFolder}/${f}`),
       );
       await Promise.all(promises);
+
+      const projects = realm.objects<ProjectModel>('Project');
+      const orphanedProjects = projects.filter(
+        (p) => !folders.includes(p.name),
+      );
+
+      realm.write(() => {
+        orphanedProjects.forEach((p) => {
+          p.orphan = true;
+        });
+      });
     } else {
       console.warn('Curseforge folder not found');
     }

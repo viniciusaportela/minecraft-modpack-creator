@@ -59,6 +59,9 @@ export default function Projects() {
       realm.write(() => {
         globalState.selectedProjectId = projectId;
       });
+      useAppStore.setState({
+        selectedProjectId: projectId,
+      });
 
       navigate('project-preload');
     } catch (e) {

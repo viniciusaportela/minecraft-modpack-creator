@@ -7,8 +7,6 @@ export default memo(({ data }: { data: any }) => {
   const isConnecting = useStore((state) => !!state.connectionNodeId);
   const [backgroundImg, setBackgroundImg] = useState<string | null>(null);
 
-  console.log('TreeNode', data);
-
   useLayoutEffect(() => {
     const textureId = data.backgroundTexture
       .replace('textures/', '')

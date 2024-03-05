@@ -1,4 +1,6 @@
 import Realm, { BSON, ObjectSchema, Types } from 'realm';
+import { useAppStore } from '../../store/app.store';
+import { BlockModel } from './block.model';
 
 export class ItemModel extends Realm.Object {
   _id!: BSON.ObjectId;
@@ -13,6 +15,42 @@ export class ItemModel extends Realm.Object {
 
   getModel() {
     return JSON.parse(this.modelJson);
+  }
+
+  getParent() {
+    const model = this.getModel();
+    console.log('getParent', model);
+
+    const [modId, entityId] = model.parent.split(':');
+    const [entityType, ...realId] = entityId.split('/');
+    console.log(
+      'entityId',
+      entityId,
+      'entityType',
+      entityType,
+      'realId',
+      realId,
+      "realId.join('/')",
+      `${modId}:${realId.join('/')}`,
+    );
+
+    const { realm } = useAppStore.getState();
+    const parent = realm
+      .objects<
+        ItemModel | BlockModel
+      >(entityType === 'block' ? BlockModel.schema.name : ItemModel.schema.name)
+      .filtered(
+        entityType === 'block' ? 'blockId = $0' : 'itemId = $0',
+        `${modId}:${realId.join('/')}`,
+      )[0];
+
+    console.log('parent', parent);
+
+    if (parent) {
+      return parent.getModel();
+    }
+
+    return undefined;
   }
 
   static schema: ObjectSchema = {

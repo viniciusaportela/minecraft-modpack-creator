@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Button, Input } from '@nextui-org/react';
 import { X } from '@phosphor-icons/react';
-import PickerButton from '../../../components/picker-button/PickerButton';
-import ItemPicker from '../../../components/picker-button/ItemPicker';
+import ItemPickerButton from '../../../components/ItemPickerButton/ItemPickerButton';
 import Title from '../../../components/title/Title';
 import { usePager } from '../../../components/pager/hooks/usePager';
+import { useQueryById, useQueryFirst } from '../../../hooks/realm.hook';
+import { GlobalStateModel } from '../../../core/models/global-state.model';
+import { ProjectModel } from '../../../core/models/project.model';
 
 export default function AddShaped() {
   const { navigate } = usePager();
@@ -19,7 +21,7 @@ export default function AddShaped() {
   const onPickInput = (value: string, row: number, col: number) => {
     setInput((prev) => {
       const copy = [...prev];
-      copy[row][col] = value;
+      copy[row][col] = value === '@custom:removeItem' ? null : value;
       return copy;
     });
   };
@@ -57,43 +59,43 @@ export default function AddShaped() {
       <span className="text-lg font-bold mb-2">Input</span>
       <div className="flex flex-col gap-1">
         <div className="flex gap-1">
-          <ItemPicker
+          <ItemPickerButton
             value={input[0][0]}
             onPick={(value) => onPickInput(value, 0, 0)}
           />
-          <ItemPicker
+          <ItemPickerButton
             value={input[0][1]}
             onPick={(value) => onPickInput(value, 0, 1)}
           />
-          <ItemPicker
+          <ItemPickerButton
             value={input[0][2]}
             onPick={(value) => onPickInput(value, 0, 2)}
           />
         </div>
         <div className="flex gap-1">
-          <ItemPicker
+          <ItemPickerButton
             value={input[1][0]}
             onPick={(value) => onPickInput(value, 1, 0)}
           />
-          <ItemPicker
+          <ItemPickerButton
             value={input[1][1]}
             onPick={(value) => onPickInput(value, 1, 1)}
           />
-          <ItemPicker
+          <ItemPickerButton
             value={input[1][2]}
             onPick={(value) => onPickInput(value, 1, 2)}
           />
         </div>
         <div className="flex gap-1">
-          <ItemPicker
+          <ItemPickerButton
             value={input[2][0]}
             onPick={(value) => onPickInput(value, 2, 0)}
           />
-          <ItemPicker
+          <ItemPickerButton
             value={input[2][1]}
             onPick={(value) => onPickInput(value, 2, 1)}
           />
-          <ItemPicker
+          <ItemPickerButton
             value={input[2][2]}
             onPick={(value) => onPickInput(value, 2, 2)}
           />
@@ -114,7 +116,11 @@ export default function AddShaped() {
           }}
         />
         <X className="mx-1" />
-        <PickerButton value={output} onPick={(picked) => setOutput(picked)} />
+        <ItemPickerButton
+          value={output}
+          onPick={(picked) => setOutput(picked)}
+          className="w-[225px]"
+        />
       </div>
 
       <Button

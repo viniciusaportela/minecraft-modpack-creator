@@ -193,7 +193,7 @@ export default function Project() {
         </AppBarHeaderContainer>
       </AppBarHeader>
       <div className="w-80 border-[0.5px] border-solid border-zinc-800 border-t-0 flex flex-col">
-        <span className="text-lg p-5 pb-3">{mods.length - 1} mods</span>
+        <span className="text-lg p-5 pb-3">{mods.length} mods</span>
 
         <div className="flex-1 min-h-0">
           <ScrollShadow className="flex flex-col gap-2 h-full max-h-full pb-5 px-5">
