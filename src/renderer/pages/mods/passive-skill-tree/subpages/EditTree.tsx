@@ -5,9 +5,10 @@ import ReactFlow, {
   applyNodeChanges,
   addEdge,
 } from 'reactflow';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import path from 'path';
 import { readdir, readFile } from 'node:fs/promises';
+import clsx from 'clsx';
 import TreeNode from '../components/TreeNode';
 import Title from '../../../../components/title/Title';
 import SkillEdge from '../components/SkillEdge';
@@ -31,6 +32,8 @@ export default function EditTree() {
   const [flowNodes, setFlowNodes] = useState<Node[]>([]);
   const [flowEdges, setFlowEdges] = useState<Edge[]>([]);
 
+  const [isPanning, setIsPanning] = useState(false);
+
   const onNodesChange = useCallback(
     (changes) => setFlowNodes((nds) => applyNodeChanges(changes, nds)),
     [setFlowNodes],
@@ -44,6 +47,7 @@ export default function EditTree() {
   const onConnect = useCallback(
     (connection) => {
       setFlowEdges((edges) => {
+        console.log(connection.targetHandle);
         const filtered = flowNodes.filter((n) => n.id === connection.source);
         const reduced = filtered.reduce((edgs, node) => {
           return addEdge(
@@ -52,6 +56,7 @@ export default function EditTree() {
               target: connection.target,
               type: 'skill_edge',
               id: `${connection.source}_${connection.target}`,
+              data: { type: connection.targetHandle.replace('-target', '') },
             },
             edgs,
           );
@@ -74,12 +79,32 @@ export default function EditTree() {
   );
 
   useEffect(() => {
+    const onKeyDown = (ev) => {
+      if (ev.key === ' ') {
+        setIsPanning(true);
+      }
+    };
+
+    const onKeyUp = (ev) => {
+      if (ev.key === ' ') {
+        setIsPanning(false);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+
     getConfig()
       .then((cfg) => {
         configToNodes(cfg);
         configToEdges(cfg);
       })
       .catch(console.error);
+
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
   }, []);
 
   async function getConfig() {
@@ -131,16 +156,43 @@ export default function EditTree() {
 
     config.skills.forEach((cfg) => {
       cfg.directConnections.map((conn) => {
-        !cfg.id && console.error(cfg);
         edges.push({
           id: `${cfg.id}_${conn}`,
           source: cfg.id,
           target: conn,
-          sourceHandle: 'main',
-          targetHandle: 'main',
+          sourceHandle: 'main-source',
+          targetHandle: 'direct-target',
           type: 'skill_edge',
+          data: { type: 'direct' },
         });
       });
+
+      console.log('cfg', cfg);
+      cfg.oneWayConnections.map((conn) => {
+        edges.push({
+          id: `one_way_${cfg.id}_${conn}`,
+          source: cfg.id,
+          target: conn,
+          sourceHandle: 'main-source',
+          targetHandle: 'one_way-target',
+          type: 'skill_edge',
+          data: { type: 'one_way' },
+        });
+      });
+
+      cfg.longConnections.map((conn) => {
+        edges.push({
+          id: `long_${cfg.id}_${conn}`,
+          source: cfg.id,
+          target: conn,
+          sourceHandle: 'main-source',
+          targetHandle: 'long-target',
+          type: 'skill_edge',
+          data: { type: 'long' },
+        });
+      });
+
+      // TODO also check for other type of connections
     });
 
     setFlowEdges(edges);
@@ -149,9 +201,10 @@ export default function EditTree() {
   return (
     <div className="w-full h-full flex flex-col">
       <Title goBack={() => navigate('dashboard')}>Edit Tree</Title>
-      <div className="flex-1">
+      <div className={clsx('flex-1', isPanning && 'is-panning')}>
         {config && (
           <ReactFlow
+            onPaneClick={(ev) => console.log(ev)}
             onNodesChange={onNodesChange}
             onConnect={onConnect}
             onEdgeUpdate={onEdgesChange}
@@ -159,6 +212,10 @@ export default function EditTree() {
             snapToGrid
             snapGrid={[4, 4]}
             maxZoom={4}
+            panOnScroll={false}
+            panActivationKeyCode={null}
+            edgesFocusable={false}
+            nodesDraggable={!isPanning}
             deleteKeyCode="Delete"
             onEdgesDelete={onEdgeDelete}
             edgeUpdaterRadius={0}

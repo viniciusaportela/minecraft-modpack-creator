@@ -32,6 +32,13 @@ export class ProjectModel extends Realm.Object {
     return JSON.parse(this.recipes!);
   }
 
+  setRecipes(newRecipes: Record<string, unknown>[]) {
+    const { realm } = useAppStore.getState();
+    realm.write(() => {
+      this.recipes = JSON.stringify(newRecipes);
+    });
+  }
+
   removeRecipe(index: number) {
     const recipes = this.getRecipes();
     recipes.splice(index, 1);

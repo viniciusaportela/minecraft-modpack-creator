@@ -20,7 +20,6 @@ export default function LazyTexture({
   const [src, setSrc] = useState<string | undefined>(undefined);
 
   const texture = TextureLoader.getTextureSource(textureId);
-  console.log(textureId, texture);
 
   useLayoutEffect(() => {
     if (textureId) {
@@ -29,8 +28,6 @@ export default function LazyTexture({
         .catch(console.warn);
     }
   }, [textureId]);
-
-  console.log('LazyTexture', textureId, src);
 
   if (!src) {
     return <Placeholder className={className} />;

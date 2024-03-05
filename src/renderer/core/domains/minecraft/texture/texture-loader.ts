@@ -26,7 +26,6 @@ export class TextureLoader {
   }
 
   static getTextureSource(textureId: string) {
-    console.log('getTextureSource', textureId);
     if (!textureId) {
       return undefined;
     }

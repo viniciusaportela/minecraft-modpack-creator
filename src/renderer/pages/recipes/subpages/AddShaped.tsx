@@ -18,6 +18,9 @@ export default function AddShaped() {
   const [outputCount, setOutputCount] = useState(1);
   const [output, setOutput] = useState<string | null>(null);
 
+  const globalState = useQueryFirst(GlobalStateModel);
+  const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
+
   const onPickInput = (value: string, row: number, col: number) => {
     setInput((prev) => {
       const copy = [...prev];
@@ -27,17 +30,14 @@ export default function AddShaped() {
   };
 
   const addRecipe = () => {
-    // useProjectStore.setState((st) => ({
-    //   recipes: [
-    //     ...st.recipes,
-    //     {
-    //       type: 'shaped',
-    //       input,
-    //       output: output!,
-    //       outputCount,
-    //     },
-    //   ],
-    // }));
+    const recipes = project.getRecipes();
+    recipes.push({
+      type: 'shaped',
+      input,
+      output: output!,
+      outputCount,
+    });
+    project.setRecipes(recipes);
 
     navigate('recipe-list');
   };

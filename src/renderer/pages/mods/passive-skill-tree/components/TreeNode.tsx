@@ -34,13 +34,12 @@ export default memo(({ data }: { data: any }) => {
         textureId={data.iconTexture
           .replace('textures/', '')
           .replace('.png', '')}
-        projectId={data.projectId}
         className="pixelated h-3 w-3 object-contain rounded-none"
       />
 
       <Handle
         type="source"
-        position={Position.Right}
+        position={Position.Top}
         id="main-source"
         style={{
           visibility: isConnecting ? 'hidden' : 'visible',
@@ -57,17 +56,47 @@ export default memo(({ data }: { data: any }) => {
 
       <Handle
         type="target"
+        position={Position.Left}
+        id="direct-target"
+        style={{
+          visibility: isConnecting ? 'visible' : 'hidden',
+          position: 'absolute',
+          transform: 'none',
+          backgroundColor: 'green',
+          width: '10px',
+          height: '10px',
+          left: 0,
+          top: 0,
+        }}
+      />
+      <Handle
+        type="target"
         position={Position.Bottom}
-        id="main-target"
+        id="long-target"
         style={{
           visibility: isConnecting ? 'visible' : 'hidden',
           position: 'absolute',
           transform: 'none',
           backgroundColor: 'blue',
-          width: '100%',
-          height: '100%',
-          left: 0,
-          top: 0,
+          width: '10px',
+          height: '10px',
+          left: 10,
+          top: 10,
+        }}
+      />
+      <Handle
+        type="target"
+        position={Position.Right}
+        id="one_way-target"
+        style={{
+          visibility: isConnecting ? 'visible' : 'hidden',
+          position: 'absolute',
+          transform: 'none',
+          backgroundColor: 'red',
+          width: '10px',
+          height: '10px',
+          left: 20,
+          top: 20,
         }}
       />
     </div>

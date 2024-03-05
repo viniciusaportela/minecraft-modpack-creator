@@ -1,6 +1,6 @@
 import { BaseEdge, EdgeProps, getStraightPath, useReactFlow } from 'reactflow';
 
-export default function SkillEdge({ id, source, target }: EdgeProps) {
+export default function SkillEdge({ id, source, target, data }: EdgeProps) {
   const reactFlow = useReactFlow();
 
   function getEdgePath() {
@@ -15,5 +15,18 @@ export default function SkillEdge({ id, source, target }: EdgeProps) {
     })[0];
   }
 
-  return <BaseEdge id={id} path={getEdgePath()} />;
+  return (
+    <BaseEdge
+      id={id}
+      path={getEdgePath()}
+      style={{
+        stroke:
+          data?.type === 'long'
+            ? 'blue'
+            : data?.type === 'one_way'
+              ? 'red'
+              : undefined,
+      }}
+    />
+  );
 }
