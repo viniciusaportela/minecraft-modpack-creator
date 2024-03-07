@@ -4,7 +4,7 @@ import { CurseDirectory } from '../minecraft/directory/curse-directory';
 import JarLoader from '../minecraft/jar-loader';
 import { JarHandler } from '../minecraft/jar-handler';
 import { ModModel } from '../../models/mod.model';
-import { ModsFactory } from '../../mods/mods-factory';
+import { ModPreloaderFactory } from '../../mods/preloaders/mod-preloader-factory';
 import { ProjectModel } from '../../models/project.model';
 
 export class ProjectPreloader {
@@ -89,7 +89,7 @@ export class ProjectPreloader {
 
   private async getModInDb(modFile: string, jar: JarLoader) {
     const modId = await this.getModId(jar);
-    const mod = ModsFactory.create(jar, modId);
+    const mod = ModPreloaderFactory.create(jar, modId);
     const metadata = await jar.getMetadata();
 
     const foundMod = this.realm

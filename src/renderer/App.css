@@ -39,6 +39,6 @@ html, body, #root, main {
   -webkit-app-region: drag;
 }
 
-.is-panning .react-flow__edge {
+.is-panning .react-flow__edge, .is-panning .react-flow__handle.react-flow__handle {
   pointer-events: none !important;
 }

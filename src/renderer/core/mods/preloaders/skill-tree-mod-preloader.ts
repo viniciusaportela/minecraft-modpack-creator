@@ -1,7 +1,7 @@
-import { DefaultMod } from './default-mod';
-import JarLoader from '../domains/minecraft/jar-loader';
+import { DefaultModPreloader } from './default-mod-preloader';
+import JarLoader from '../../domains/minecraft/jar-loader';
 
-export class SkillTreeMod extends DefaultMod {
+export class SkillTreeModPreloader extends DefaultModPreloader {
   constructor(jar: JarLoader) {
     super(jar, 'skilltree');
   }

@@ -1,6 +1,6 @@
 import { Button, Tooltip } from '@nextui-org/react';
 import { ipcRenderer } from 'electron';
-import LazyTexture from '../lazy-image/LazyTexture';
+import LazyTexture from '../lazy-texture/LazyTexture';
 import { useAppStore } from '../../store/app.store';
 import { ItemModel } from '../../core/models/item.model';
 import getTextureFromModel from '../../core/domains/minecraft/helpers/getTextureFromModel';

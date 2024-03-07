@@ -20,12 +20,7 @@ export default function SkillEdge({ id, source, target, data }: EdgeProps) {
       id={id}
       path={getEdgePath()}
       style={{
-        stroke:
-          data?.type === 'long'
-            ? 'blue'
-            : data?.type === 'one_way'
-              ? 'red'
-              : undefined,
+        stroke: data?.type === 'long' ? 'blue' : undefined,
       }}
     />
   );

@@ -1,19 +1,26 @@
 import { Handle, Position, useStore } from 'reactflow';
 import { memo, useLayoutEffect, useState } from 'react';
-import LazyTexture from '../../../../components/lazy-image/LazyTexture';
+import { BSON } from 'realm';
+import LazyTexture from '../../../../components/lazy-texture/LazyTexture';
 import { TextureLoader } from '../../../../core/domains/minecraft/texture/texture-loader';
 
-export default memo(({ data }: { data: any }) => {
-  const isConnecting = useStore((state) => !!state.connectionNodeId);
+export default memo(({ data, id }: { data: any; id: string }) => {
+  const connectionNodeId = useStore((state) => state.connectionNodeId);
   const [backgroundImg, setBackgroundImg] = useState<string | null>(null);
+
+  const isConnecting = !!connectionNodeId;
+  const isTarget = connectionNodeId && connectionNodeId !== id;
 
   useLayoutEffect(() => {
     const textureId = data.backgroundTexture
       .replace('textures/', '')
       .replace('.png', '');
-    TextureLoader.load(data.projectId, textureId).then(() => {
-      setBackgroundImg(TextureLoader.getTextureSource(textureId) as string);
-    });
+
+    TextureLoader.load(new BSON.ObjectId(data.projectId), textureId).then(
+      () => {
+        setBackgroundImg(TextureLoader.getTextureSource(textureId) as string);
+      },
+    );
   }, []);
 
   return (
@@ -54,51 +61,42 @@ export default memo(({ data }: { data: any }) => {
         }}
       />
 
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="direct-target"
-        style={{
-          visibility: isConnecting ? 'visible' : 'hidden',
-          position: 'absolute',
-          transform: 'none',
-          backgroundColor: 'green',
-          width: '10px',
-          height: '10px',
-          left: 0,
-          top: 0,
-        }}
-      />
-      <Handle
-        type="target"
-        position={Position.Bottom}
-        id="long-target"
-        style={{
-          visibility: isConnecting ? 'visible' : 'hidden',
-          position: 'absolute',
-          transform: 'none',
-          backgroundColor: 'blue',
-          width: '10px',
-          height: '10px',
-          left: 10,
-          top: 10,
-        }}
-      />
-      <Handle
-        type="target"
-        position={Position.Right}
-        id="one_way-target"
-        style={{
-          visibility: isConnecting ? 'visible' : 'hidden',
-          position: 'absolute',
-          transform: 'none',
-          backgroundColor: 'red',
-          width: '10px',
-          height: '10px',
-          left: 20,
-          top: 20,
-        }}
-      />
+      {(!isConnecting || isTarget) && (
+        <>
+          <Handle
+            type="target"
+            position={Position.Left}
+            id="direct-target"
+            style={{
+              visibility: isConnecting && isTarget ? 'visible' : 'hidden',
+              pointerEvents: isConnecting && isTarget ? 'all' : 'none',
+              position: 'absolute',
+              transform: 'none',
+              backgroundColor: 'green',
+              width: '10px',
+              height: '10px',
+              left: 0,
+              top: 0,
+            }}
+          />
+          <Handle
+            type="target"
+            position={Position.Bottom}
+            id="long-target"
+            style={{
+              visibility: isConnecting && isTarget ? 'visible' : 'hidden',
+              pointerEvents: isConnecting && isTarget ? 'all' : 'none',
+              position: 'absolute',
+              transform: 'none',
+              backgroundColor: 'blue',
+              width: '10px',
+              height: '10px',
+              left: 10,
+              top: 10,
+            }}
+          />
+        </>
+      )}
     </div>
   );
 });

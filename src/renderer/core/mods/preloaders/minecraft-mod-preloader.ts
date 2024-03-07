@@ -1,7 +1,7 @@
-import { DefaultMod } from './default-mod';
-import JarLoader from '../domains/minecraft/jar-loader';
+import { DefaultModPreloader } from './default-mod-preloader';
+import JarLoader from '../../domains/minecraft/jar-loader';
 
-export class MinecraftMod extends DefaultMod {
+export class MinecraftModPreloader extends DefaultModPreloader {
   constructor(jar: JarLoader) {
     super(jar, 'minecraft');
   }

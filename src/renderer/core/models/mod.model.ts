@@ -1,4 +1,5 @@
 import Realm, { BSON, ObjectSchema, Types } from 'realm';
+import { useAppStore } from '../../store/app.store';
 
 export class ModModel extends Realm.Object {
   _id!: BSON.ObjectId;
@@ -29,6 +30,14 @@ export class ModModel extends Realm.Object {
 
   getConfig() {
     return JSON.parse(this.config);
+  }
+
+  writeConfig(config: Record<string, unknown>) {
+    const { realm } = useAppStore.getState();
+
+    realm.write(() => {
+      this.config = JSON.stringify(config);
+    });
   }
 
   static schema: ObjectSchema = {

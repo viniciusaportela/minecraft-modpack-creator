@@ -4,15 +4,17 @@ import {
   Card,
   CardBody,
   Image,
+  Modal,
   ScrollShadow,
   Tab,
   Tabs,
+  useDisclosure,
 } from '@nextui-org/react';
 import { Hammer, X } from '@phosphor-icons/react';
 import { ipcRenderer } from 'electron';
+import toast from 'react-hot-toast';
 import useHorizontalScroll from '../../hooks/useHorizontalScroll.hook';
 import Recipes from '../recipes/Recipes';
-import { IProjectStore } from '../../store/interfaces/project-store.interface';
 import { pageByMod } from '../../constants/page-by-mod';
 import DefaultPlugin from '../mods/default/DefaultPlugin';
 import { usePager } from '../../components/pager/hooks/usePager';
@@ -24,14 +26,22 @@ import { GlobalStateModel } from '../../core/models/global-state.model';
 import { ProjectModel } from '../../core/models/project.model';
 import ModId from '../../typings/mod-id.enum';
 import { ModModel } from '../../core/models/mod.model';
+import ModpackBuilder from '../../core/builder/ModpackBuilder';
+import BuildingModal from './components/BuildingModal';
+import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 
 export default function Project() {
   useHorizontalScroll('tabs');
 
   const { navigate } = usePager();
 
-  // TODO add loading state on start
+  const handleError = useErrorHandler();
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [isBuilding, setIsBuilding] = useState(false);
+  const [buildingProgress, setBuildingProgress] = useState(0);
+  const [buildingProgressText, setBuildingProgressText] =
+    useState('Building mods...');
+  const [buildingTotalProgress, setBuildingTotalProgress] = useState(1);
 
   const globalState = useQueryFirst(GlobalStateModel);
   const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
@@ -46,78 +56,24 @@ export default function Project() {
   const [openedModTabs, setOpenedModTabs] = useState<any[]>([]);
   const [selectedTab, setSelectedTab] = useState('recipes');
 
-  const getMapping = (recipe: IProjectStore['recipes'][0]) => {
-    let differentItems = 0;
-    const charByIndex = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-    const mapping = {};
-
-    for (let row = 0; row < recipe.input.length; row++) {
-      for (let col = 0; col < recipe.input[row].length; col++) {
-        if (recipe.input[row][col] !== null) {
-          const found = Object.values(mapping).find(
-            (value) => value === recipe.input[row][col],
-          );
-
-          if (!found) {
-            mapping[charByIndex[differentItems]] = recipe.input[row][col];
-            differentItems += 1;
-          }
-        }
-      }
-    }
-
-    return mapping;
-  };
-
-  const getGrid = (recipe: IProjectStore['recipes'][0]) => {
-    const mapping = getMapping(recipe);
-
-    const grid: string[][] = [];
-    for (let row = 0; row < 3; row++) {
-      let str = '';
-      for (let col = 0; col < 3; col++) {
-        const item = recipe.input[row][col];
-        if (item === null) {
-          str += ' ';
-        } else {
-          const [alias] = Object.entries(mapping).find(
-            ([_, id]) => id === item,
-          );
-
-          str += alias;
-        }
-      }
-      grid.push(str);
-    }
-
-    return grid;
-  };
-
   async function build() {
     setIsBuilding(true);
     try {
-      // console.log('Building project...');
-      // console.log(recipes);
-      //
-      // // TODO delete old data
-      // // TODO generated based on type
-      //
-      // let index = 0;
-      // for await (const recipe of recipes) {
-      //   await ipcRenderer.invoke(
-      //     'writeFile',
-      //     `${project.path}kubejs/server_scripts/create-recipe-${index}.js`,
-      //     `ServerEvents.recipes(event => {
-      //       event.shaped(
-      //         Item.of('${recipe.output}', ${recipe.outputCount}),
-      //         ${JSON.stringify(getGrid(recipe))},
-      //         ${JSON.stringify(getMapping(recipe))}
-      //       )
-      //     })`,
-      //   );
-      //   index += 1;
-      // }
+      onOpen();
+      await new ModpackBuilder()
+        .onProgress((progress, progressText, totalProgress) => {
+          setBuildingProgress(progress);
+          setBuildingProgressText(progressText);
+          setBuildingTotalProgress(totalProgress);
+        })
+        .build(project);
+
+      toast.success('Build successful!');
+    } catch (e) {
+      console.error(e);
+      await handleError(e);
     } finally {
+      onClose();
       setIsBuilding(false);
     }
   }
@@ -173,6 +129,13 @@ export default function Project() {
 
   return (
     <div className="flex flex-1 min-h-0">
+      <BuildingModal
+        isOpen={isOpen}
+        progress={buildingProgress}
+        totalProgress={buildingTotalProgress}
+        progressText={buildingProgressText}
+        onOpenChange={onOpenChange}
+      />
       <AppBarHeader
         title={project?.name ?? ''}
         goBack={() => navigate('projects')}

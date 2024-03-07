@@ -1,7 +1,7 @@
 import { Button } from '@nextui-org/react';
 import { CSSProperties } from 'react';
 import { ItemModel } from '../../../core/models/item.model';
-import LazyTexture from '../../../components/lazy-image/LazyTexture';
+import LazyTexture from '../../../components/lazy-texture/LazyTexture';
 import getTextureFromModel from '../../../core/domains/minecraft/helpers/getTextureFromModel';
 import TextureBox from '../../../components/texture-box/TextureBox';
 import getModelType from '../../../core/domains/minecraft/helpers/getModelType';
