@@ -6,4 +6,5 @@ export interface ICreateWindow {
   page: keyof typeof windowConfigs;
   requestId: string;
   respondRequester: (params: any) => void;
+  params: any[];
 }

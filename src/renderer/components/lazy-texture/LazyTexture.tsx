@@ -7,7 +7,7 @@ import { useQueryFirst } from '../../hooks/realm.hook';
 import { GlobalStateModel } from '../../core/models/global-state.model';
 
 interface ILazyTextureProps {
-  textureId: string;
+  textureId: string | null;
   className?: string;
 }
 
@@ -19,11 +19,12 @@ export default function LazyTexture({
 
   const [src, setSrc] = useState<string | undefined>(undefined);
 
-  const texture = TextureLoader.getTextureSource(textureId);
+  const texture = new TextureLoader().getTextureSource(textureId);
 
   useLayoutEffect(() => {
-    if (textureId) {
-      TextureLoader.load(globalState.selectedProjectId!, textureId)
+    if (textureId && texture) {
+      new TextureLoader()
+        .load(globalState.selectedProjectId!, textureId)
         .then(() => setSrc(texture))
         .catch(console.warn);
     }

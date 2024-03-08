@@ -6,9 +6,9 @@ import { useAppStore } from '../../../../store/app.store';
 import { ModModel } from '../../../models/mod.model';
 
 export class TextureLoader {
-  private static cachedZips = new Map<string, StreamZip.StreamZipAsync>();
+  private cachedZips = new Map<string, StreamZip.StreamZipAsync>();
 
-  static async load(projectId: Types.ObjectId, textureId: string) {
+  async load(projectId: Types.ObjectId, textureId: string) {
     const path = this.getTextureSource(textureId);
 
     const imageExists = await stat(path)
@@ -25,7 +25,7 @@ export class TextureLoader {
     );
   }
 
-  static getTextureSource(textureId: string) {
+  getTextureSource(textureId: string) {
     if (!textureId) {
       return undefined;
     }
@@ -37,7 +37,7 @@ export class TextureLoader {
     return `textures://${modId}/${splitted.join('_')}${splitted.length > 0 ? '__' : ''}${lastPart}.png`;
   }
 
-  static async getFullTextureSource(textureId: string) {
+  async getFullTextureSource(textureId: string) {
     const modId = textureId.split(':')[0];
     const splitted = textureId.replace(`${modId}:`, '').split('/');
     const lastPart = splitted.splice(-1, 1)[0];
@@ -47,7 +47,7 @@ export class TextureLoader {
     return `${dataFolder}/textures/${modId}/${splitted.join('_')}__${lastPart}.png`;
   }
 
-  private static async getZip(projectId: Types.ObjectId, textureId: string) {
+  private async getZip(projectId: Types.ObjectId, textureId: string) {
     const modId = textureId.split(':')[0];
 
     const zipPath = useAppStore

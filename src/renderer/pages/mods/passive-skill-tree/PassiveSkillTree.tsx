@@ -3,7 +3,7 @@ import ModId from '../../../typings/mod-id.enum';
 import EditTree from './subpages/EditTree';
 import { IModPageProps } from '../../../typings/plugin.interface';
 import { Page, Pager } from '../../../components/pager/Pager';
-import Dashboard from './subpages/Dashboard';
+import SkillTreeDashboard from './subpages/SkillTreeDashboard';
 
 export default function PassiveSkillTree({ isVisible }: IModPageProps) {
   return (
@@ -13,7 +13,7 @@ export default function PassiveSkillTree({ isVisible }: IModPageProps) {
     >
       <Pager initialPage="dashboard">
         <Page name="dashboard">
-          <Dashboard />
+          <SkillTreeDashboard />
         </Page>
         <Page name="edit-tree">
           <EditTree />

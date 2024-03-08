@@ -122,13 +122,14 @@ const createWindow = async () => {
     mainWindow!.minimize();
   });
 
-  ipcMain.handle('open', (_, page: string) => {
+  ipcMain.handle('open', (_, page: string, ...params) => {
     return new Promise((resolve) => {
       const requestId = crypto.randomBytes(16).toString('hex');
 
       WindowManager.create({
         parent: mainWindow!,
         page,
+        params,
         requestId,
         respondRequester: resolve,
       });
@@ -172,9 +173,6 @@ app
     const userData = app.getPath('userData');
 
     protocol.handle('textures', (request) => {
-      console.log(
-        `fetch file://${userData}/textures/${request.url.slice('textures://'.length)}`,
-      );
       return net.fetch(
         `file://${userData}/textures/${request.url.slice('textures://'.length)}`,
       );

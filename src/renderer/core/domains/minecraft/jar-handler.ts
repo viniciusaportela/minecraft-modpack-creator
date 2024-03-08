@@ -51,7 +51,7 @@ export class JarHandler {
         const finalFilename = `${splittedTexture.join('_')}__${textureName}`;
         const finalPath = path.join(modpackTexturesFolder, finalFilename);
 
-        const textureId = `${modId}:${splittedTexture.join('/')}${splittedTexture.length > 0 ? '/' : ''}${textureName}`;
+        const textureId = `${modId}:${splittedTexture.join('/')}${splittedTexture.length > 0 ? '/' : ''}${textureName.replace('.png', '')}`;
 
         const exists =
           this.realm

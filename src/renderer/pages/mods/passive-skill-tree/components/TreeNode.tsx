@@ -16,11 +16,13 @@ export default memo(({ data, id }: { data: any; id: string }) => {
       .replace('textures/', '')
       .replace('.png', '');
 
-    TextureLoader.load(new BSON.ObjectId(data.projectId), textureId).then(
-      () => {
-        setBackgroundImg(TextureLoader.getTextureSource(textureId) as string);
-      },
-    );
+    new TextureLoader()
+      .load(new BSON.ObjectId(data.projectId), textureId)
+      .then(() => {
+        setBackgroundImg(
+          new TextureLoader().getTextureSource(textureId) as string,
+        );
+      });
   }, []);
 
   return (

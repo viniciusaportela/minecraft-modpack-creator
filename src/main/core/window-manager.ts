@@ -7,7 +7,13 @@ import { IWindowContext } from '../interfaces/window-context.interface';
 export default class WindowManager {
   static windows: IWindowContext[] = [];
 
-  static create({ page, parent, requestId, respondRequester }: ICreateWindow) {
+  static create({
+    page,
+    parent,
+    requestId,
+    respondRequester,
+    params,
+  }: ICreateWindow) {
     const config = windowConfigs[page];
 
     if (!config) {
@@ -19,6 +25,7 @@ export default class WindowManager {
 
       if (windowCtx) {
         windowCtx.respondRequester = respondRequester;
+        windowCtx.window.webContents.send('init', ...params);
         windowCtx.window.show();
         return;
       }
@@ -55,6 +62,8 @@ export default class WindowManager {
     window.on('ready-to-show', () => {
       parent.getPosition();
       window.show();
+
+      window.webContents.send('init', ...params);
     });
 
     window.on('blur', () => {

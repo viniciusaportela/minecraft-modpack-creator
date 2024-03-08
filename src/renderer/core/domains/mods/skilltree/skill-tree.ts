@@ -1,60 +1,67 @@
 import path from 'path';
-import { readdir, readFile, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { Edge, Node } from 'reactflow';
-import { useAppStore } from '../../../../store/app.store';
 import { ModModel } from '../../../models/mod.model';
-import { ProjectModel } from '../../../models/project.model';
+import { BaseMod } from '../base-mod';
 
-export class SkillTree {
-  static async build(project: ProjectModel, mod: ModModel) {
-    const config = mod.getConfig();
+export class SkillTree extends BaseMod {
+  async build() {
+    const config = this.mod.getConfig();
     console.log('build', config);
 
-    const mainTreePath = path.join(
-      project.path,
-      'skilltree',
-      'editor',
-      'data',
-      'skilltree',
-      'skill_trees',
-      'main_tree.json',
+    const basePath = path.join(this.project.path, 'datapacks', 'skilltree');
+
+    await mkdir(basePath, { recursive: true });
+
+    await writeFile(
+      path.join(basePath, 'pack.mcmeta'),
+      JSON.stringify({
+        pack: {
+          description: {
+            text: 'PST editor data',
+          },
+          pack_format: 15,
+        },
+      }),
     );
+
+    const treesPath = path.join(basePath, 'data', 'skilltree', 'skill_trees');
+    await mkdir(treesPath, { recursive: true });
+
+    const mainTreePath = path.join(treesPath, 'main_tree.json');
     await writeFile(
       mainTreePath,
       JSON.stringify(config.tree.mainTree, null, 2),
     );
 
+    const skillsPath = path.join(basePath, 'data', 'skilltree', 'skills');
+    await mkdir(skillsPath, { recursive: true });
+
     const skills = config.tree.nodes.map((node: Node) => ({
       ...node.data,
       projectId: undefined,
       modpackFolder: undefined,
+      positionX: node.position.x,
+      positionY: node.position.y,
       directConnections: config.tree.edges
         .filter((e: Edge) => e.source === node.id && e.data.type === 'direct')
-        .map((e: Edge) => e.id),
+        .map((e: Edge) => e.target),
       longConnections: config.tree.edges
         .filter((e: Edge) => e.source === node.id && e.data.type === 'long')
-        .map((e: Edge) => e.id),
+        .map((e: Edge) => e.target),
     }));
 
     for await (const skill of skills) {
-      const skillPath = path.join(
-        project.path,
-        'skilltree',
-        'editor',
-        'data',
-        'skilltree',
-        'skills',
-        `${skill.id}.json`,
-      );
+      const skillWithoutMod = skill.id.split(':')[1];
+
+      const skillPath = path.join(skillsPath, `${skillWithoutMod}.json`);
       await writeFile(skillPath, JSON.stringify(skill, null, 2));
     }
   }
 
-  static async preBuild(project: ProjectModel, mod: ModModel) {}
-
-  static async postBuild(project: ProjectModel, mod: ModModel) {
+  async postBuild() {
     const skillsPath = path.join(
-      project.path,
+      this.project.path,
       'skilltree',
       'editor',
       'data',
@@ -64,9 +71,9 @@ export class SkillTree {
 
     const files = await readdir(skillsPath);
 
-    const allValidSkills = mod
+    const allValidSkills = this.mod
       .getConfig()
-      .tree.nodes.map((node: Node) => `${node.id}.json`);
+      .tree.nodes.map((node: Node) => `${node.id.split(':')[1]}.json`);
 
     const promises = files.map(async (file) => {
       if (!allValidSkills.includes(file)) {
@@ -77,17 +84,8 @@ export class SkillTree {
     await Promise.all(promises);
   }
 
-  static async initializeConfig(
-    mod: ModModel,
-    config: Record<string, unknown>,
-  ) {
-    const { realm } = useAppStore.getState();
-    const project = realm.objectForPrimaryKey<ProjectModel>(
-      'Project',
-      mod.project,
-    )!;
-
-    const configFile = await this.getConfigFromFiles(project.path);
+  async initializeConfig(config: Record<string, unknown>) {
+    const configFile = await this.getConfigFromFiles(this.project.path);
 
     const updatedCfg = {
       ...config,
@@ -104,7 +102,11 @@ export class SkillTree {
       return {
         id: cfg.id,
         position: { x: cfg.positionX, y: cfg.positionY },
-        data: { ...cfg, modpackFolder: project.path, projectId: project._id },
+        data: {
+          ...cfg,
+          modpackFolder: this.project.path,
+          projectId: this.project._id,
+        },
         type: 'skill_node',
       };
     });
@@ -139,17 +141,17 @@ export class SkillTree {
       (skill) => skill.id,
     );
 
-    mod.writeConfig(updatedCfg);
+    this.mod.writeConfig(updatedCfg);
   }
 
-  static updateMainTree(mod: ModModel) {
+  updateMainTree(mod: ModModel) {
     const config = mod.getConfig();
     config.tree.mainTree.skillIds = config.tree.nodes.map((node) => node.id);
 
     mod.writeConfig(config);
   }
 
-  private static async getConfigFromFiles(projectPath: string) {
+  private async getConfigFromFiles(projectPath: string) {
     const basePath = path.join(
       projectPath,
       'skilltree',

@@ -1,11 +1,16 @@
 import ReactFlow, {
-  Node,
-  Edge,
+  addEdge,
   applyEdgeChanges,
   applyNodeChanges,
-  addEdge,
+  Edge,
+  Node,
 } from 'reactflow';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  type MouseEvent as ReactMouseEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import clsx from 'clsx';
 import { Connection } from '@reactflow/core/dist/esm/types/general';
 import TreeNode from '../components/TreeNode';
@@ -13,10 +18,16 @@ import Title from '../../../../components/title/Title';
 import SkillEdge from '../components/SkillEdge';
 import { usePager } from '../../../../components/pager/hooks/usePager';
 import { GlobalStateModel } from '../../../../core/models/global-state.model';
-import { useQuery, useQueryFirst } from '../../../../hooks/realm.hook';
+import {
+  useQuery,
+  useQueryById,
+  useQueryFirst,
+} from '../../../../hooks/realm.hook';
 import { ModModel } from '../../../../core/models/mod.model';
 import ModId from '../../../../typings/mod-id.enum';
 import { SkillTree } from '../../../../core/domains/mods/skilltree/skill-tree';
+import { ProjectModel } from '../../../../core/models/project.model';
+import EditSkillPanel from '../components/EditSkillPanel';
 
 const edgeTypes = {
   skill_edge: SkillEdge,
@@ -27,7 +38,7 @@ const nodeTypes = { skill_node: TreeNode };
 export default function EditTree() {
   const { navigate } = usePager();
   const globalState = useQueryFirst(GlobalStateModel);
-
+  const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
   const skillTreeMod = useQuery(ModModel, (obj) =>
     obj.filtered(
       'modId = $0 AND project = $1',
@@ -40,11 +51,12 @@ export default function EditTree() {
 
   const [flowNodes, setFlowNodes] = useState<Node[]>(config.tree.nodes);
   const [flowEdges, setFlowEdges] = useState<Edge[]>(config.tree.edges);
+  const [focusedNode, setFocusedNode] = useState<Node | null>(null);
 
   useEffect(() => {
     config.tree.nodes = flowNodes;
     skillTreeMod.writeConfig(config);
-    SkillTree.updateMainTree(skillTreeMod);
+    new SkillTree(project, skillTreeMod).updateMainTree(skillTreeMod);
   }, [flowNodes]);
 
   useEffect(() => {
@@ -110,6 +122,10 @@ export default function EditTree() {
     [],
   );
 
+  const onNodeClick = useCallback((ev: ReactMouseEvent, node: Node) => {
+    setFocusedNode(node);
+  }, []);
+
   useEffect(() => {
     const onKeyDown = (ev) => {
       if (ev.key === ' ') {
@@ -135,15 +151,15 @@ export default function EditTree() {
   return (
     <div className="w-full h-full flex flex-col">
       <Title goBack={() => navigate('dashboard')}>Edit Tree</Title>
-      <div className={clsx('flex-1 mt-2', isPanning && 'is-panning')}>
+      <div className={clsx('relative flex-1 mt-2', isPanning && 'is-panning')}>
         <ReactFlow
-          onPaneClick={(ev) => console.log(ev)}
           onNodesChange={onNodesChange}
           onConnect={onConnect}
           onEdgeClick={onEdgeClick}
           onEdgeUpdate={onEdgesChange}
           nodeDragThreshold={1}
           snapToGrid
+          onNodeClick={onNodeClick}
           snapGrid={[4, 4]}
           maxZoom={4}
           panOnScroll={false}
@@ -157,6 +173,11 @@ export default function EditTree() {
           edges={flowEdges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
+        />
+        <EditSkillPanel
+          focusedNode={focusedNode}
+          setFlowNodes={setFlowNodes}
+          onClose={() => setFocusedNode(null)}
         />
       </div>
     </div>

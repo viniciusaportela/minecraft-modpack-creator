@@ -12,8 +12,11 @@ import { ModModel } from './core/models/mod.model';
 import { GlobalStateModel } from './core/models/global-state.model';
 import { useAppStore } from './store/app.store';
 
-const MainApp = lazy(() => import('./MainApp'));
-const Picker = lazy(() => import('./pages/picker/Picker'));
+// const MainApp = lazy(() => import('./MainApp'));
+// const Picker = lazy(() => import('./pages/picker/Picker'));
+
+import MainApp from './MainApp';
+import Picker from './pages/picker/Picker';
 
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);

@@ -1,9 +1,10 @@
 import { IProjectStore } from '../../../../store/interfaces/project-store.interface';
 import { ModModel } from '../../../models/mod.model';
 import { ProjectModel } from '../../../models/project.model';
+import { BaseMod } from '../base-mod';
 
-export class KubeJS {
-  static async build(project: ProjectModel, mod: ModModel) {
+export class KubeJS extends BaseMod {
+  async build(project: ProjectModel, mod: ModModel) {
     // console.log('Building project...');
     // console.log(recipes);
     //
@@ -27,11 +28,11 @@ export class KubeJS {
     // }
   }
 
-  static async preBuild(project: ProjectModel, mod: ModModel) {}
+  async preBuild(project: ProjectModel, mod: ModModel) {}
 
-  static async postBuild(project: ProjectModel, mod: ModModel) {}
+  async postBuild(project: ProjectModel, mod: ModModel) {}
 
-  private static getMapping(recipe: IProjectStore['recipes'][0]) {
+  private getMapping(recipe: IProjectStore['recipes'][0]) {
     let differentItems = 0;
     const charByIndex = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
     const mapping = {};
@@ -54,7 +55,7 @@ export class KubeJS {
     return mapping;
   }
 
-  private static getGrid(recipe: IProjectStore['recipes'][0]) {
+  private getGrid(recipe: IProjectStore['recipes'][0]) {
     const mapping = this.getMapping(recipe);
 
     const grid: string[][] = [];

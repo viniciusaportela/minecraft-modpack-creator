@@ -24,23 +24,23 @@ export default class ModpackBuilder {
   async build(project: ProjectModel) {
     const { realm } = useAppStore.getState();
 
-    const mods = realm
+    const modsDb = realm
       .objects<ModModel>('Mod')
       .filtered('project = $0', project._id);
 
-    this.onProgressCb?.(0, 'Building mods...', mods.length);
+    this.onProgressCb?.(0, 'Building mods...', modsDb.length);
 
     let index = 1;
-    for await (const mod of mods) {
+    for await (const modDb of modsDb) {
       this.onProgressCb?.(
         index,
-        `Building ${mod.modId}... (${index}/${mods.length})`,
-        mods.length,
+        `Building ${modDb.modId}... (${index}/${modsDb.length})`,
+        modsDb.length,
       );
-      const modClass = ModFactory.create(mod.modId);
-      await modClass.preBuild?.(project, mod);
-      await modClass.build(project, mod);
-      await modClass.postBuild?.(project, mod);
+      const mod = ModFactory.create(project, modDb);
+      await mod.preBuild(project, modDb);
+      await mod.build(project, modDb);
+      await mod.postBuild(project, modDb);
       index += 1;
     }
   }

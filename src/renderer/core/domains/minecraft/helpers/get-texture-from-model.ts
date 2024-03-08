@@ -3,7 +3,6 @@ export default function getTextureFromModel(
   modelType: 'block' | 'item',
   parentModel?: Record<string, any>,
 ) {
-  console.log('getTextureFromModel', model, modelType, parentModel);
   if (
     modelType === 'block' &&
     parentModel?.parent === 'minecraft:block/cube_all'

@@ -10,13 +10,14 @@ interface TextureBoxProps {
 
 export default function TextureBox({ textureId, className }: TextureBoxProps) {
   const globalState = useQueryFirst(GlobalStateModel);
-  const texture = TextureLoader.getTextureSource(textureId);
+  const texture = new TextureLoader().getTextureSource(textureId);
 
   const [src, setSrc] = useState<string | undefined>(undefined);
 
   useLayoutEffect(() => {
     if (textureId) {
-      TextureLoader.load(globalState.selectedProjectId!, textureId)
+      new TextureLoader()
+        .load(globalState.selectedProjectId!, textureId)
         .then(() => setSrc(texture))
         .catch(console.warn);
     }

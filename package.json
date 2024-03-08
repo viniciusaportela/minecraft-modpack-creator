@@ -71,6 +71,7 @@
     "@nextui-org/react": "^2.2.9",
     "@phosphor-icons/react": "^2.0.15",
     "clsx": "^2.1.0",
+    "deepmerge": "^4.3.1",
     "electron-debug": "^3.2.0",
     "electron-log": "^4.4.8",
     "electron-updater": "^6.1.4",
