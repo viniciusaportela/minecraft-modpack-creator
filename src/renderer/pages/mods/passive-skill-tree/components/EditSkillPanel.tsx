@@ -63,10 +63,6 @@ export default function EditSkillPanel({
             <X />
           </Button>
         </div>
-        <span>{internalFlowNode!.position.x}</span>
-        <span>{internalFlowNode!.position.y}</span>
-        <span>{internalFlowNode!.data.positionX}</span>
-        <span>{internalFlowNode!.data.positionY}</span>
         <div className="flex flex-col gap-2">
           <Input
             label="Title"
@@ -105,7 +101,7 @@ export default function EditSkillPanel({
               className="h-8 ml-auto"
               value={
                 formatTextureInput(internalFlowNode!.data.iconTexture) ??
-                'skilltree:textures/icons/void'
+                'skilltree:icons/void'
               }
               onPick={(value) =>
                 updateFlowNode((prev) => ({
@@ -125,7 +121,7 @@ export default function EditSkillPanel({
               className="h-8 ml-auto"
               value={
                 formatTextureInput(internalFlowNode!.data.backgroundTexture) ??
-                'skilltree:textures/icons/background/lesser'
+                'skilltree:icons/background/lesser'
               }
               onPick={(value) =>
                 updateFlowNode((prev) => ({
@@ -145,7 +141,7 @@ export default function EditSkillPanel({
               className="h-8 ml-auto"
               value={
                 formatTextureInput(internalFlowNode!.data.borderTexture) ??
-                'skilltree:textures/tooltip/lesser'
+                'skilltree:tooltip/lesser'
               }
               onPick={(value) =>
                 updateFlowNode((prev) => ({

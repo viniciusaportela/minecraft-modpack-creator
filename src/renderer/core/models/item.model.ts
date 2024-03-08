@@ -19,20 +19,9 @@ export class ItemModel extends Realm.Object {
 
   getParent() {
     const model = this.getModel();
-    console.log('getParent', model);
 
     const [modId, entityId] = model.parent.split(':');
     const [entityType, ...realId] = entityId.split('/');
-    console.log(
-      'entityId',
-      entityId,
-      'entityType',
-      entityType,
-      'realId',
-      realId,
-      "realId.join('/')",
-      `${modId}:${realId.join('/')}`,
-    );
 
     const { realm } = useAppStore.getState();
     const parent = realm
@@ -43,8 +32,6 @@ export class ItemModel extends Realm.Object {
         entityType === 'block' ? 'blockId = $0' : 'itemId = $0',
         `${modId}:${realId.join('/')}`,
       )[0];
-
-    console.log('parent', parent);
 
     if (parent) {
       return parent.getModel();

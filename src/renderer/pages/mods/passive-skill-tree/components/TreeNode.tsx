@@ -23,7 +23,7 @@ export default memo(({ data, id }: { data: any; id: string }) => {
           new TextureLoader().getTextureSource(textureId) as string,
         );
       });
-  }, []);
+  }, [data.backgroundTexture]);
 
   return (
     <div

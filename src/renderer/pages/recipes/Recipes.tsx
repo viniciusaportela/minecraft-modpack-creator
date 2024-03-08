@@ -22,8 +22,6 @@ export default function Recipes({ isVisible }: IRecipeProps) {
 
   const isKubeJSEnabled = mods.find((mod) => mod.modId === ModId.KubeJS);
 
-  console.log(project.getRecipes());
-
   return (
     <div
       className="p-5 pt-0"

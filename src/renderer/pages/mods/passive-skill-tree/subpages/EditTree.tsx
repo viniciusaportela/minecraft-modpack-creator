@@ -4,15 +4,19 @@ import ReactFlow, {
   applyNodeChanges,
   Edge,
   Node,
+  useReactFlow,
 } from 'reactflow';
 import React, {
   type MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import clsx from 'clsx';
 import { Connection } from '@reactflow/core/dist/esm/types/general';
+import { Button } from '@nextui-org/react';
+import { Plus } from '@phosphor-icons/react';
 import TreeNode from '../components/TreeNode';
 import Title from '../../../../components/title/Title';
 import SkillEdge from '../components/SkillEdge';
@@ -28,6 +32,7 @@ import ModId from '../../../../typings/mod-id.enum';
 import { SkillTree } from '../../../../core/domains/mods/skilltree/skill-tree';
 import { ProjectModel } from '../../../../core/models/project.model';
 import EditSkillPanel from '../components/EditSkillPanel';
+import ScreenToFlowPositionGetter from '../components/ScreenToFlowPositionGetter';
 
 const edgeTypes = {
   skill_edge: SkillEdge,
@@ -46,6 +51,9 @@ export default function EditTree() {
       globalState.selectedProjectId!,
     ),
   )[0];
+
+  const screenToFlowPosition = useRef();
+  const reactFlowRef = useRef();
 
   const config = skillTreeMod.getConfig();
 
@@ -82,7 +90,6 @@ export default function EditTree() {
   const onConnect = useCallback(
     (connection: Connection) => {
       setFlowEdges((edges) => {
-        console.log(connection.targetHandle);
         const filtered = flowNodes.filter((n) => n.id === connection.source);
         return filtered.reduce((edgs, node) => {
           return addEdge(
@@ -122,9 +129,51 @@ export default function EditTree() {
     [],
   );
 
+  console.log(flowNodes);
+
   const onNodeClick = useCallback((ev: ReactMouseEvent, node: Node) => {
     setFocusedNode(node);
   }, []);
+
+  const addSkill = () => {
+    const reactFlowX =
+      reactFlowRef.current.offsetLeft + reactFlowRef.current.offsetWidth / 2;
+    const reactFlowY =
+      reactFlowRef.current.offsetTop + reactFlowRef.current.offsetHeight / 2;
+
+    const position = screenToFlowPosition.current({
+      x: reactFlowX,
+      y: reactFlowY,
+    });
+
+    const id = `skilltree:skill_node_${Date.now()}`;
+
+    const newNode = {
+      id,
+      type: 'skill_node',
+      position,
+      data: {
+        id,
+        bonuses: [],
+        label: 'New Skill',
+        directConnections: [],
+        longConnections: [],
+        oneWayConnections: [],
+        backgroundTexture: 'skilltree:textures/icons/background/lesser.png',
+        iconTexture: 'skilltree:textures/icons/void.png',
+        borderTexture: 'skilltree:textures/tooltip/lesser.png',
+        modpackFolder: project.path,
+        projectId: project._id.toString(),
+        title: 'New skill',
+        positionX: reactFlowX,
+        positionY: reactFlowY,
+        buttonSize: 16,
+        isStartingPoint: false,
+      },
+    };
+
+    setFlowNodes((nds) => [...nds, newNode]);
+  };
 
   useEffect(() => {
     const onKeyDown = (ev) => {
@@ -150,7 +199,13 @@ export default function EditTree() {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <Title goBack={() => navigate('dashboard')}>Edit Tree</Title>
+      <div className="flex">
+        <Title goBack={() => navigate('dashboard')}>Edit Tree</Title>
+        <Button color="primary" className="ml-auto" onPress={addSkill}>
+          <Plus />
+          Add Skill
+        </Button>
+      </div>
       <div className={clsx('relative flex-1 mt-2', isPanning && 'is-panning')}>
         <ReactFlow
           onNodesChange={onNodesChange}
@@ -173,7 +228,10 @@ export default function EditTree() {
           edges={flowEdges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-        />
+          ref={reactFlowRef}
+        >
+          <ScreenToFlowPositionGetter fnRef={screenToFlowPosition} />
+        </ReactFlow>
         <EditSkillPanel
           focusedNode={focusedNode}
           setFlowNodes={setFlowNodes}

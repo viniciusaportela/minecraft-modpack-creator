@@ -7,7 +7,6 @@ import { BaseMod } from '../base-mod';
 export class SkillTree extends BaseMod {
   async build() {
     const config = this.mod.getConfig();
-    console.log('build', config);
 
     const basePath = path.join(this.project.path, 'datapacks', 'skilltree');
 
