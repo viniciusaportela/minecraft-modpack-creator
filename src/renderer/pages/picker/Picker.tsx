@@ -9,7 +9,7 @@ import React, {
 } from 'react';
 import { ipcRenderer } from 'electron';
 import { FixedSizeList as List } from 'react-window';
-import useParams from '../../hooks/useParams.hook';
+import useParams from '../../hooks/use-params.hook';
 import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
 import { GlobalStateModel } from '../../core/models/global-state.model';
 import { ProjectModel } from '../../core/models/project.model';

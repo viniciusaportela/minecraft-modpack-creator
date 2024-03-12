@@ -4,7 +4,6 @@ import {
   Card,
   CardBody,
   Image,
-  Modal,
   ScrollShadow,
   Tab,
   Tabs,
@@ -13,7 +12,7 @@ import {
 import { Hammer, X } from '@phosphor-icons/react';
 import { ipcRenderer } from 'electron';
 import toast from 'react-hot-toast';
-import useHorizontalScroll from '../../hooks/useHorizontalScroll.hook';
+import useHorizontalScroll from '../../hooks/use-horizontal-scroll.hook';
 import Recipes from '../recipes/Recipes';
 import { pageByMod } from '../../constants/page-by-mod';
 import DefaultPlugin from '../mods/default/DefaultPlugin';
@@ -29,6 +28,7 @@ import { ModModel } from '../../core/models/mod.model';
 import ModpackBuilder from '../../core/builder/ModpackBuilder';
 import BuildingModal from './components/BuildingModal';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
+import { ModConfigProvider } from '../../store/mod-config-provider';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -104,22 +104,30 @@ export default function Project() {
     setOpenedModTabs(newTabs);
   }
 
-  function getAddonFromTab(tab: string) {
+  function getModFromTab(tab: string) {
     return mods.find((addon) => addon.name === tab)!;
   }
 
   function getModViewFromTab(tab: string) {
-    const Plugin =
-      pageByMod[getAddonFromTab(tab).modId as keyof typeof pageByMod];
+    const mod = getModFromTab(tab);
+    const Plugin = pageByMod[mod.modId as keyof typeof pageByMod];
 
-    return Plugin ? (
-      <Plugin mod={getAddonFromTab(tab)} isVisible={isVisible(tab)} key={tab} />
-    ) : (
-      <DefaultPlugin
-        mod={getAddonFromTab(tab)}
-        isVisible={isVisible(tab)}
-        key={tab}
-      />
+    return (
+      <ModConfigProvider mod={mod} key={mod.modId}>
+        {Plugin ? (
+          <Plugin
+            mod={getModFromTab(tab)}
+            isVisible={isVisible(tab)}
+            key={tab}
+          />
+        ) : (
+          <DefaultPlugin
+            mod={getModFromTab(tab)}
+            isVisible={isVisible(tab)}
+            key={tab}
+          />
+        )}
+      </ModConfigProvider>
     );
   }
 
@@ -172,7 +180,7 @@ export default function Project() {
                   <CardBody className="min-h-fit flex flex-row">
                     <Image
                       // TODO type config
-                      src={mod.getConfig().thumbnail}
+                      src={mod.thumbnail}
                       className="w-full h-full"
                       classNames={{
                         wrapper: 'min-w-10 min-h-10 w-10 h-10 mr-3',
@@ -189,7 +197,7 @@ export default function Project() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <ScrollShadow
           className="p-5 w-full no-scrollbar"
           orientation="horizontal"

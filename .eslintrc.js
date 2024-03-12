@@ -25,6 +25,7 @@ module.exports = {
     'no-useless-constructor': 'off',
     '@typescript-eslint/no-shadow': 'warn',
     'no-empty-function': 'off',
+    'react-hooks/rules-of-hooks': 'off',
   },
   parserOptions: {
     ecmaVersion: 2022,

@@ -24,7 +24,7 @@ export default function ProjectPreload() {
   const [currentProgress, setCurrentProgress] = useState(0);
 
   useEffect(() => {
-    loadProject();
+    loadProject().catch((err) => console.log(err));
     ipcRenderer.send('resize', 400, 150);
     ipcRenderer.send('make-no-resizable');
 
@@ -60,9 +60,10 @@ export default function ProjectPreload() {
         throw new Error('Project is undefined on ProjectPreload');
       }
     } catch (err) {
+      console.log(err.stack);
       await handleError(err);
       if (realm.isInTransaction) realm.cancelTransaction();
-      navigate('project');
+      navigate('projects');
     }
   }
 

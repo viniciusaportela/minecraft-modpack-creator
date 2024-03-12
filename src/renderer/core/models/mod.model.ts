@@ -1,5 +1,6 @@
 import Realm, { BSON, ObjectSchema, Types } from 'realm';
 import { useAppStore } from '../../store/app.store';
+import { ModConfigModel } from './mod-config.model';
 
 export class ModModel extends Realm.Object {
   _id!: BSON.ObjectId;
@@ -14,7 +15,12 @@ export class ModModel extends Realm.Object {
 
   category?: string;
 
-  config!: string;
+  getConfig() {
+    const { realm } = useAppStore.getState();
+    return realm
+      .objects<ModConfigModel>(ModConfigModel.schema.name)
+      .filtered('mod = $0', this._id)[0];
+  }
 
   dependencies!: string[];
 
@@ -28,17 +34,9 @@ export class ModModel extends Realm.Object {
 
   loadedBlocks?: boolean;
 
-  getConfig() {
-    return JSON.parse(this.config);
-  }
+  thumbnail?: string;
 
-  writeConfig(config: Record<string, unknown>) {
-    const { realm } = useAppStore.getState();
-
-    realm.write(() => {
-      this.config = JSON.stringify(config);
-    });
-  }
+  website?: string;
 
   static schema: ObjectSchema = {
     name: 'Mod',
@@ -52,7 +50,6 @@ export class ModModel extends Realm.Object {
       name: 'string',
       jarPath: 'string',
       category: 'string?',
-      config: 'string',
       dependencies: 'string[]',
       loadedTextures: {
         type: 'bool',
@@ -75,6 +72,8 @@ export class ModModel extends Realm.Object {
         type: 'objectId',
         indexed: true,
       },
+      thumbnail: 'string?',
+      website: 'string?',
     },
     primaryKey: '_id',
   };

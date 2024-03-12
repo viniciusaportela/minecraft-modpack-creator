@@ -1,14 +1,17 @@
 import path from 'path';
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { Edge, Node } from 'reactflow';
-import { ModModel } from '../../../models/mod.model';
 import { BaseMod } from '../base-mod';
 
 export class SkillTree extends BaseMod {
   async build() {
-    const config = this.mod.getConfig();
+    const config = this.config.parseConfig();
 
-    const basePath = path.join(this.project.path, 'datapacks', 'skilltree');
+    const basePath = path.join(
+      this.project.path,
+      'generated_datapacks',
+      'skilltree',
+    );
 
     await mkdir(basePath, { recursive: true });
 
@@ -70,8 +73,8 @@ export class SkillTree extends BaseMod {
 
     const files = await readdir(skillsPath);
 
-    const allValidSkills = this.mod
-      .getConfig()
+    const allValidSkills = this.config
+      .parseConfig()
       .tree.nodes.map((node: Node) => `${node.id.split(':')[1]}.json`);
 
     const promises = files.map(async (file) => {
@@ -83,7 +86,7 @@ export class SkillTree extends BaseMod {
     await Promise.all(promises);
   }
 
-  async initializeConfig(config: Record<string, unknown>) {
+  async initializeConfig(config: any) {
     const configFile = await this.getConfigFromFiles(this.project.path);
 
     const updatedCfg = {
@@ -96,7 +99,6 @@ export class SkillTree extends BaseMod {
       },
     };
 
-    // get logic from EditTree
     updatedCfg.tree.nodes = configFile.skills.map((cfg) => {
       return {
         id: cfg.id,
@@ -140,14 +142,7 @@ export class SkillTree extends BaseMod {
       (skill) => skill.id,
     );
 
-    this.mod.writeConfig(updatedCfg);
-  }
-
-  updateMainTree(mod: ModModel) {
-    const config = mod.getConfig();
-    config.tree.mainTree.skillIds = config.tree.nodes.map((node) => node.id);
-
-    mod.writeConfig(config);
+    return updatedCfg;
   }
 
   private async getConfigFromFiles(projectPath: string) {

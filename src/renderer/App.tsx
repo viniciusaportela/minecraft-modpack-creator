@@ -17,6 +17,7 @@ import { useAppStore } from './store/app.store';
 
 import MainApp from './MainApp';
 import Picker from './pages/picker/Picker';
+import { ModConfigModel } from './core/models/mod-config.model';
 
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -34,6 +35,7 @@ export default function App() {
           ItemModel,
           BlockModel,
           ModModel,
+          ModConfigModel,
           GlobalStateModel,
         ],
         deleteRealmIfMigrationNeeded: true,

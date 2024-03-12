@@ -1,8 +1,8 @@
 import { Handle, Position, useStore } from 'reactflow';
 import { memo, useLayoutEffect, useState } from 'react';
 import { BSON } from 'realm';
-import LazyTexture from '../../../../components/lazy-texture/LazyTexture';
-import { TextureLoader } from '../../../../core/domains/minecraft/texture/texture-loader';
+import LazyTexture from '../../../../../components/lazy-texture/LazyTexture';
+import { TextureLoader } from '../../../../../core/domains/minecraft/texture/texture-loader';
 
 export default memo(({ data, id }: { data: any; id: string }) => {
   const connectionNodeId = useStore((state) => state.connectionNodeId);

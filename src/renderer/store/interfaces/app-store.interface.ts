@@ -10,4 +10,5 @@ export interface IAppStore {
   setGoBack: (goBack: null | (() => void)) => void;
   headerMiddleComponent?: React.ReactNode;
   setHeaderMiddleComponent: (middleComponent: React.ReactNode) => void;
+  configListeners: Map<string, ((path: string, updated: any) => void)[]>;
 }

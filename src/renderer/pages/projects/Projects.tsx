@@ -16,6 +16,7 @@ import LoadProjectModal from './components/LoadProjectModal';
 import { useAppStore } from '../../store/app.store';
 import ProjectService from '../../core/domains/project/project-service';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
+import { useModConfigStore } from '../../store/mod-config.store';
 
 export default function Projects() {
   const handleError = useErrorHandler();
@@ -56,6 +57,13 @@ export default function Projects() {
 
   const open = async (projectId: Types.ObjectId) => {
     try {
+      useModConfigStore.setState(
+        (st: any) => ({
+          __cachedMods: null,
+          setConfig: st.setConfig,
+        }),
+        true,
+      );
       realm.write(() => {
         globalState.selectedProjectId = projectId;
       });

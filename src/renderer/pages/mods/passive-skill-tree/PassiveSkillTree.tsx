@@ -8,7 +8,7 @@ import SkillTreeDashboard from './subpages/SkillTreeDashboard';
 export default function PassiveSkillTree({ isVisible }: IModPageProps) {
   return (
     <div
-      className="p-5 pt-0 w-full h-full"
+      className="p-5 pt-0 w-full flex-1"
       style={{ display: isVisible ? undefined : 'none' }}
     >
       <Pager initialPage="dashboard">

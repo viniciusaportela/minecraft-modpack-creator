@@ -35,7 +35,7 @@ export default class JarLoader {
       const rawToml = await this.zip.entryData('META-INF/mods.toml');
       return toml.parse(rawToml.toString());
     } catch (error) {
-      console.error('Error while reading mods.toml', error);
+      console.warn('Error while reading mods.toml', error);
       return undefined;
     }
   }

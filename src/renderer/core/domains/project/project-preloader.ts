@@ -6,6 +6,7 @@ import { JarHandler } from '../minecraft/jar-handler';
 import { ModModel } from '../../models/mod.model';
 import { ModPreloaderFactory } from '../../mods/preloaders/mod-preloader-factory';
 import { ProjectModel } from '../../models/project.model';
+import { ModConfigModel } from '../../models/mod-config.model';
 
 export class ProjectPreloader {
   private onProgressCb?: (progress: {
@@ -100,6 +101,8 @@ export class ProjectPreloader {
       return foundMod[0];
     }
 
+    const curseMetadata = await mod.getCurseMetadata();
+
     this.realm.beginTransaction();
     const created = this.realm.create<ModModel>(ModModel.schema.name, {
       jarPath: modFile,
@@ -109,16 +112,22 @@ export class ProjectPreloader {
       version: metadata
         ? metadata.mods[0].version
         : this.project.minecraftVersion,
-      config: JSON.stringify(await mod.generateConfig()),
       project: this.project._id,
+      thumbnail: curseMetadata?.thumbnailUrl,
+      website: curseMetadata?.webSiteURL,
       dependencies: metadata?.dependencies?.[modId]
         ? metadata.dependencies[modId]
             .filter((d) => d.mandatory)
             .map((d) => d.modId)
         : [],
-      // TODO add category
+    });
+
+    this.realm.create(ModConfigModel.schema.name, {
+      json: JSON.stringify(await mod.generateConfig()),
+      mod: created._id,
     });
     this.realm.commitTransaction();
+
     return created;
   }
 }

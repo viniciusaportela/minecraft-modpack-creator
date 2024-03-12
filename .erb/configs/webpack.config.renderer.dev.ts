@@ -158,6 +158,8 @@ const configuration: webpack.Configuration = {
 
     new ReactRefreshWebpackPlugin(),
 
+    new webpack.HotModuleReplacementPlugin(),
+
     new HtmlWebpackPlugin({
       filename: path.join('index.html'),
       template: path.join(webpackPaths.srcRendererPath, 'index.ejs'),

@@ -16,23 +16,25 @@ export class DefaultModPreloader implements IModPreloader {
   }
 
   async generateConfig(): Promise<Record<string, unknown>> {
-    const curseMeta = (await this.getCurseMetadata())!;
     return {
       configs: await this.getUserConfigs(),
-      thumbnail: curseMeta.thumbnailUrl,
-      website: curseMeta.webSiteURL,
     };
   }
 
   async getCurseMetadata() {
-    const modpackFolder = this.jar.jarPath.replace(/mods\/.*/g, '');
-    const curseMeta = JSON.parse(
-      await readFile(`${modpackFolder}/minecraftinstance.json`, 'utf-8'),
-    ) as ICurseMetadata;
+    try {
+      const modpackFolder = this.jar.jarPath.replace(/mods\/.*/g, '');
+      const curseMeta = JSON.parse(
+        await readFile(`${modpackFolder}/minecraftinstance.json`, 'utf-8'),
+      ) as ICurseMetadata;
 
-    return curseMeta.installedAddons.find(
-      (addon) => addon.fileNameOnDisk === this.jar.jarPath.split('/').pop(),
-    );
+      return curseMeta.installedAddons.find(
+        (addon) => addon.fileNameOnDisk === this.jar.jarPath.split('/').pop(),
+      )!;
+    } catch (err) {
+      console.warn(err);
+      return null;
+    }
   }
 
   async getUserConfigs(): Promise<Record<string, unknown>> {

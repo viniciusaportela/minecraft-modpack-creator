@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { BSON, Types } from 'realm';
+import { BSON, Results, Types } from 'realm';
+import { RealmObject } from 'realm/dist/Object';
+import intersection from 'lodash.intersection';
 import { GenericModel } from '../typings/generic-model.interface';
 import { useAppStore } from '../store/app.store';
 
@@ -10,7 +12,7 @@ export function useQuery<T extends GenericModel>(
 ): InstanceType<T>[] {
   const realm = useAppStore((st) => st.realm);
 
-  const getResults = () => {
+  const getResults = (): Results<RealmObject<T>> => {
     const res = realm.objects(model.schema.name);
     return filter ? filter(res) : res;
   };
@@ -19,7 +21,7 @@ export function useQuery<T extends GenericModel>(
   const [_, setInternalIndex] = useState(0);
 
   useLayoutEffect(() => {
-    objectsRef.current.addListener((_, changes) => {
+    objectsRef.current.addListener((_updated, changes) => {
       if (
         changes.deletions.length > 0 ||
         changes.insertions.length > 0 ||
@@ -34,12 +36,13 @@ export function useQuery<T extends GenericModel>(
     };
   }, []);
 
-  return objectsRef.current as InstanceType<T>[];
+  return objectsRef.current;
 }
 
 export function useQueryById<T extends GenericModel>(
   model: T,
   id: Types.ObjectId,
+  listenerIgnorePaths?: string[],
 ): InstanceType<T> | null {
   const realm = useAppStore((st) => st.realm);
 
@@ -52,7 +55,12 @@ export function useQueryById<T extends GenericModel>(
 
   useEffect(() => {
     objectRef.current.addListener((_, changes) => {
-      if (changes.changedProperties.length > 0 || changes.deleted) {
+      if (
+        (changes.changedProperties.length > 0 &&
+          intersection(changes.changedProperties, listenerIgnorePaths)
+            .length === 0) ||
+        changes.deleted
+      ) {
         setInternalIndex((idx) => idx + 1);
       }
     });

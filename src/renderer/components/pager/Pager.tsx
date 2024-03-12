@@ -13,7 +13,7 @@ interface IPagerProps extends PropsWithChildren {
   // eslint-disable-next-line react/no-unused-prop-types
   page?: string;
   // eslint-disable-next-line react/no-unused-prop-types
-  onPageChange?: (page: string) => string;
+  onPageChange?: (page: string) => void;
 }
 
 interface IPagerContext {

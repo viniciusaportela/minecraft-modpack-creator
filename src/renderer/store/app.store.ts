@@ -9,6 +9,7 @@ export const useAppStore = create<IAppStore>((set) => ({
   realm: null as any,
   selectedProjectId: null as any,
   headerMiddleComponent: null,
+  configListeners: new Map(),
   setTitle: (title) => set({ title }),
   setGoBack: (goBack) => set({ goBack }),
   setHeaderMiddleComponent: (headerMiddleComponent: React.ReactNode) =>

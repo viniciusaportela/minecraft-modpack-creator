@@ -1,9 +1,17 @@
-import { Button, Card, CardBody, Input, Switch } from '@nextui-org/react';
+import {
+  Button,
+  Card,
+  CardBody,
+  Input,
+  Switch,
+  useDisclosure,
+} from '@nextui-org/react';
 import React, { useEffect, useState } from 'react';
 import { Node } from 'reactflow';
 import { X } from '@phosphor-icons/react';
 import PickerButton from '../../../../components/ItemPickerButton/PickerButton';
 import { PickerType } from '../../../../typings/picker-type.enum';
+import BonusModal from './bonus/BonusModal';
 
 interface EditSkillPanelProps {
   focusedNode: Node | null;
@@ -16,6 +24,7 @@ export default function EditSkillPanel({
   setFlowNodes,
   onClose,
 }: EditSkillPanelProps) {
+  const { isOpen, onOpenChange, onOpen } = useDisclosure();
   const [internalFlowNode, setInternalFlowNode] = useState<Node | null>(
     focusedNode,
   );
@@ -49,148 +58,159 @@ export default function EditSkillPanel({
   };
 
   return (
-    <Card className="absolute right-2 top-2 w-72">
-      <CardBody>
-        <div className="flex items-center mb-2">
-          <h1 className="font-bold">Edit Skill</h1>
-          <Button
-            variant="flat"
-            isIconOnly
-            size="sm"
-            className="ml-auto"
-            onPress={onClose}
-          >
-            <X />
-          </Button>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Input
-            label="Title"
-            size="sm"
-            variant="bordered"
-            placeholder="Skill title"
-            value={internalFlowNode!.data.title}
-            onValueChange={(value) =>
-              updateFlowNode((prev) => ({
-                ...prev,
-                data: { ...prev.data, title: value },
-              }))
-            }
-          />
-          <div className="flex items-center">
-            <span className="text-sm">Title Color:</span>
-            <input
-              type="color"
+    <>
+      <Card className="absolute right-2 top-2 w-72">
+        <CardBody>
+          <div className="flex items-center mb-2">
+            <h1 className="font-bold">Edit Skill</h1>
+            <Button
+              variant="flat"
+              isIconOnly
+              size="sm"
               className="ml-auto"
-              value={`#${internalFlowNode!.data.titleColor?.toLowerCase() ?? 'ffffff'}`}
-              onChange={(e) => {
-                updateFlowNode((prev) => ({
-                  ...prev!,
-                  data: {
-                    ...prev!.data,
-                    titleColor: e.target.value?.toUpperCase().replace('#', ''),
-                  },
-                }));
-              }}
-            />
+              onPress={onClose}
+            >
+              <X />
+            </Button>
           </div>
-          <div className="flex items-center">
-            <span className="text-sm">Icon Texture:</span>
-            <PickerButton
-              type={PickerType.Texture}
-              className="h-8 ml-auto"
-              value={
-                formatTextureInput(internalFlowNode!.data.iconTexture) ??
-                'skilltree:icons/void'
+          <div className="flex flex-col gap-2">
+            <Input
+              label="Title"
+              size="sm"
+              variant="bordered"
+              placeholder="Skill title"
+              value={internalFlowNode!.data.title}
+              onValueChange={(value) =>
+                updateFlowNode((prev) => ({
+                  ...prev,
+                  data: { ...prev.data, title: value },
+                }))
               }
-              onPick={(value) =>
+            />
+            <div className="flex items-center">
+              <span className="text-sm">Title Color:</span>
+              <input
+                type="color"
+                className="ml-auto"
+                value={`#${internalFlowNode!.data.titleColor?.toLowerCase() ?? 'ffffff'}`}
+                onChange={(e) => {
+                  updateFlowNode((prev) => ({
+                    ...prev!,
+                    data: {
+                      ...prev!.data,
+                      titleColor: e.target.value
+                        ?.toUpperCase()
+                        .replace('#', ''),
+                    },
+                  }));
+                }}
+              />
+            </div>
+            <div className="flex items-center">
+              <span className="text-sm">Icon Texture:</span>
+              <PickerButton
+                type={PickerType.Texture}
+                className="h-8 ml-auto"
+                value={
+                  formatTextureInput(internalFlowNode!.data.iconTexture) ??
+                  'skilltree:icons/void'
+                }
+                onPick={(value) =>
+                  updateFlowNode((prev) => ({
+                    ...prev!,
+                    data: {
+                      ...prev!.data,
+                      iconTexture: formatTextureOutput(value),
+                    },
+                  }))
+                }
+              />
+            </div>
+            <div className="flex items-center">
+              <span className="text-sm">Background Texture:</span>
+              <PickerButton
+                type={PickerType.SkillTreeBackground}
+                className="h-8 ml-auto"
+                value={
+                  formatTextureInput(
+                    internalFlowNode!.data.backgroundTexture,
+                  ) ?? 'skilltree:icons/background/lesser'
+                }
+                onPick={(value) =>
+                  updateFlowNode((prev) => ({
+                    ...prev!,
+                    data: {
+                      ...prev!.data,
+                      backgroundTexture: formatTextureOutput(value),
+                    },
+                  }))
+                }
+              />
+            </div>
+            <div className="flex items-center">
+              <span className="text-sm">Border Texture:</span>
+              <PickerButton
+                type={PickerType.SkillTreeBorder}
+                className="h-8 ml-auto"
+                value={
+                  formatTextureInput(internalFlowNode!.data.borderTexture) ??
+                  'skilltree:tooltip/lesser'
+                }
+                onPick={(value) =>
+                  updateFlowNode((prev) => ({
+                    ...prev!,
+                    data: {
+                      ...prev!.data,
+                      borderTexture: formatTextureOutput(value),
+                    },
+                  }))
+                }
+              />
+            </div>
+            <Input
+              label="Button Size"
+              size="sm"
+              variant="bordered"
+              placeholder="16"
+              value={internalFlowNode!.data.buttonSize ?? 16}
+              onValueChange={(text) =>
                 updateFlowNode((prev) => ({
                   ...prev!,
                   data: {
                     ...prev!.data,
-                    iconTexture: formatTextureOutput(value),
+                    buttonSize: parseFloat(text),
                   },
                 }))
               }
             />
-          </div>
-          <div className="flex items-center">
-            <span className="text-sm">Background Texture:</span>
-            <PickerButton
-              type={PickerType.SkillTreeBackground}
-              className="h-8 ml-auto"
-              value={
-                formatTextureInput(internalFlowNode!.data.backgroundTexture) ??
-                'skilltree:icons/background/lesser'
-              }
-              onPick={(value) =>
-                updateFlowNode((prev) => ({
-                  ...prev!,
-                  data: {
-                    ...prev!.data,
-                    backgroundTexture: formatTextureOutput(value),
-                  },
-                }))
-              }
-            />
-          </div>
-          <div className="flex items-center">
-            <span className="text-sm">Border Texture:</span>
-            <PickerButton
-              type={PickerType.SkillTreeBorder}
-              className="h-8 ml-auto"
-              value={
-                formatTextureInput(internalFlowNode!.data.borderTexture) ??
-                'skilltree:tooltip/lesser'
-              }
-              onPick={(value) =>
-                updateFlowNode((prev) => ({
-                  ...prev!,
-                  data: {
-                    ...prev!.data,
-                    borderTexture: formatTextureOutput(value),
-                  },
-                }))
-              }
-            />
-          </div>
-          <Input
-            label="Button Size"
-            size="sm"
-            variant="bordered"
-            placeholder="16"
-            value={internalFlowNode!.data.buttonSize ?? 16}
-            onValueChange={(text) =>
-              updateFlowNode((prev) => ({
-                ...prev!,
-                data: {
-                  ...prev!.data,
-                  buttonSize: parseFloat(text),
-                },
-              }))
-            }
-          />
 
-          <Switch
-            size="sm"
-            isSelected={internalFlowNode!.data.isStartingPoint}
-            onValueChange={(isSelected) =>
-              updateFlowNode((prev) => ({
-                ...prev!,
-                data: {
-                  ...prev!.data,
-                  isStartingPoint: isSelected,
-                },
-              }))
-            }
-          >
-            Is starting point
-          </Switch>
+            <Switch
+              size="sm"
+              isSelected={internalFlowNode!.data.isStartingPoint}
+              onValueChange={(isSelected) =>
+                updateFlowNode((prev) => ({
+                  ...prev!,
+                  data: {
+                    ...prev!.data,
+                    isStartingPoint: isSelected,
+                  },
+                }))
+              }
+            >
+              Is starting point
+            </Switch>
 
-          <span>Bonuses</span>
-          <Button>Add bonus</Button>
-        </div>
-      </CardBody>
-    </Card>
+            <span>Bonuses</span>
+            <Button onPress={onOpen}>Edit bonus</Button>
+          </div>
+        </CardBody>
+      </Card>
+      <BonusModal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        focusedNode={internalFlowNode}
+        setFocusedNode={updateFlowNode}
+      />
+    </>
   );
 }
