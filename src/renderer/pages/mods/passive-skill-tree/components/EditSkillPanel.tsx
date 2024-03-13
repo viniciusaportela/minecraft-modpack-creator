@@ -6,47 +6,26 @@ import {
   Switch,
   useDisclosure,
 } from '@nextui-org/react';
-import React, { useEffect, useState } from 'react';
-import { Node } from 'reactflow';
+import React from 'react';
 import { X } from '@phosphor-icons/react';
 import PickerButton from '../../../../components/ItemPickerButton/PickerButton';
 import { PickerType } from '../../../../typings/picker-type.enum';
 import BonusModal from './bonus/BonusModal';
+import { useModConfigByPath } from '../../../../hooks/use-mod-config';
 
 interface EditSkillPanelProps {
-  focusedNode: Node | null;
-  setFlowNodes: React.Dispatch<React.SetStateAction<Node[]>>;
+  focusedNodePath: string;
   onClose: () => void;
 }
 
 export default function EditSkillPanel({
-  focusedNode,
-  setFlowNodes,
+  focusedNodePath,
   onClose,
 }: EditSkillPanelProps) {
   const { isOpen, onOpenChange, onOpen } = useDisclosure();
-  const [internalFlowNode, setInternalFlowNode] = useState<Node | null>(
-    focusedNode,
-  );
+  const [focusedNode, setFocusedNode] = useModConfigByPath(focusedNodePath);
 
-  const updateFlowNode = (updateFn: (prev: Node) => Node) => {
-    let prevValue = internalFlowNode;
-    let newValue = updateFn(prevValue!);
-
-    setFlowNodes((updatedPrev) => {
-      prevValue = updatedPrev.find((n) => n.id === prevValue?.id) ?? prevValue;
-      newValue = updateFn(prevValue!);
-      return updatedPrev.map((n) => (n.id === prevValue!.id ? newValue : n));
-    });
-
-    setInternalFlowNode(newValue);
-  };
-
-  useEffect(() => {
-    setInternalFlowNode(focusedNode);
-  }, [focusedNode]);
-
-  if (!focusedNode || !internalFlowNode) return null;
+  if (!focusedNode) return null;
 
   const formatTextureInput = (texture: string) => {
     return texture.replace('.png', '').replace('textures/', '');
@@ -79,12 +58,12 @@ export default function EditSkillPanel({
               size="sm"
               variant="bordered"
               placeholder="Skill title"
-              value={internalFlowNode!.data.title}
+              value={focusedNode.data.title}
               onValueChange={(value) =>
-                updateFlowNode((prev) => ({
-                  ...prev,
-                  data: { ...prev.data, title: value },
-                }))
+                setFocusedNode({
+                  ...focusedNode,
+                  data: { ...focusedNode.data, title: value },
+                })
               }
             />
             <div className="flex items-center">
@@ -92,17 +71,17 @@ export default function EditSkillPanel({
               <input
                 type="color"
                 className="ml-auto"
-                value={`#${internalFlowNode!.data.titleColor?.toLowerCase() ?? 'ffffff'}`}
+                value={`#${focusedNode.data.titleColor?.toLowerCase() ?? 'ffffff'}`}
                 onChange={(e) => {
-                  updateFlowNode((prev) => ({
-                    ...prev!,
+                  setFocusedNode({
+                    ...focusedNode,
                     data: {
-                      ...prev!.data,
+                      ...focusedNode.data,
                       titleColor: e.target.value
                         ?.toUpperCase()
                         .replace('#', ''),
                     },
-                  }));
+                  });
                 }}
               />
             </div>
@@ -112,17 +91,17 @@ export default function EditSkillPanel({
                 type={PickerType.Texture}
                 className="h-8 ml-auto"
                 value={
-                  formatTextureInput(internalFlowNode!.data.iconTexture) ??
+                  formatTextureInput(focusedNode.data.iconTexture) ??
                   'skilltree:icons/void'
                 }
                 onPick={(value) =>
-                  updateFlowNode((prev) => ({
-                    ...prev!,
+                  setFocusedNode({
+                    ...focusedNode,
                     data: {
-                      ...prev!.data,
+                      ...focusedNode.data,
                       iconTexture: formatTextureOutput(value),
                     },
-                  }))
+                  })
                 }
               />
             </div>
@@ -132,18 +111,17 @@ export default function EditSkillPanel({
                 type={PickerType.SkillTreeBackground}
                 className="h-8 ml-auto"
                 value={
-                  formatTextureInput(
-                    internalFlowNode!.data.backgroundTexture,
-                  ) ?? 'skilltree:icons/background/lesser'
+                  formatTextureInput(focusedNode.data.backgroundTexture) ??
+                  'skilltree:icons/background/lesser'
                 }
                 onPick={(value) =>
-                  updateFlowNode((prev) => ({
-                    ...prev!,
+                  setFocusedNode({
+                    ...focusedNode,
                     data: {
-                      ...prev!.data,
+                      ...focusedNode.data,
                       backgroundTexture: formatTextureOutput(value),
                     },
-                  }))
+                  })
                 }
               />
             </div>
@@ -153,17 +131,17 @@ export default function EditSkillPanel({
                 type={PickerType.SkillTreeBorder}
                 className="h-8 ml-auto"
                 value={
-                  formatTextureInput(internalFlowNode!.data.borderTexture) ??
+                  formatTextureInput(focusedNode.data.borderTexture) ??
                   'skilltree:tooltip/lesser'
                 }
                 onPick={(value) =>
-                  updateFlowNode((prev) => ({
-                    ...prev!,
+                  setFocusedNode({
+                    ...focusedNode,
                     data: {
-                      ...prev!.data,
+                      ...focusedNode.data,
                       borderTexture: formatTextureOutput(value),
                     },
-                  }))
+                  })
                 }
               />
             </div>
@@ -172,29 +150,29 @@ export default function EditSkillPanel({
               size="sm"
               variant="bordered"
               placeholder="16"
-              value={internalFlowNode!.data.buttonSize ?? 16}
+              value={focusedNode.data.buttonSize ?? 16}
               onValueChange={(text) =>
-                updateFlowNode((prev) => ({
-                  ...prev!,
+                setFocusedNode({
+                  ...focusedNode,
                   data: {
-                    ...prev!.data,
+                    ...focusedNode.data,
                     buttonSize: parseFloat(text),
                   },
-                }))
+                })
               }
             />
 
             <Switch
               size="sm"
-              isSelected={internalFlowNode!.data.isStartingPoint}
+              isSelected={focusedNode.data.isStartingPoint}
               onValueChange={(isSelected) =>
-                updateFlowNode((prev) => ({
-                  ...prev!,
+                setFocusedNode({
+                  ...focusedNode,
                   data: {
-                    ...prev!.data,
+                    ...focusedNode.data,
                     isStartingPoint: isSelected,
                   },
-                }))
+                })
               }
             >
               Is starting point
@@ -208,8 +186,7 @@ export default function EditSkillPanel({
       <BonusModal
         isOpen={isOpen}
         onOpenChange={onOpenChange}
-        focusedNode={internalFlowNode}
-        setFocusedNode={updateFlowNode}
+        focusedNodePath={focusedNodePath}
       />
     </>
   );

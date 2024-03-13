@@ -5,7 +5,7 @@ import {
   IProcessItemContext,
 } from './interfaces/jar-loader.interface';
 import { IModsToml } from './interfaces/mods-toml.interface';
-import isJSONValid from '../../../helpers/isJSONValid';
+import isJsonValid from '../../../helpers/is-json-valid';
 
 export default class JarLoader {
   readonly jarPath: string;
@@ -72,7 +72,7 @@ export default class JarLoader {
     for await (const block of blocks) {
       let modelJson = {};
       const rawJson = (await this.zip.entryData(block.name)).toString();
-      if (isJSONValid(rawJson)) {
+      if (isJsonValid(rawJson)) {
         modelJson = JSON.parse(rawJson);
       }
 
@@ -102,7 +102,7 @@ export default class JarLoader {
     for await (const item of items) {
       let modelJson = {};
       const rawJson = (await this.zip.entryData(item.name)).toString();
-      if (isJSONValid(rawJson)) {
+      if (isJsonValid(rawJson)) {
         modelJson = JSON.parse(rawJson);
       }
 

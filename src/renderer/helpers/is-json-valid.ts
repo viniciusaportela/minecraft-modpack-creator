@@ -1,4 +1,4 @@
-export default function isJSONValid(json: string) {
+export default function isJsonValid(json: string) {
   try {
     JSON.parse(json);
     return true;

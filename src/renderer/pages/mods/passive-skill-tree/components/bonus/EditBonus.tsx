@@ -1,17 +1,12 @@
-import { DropdownItem, DropdownMenu, Selection } from '@nextui-org/react';
-import FieldsRenderer from './FieldsRenderer';
-import { FieldsField } from '../../../../../core/domains/mods/skilltree/bonus/bonuses/fields-field';
-import { FieldBase } from '../../../../../core/domains/mods/skilltree/bonus/fields/base/field-base';
+import { Selection } from '@nextui-org/react';
 
 interface BonusPageProps {
   selectedBonus: string;
   onSelectionChange: (keys: Selection) => void;
-  fields: FieldsField;
 }
 
-export default function BonusPage({
+export default function EditBonus({
   selectedBonus,
-  fields,
   onSelectionChange,
 }: BonusPageProps) {
   return (
@@ -23,7 +18,6 @@ export default function BonusPage({
       {/* > */}
       {/*   {(item) => <DropdownItem key={item.key}>{item.label}</DropdownItem>} */}
       {/* </DropdownMenu> */}
-      <FieldsRenderer fields={fields} />
     </>
   );
 }

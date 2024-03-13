@@ -26,6 +26,8 @@ module.exports = {
     '@typescript-eslint/no-shadow': 'warn',
     'no-empty-function': 'off',
     'react-hooks/rules-of-hooks': 'off',
+    'react/function-component-definition': 'off',
+    'react/prop-types': 'off',
   },
   parserOptions: {
     ecmaVersion: 2022,

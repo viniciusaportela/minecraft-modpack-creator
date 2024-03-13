@@ -14,64 +14,46 @@ import {
 import React, { Key, useState } from 'react';
 import { Plus } from '@phosphor-icons/react';
 import { Page, Pager } from '../../../../../components/pager/Pager';
-import { EBonus } from '../../../../../core/domains/mods/skilltree/enums/skill-bonus.enum';
-import { createFieldsOfType } from '../../../../../core/domains/mods/skilltree/bonus/create-fields';
 import { useErrorHandler } from '../../../../../core/errors/hooks/useErrorHandler';
-import BonusPage from './BonusPage';
+import EditBonus from './EditBonus';
+import { useModConfigByPath } from '../../../../../hooks/use-mod-config';
 
 interface BonusModalProps {
   isOpen: boolean;
   onOpenChange: () => void;
-  focusedNode: Node | null;
-  setFocusedNode: (updateFn: (prev: Node) => Node) => void;
+  focusedNodePath: string;
 }
 
 export default function BonusModal({
   isOpen,
   onOpenChange,
-  focusedNode,
-  setFocusedNode,
+  focusedNodePath,
 }: BonusModalProps) {
   const handleError = useErrorHandler();
-  // const bonuses = useBonuses(focusedNode);
-  const bonuses = [];
-  const [page, setPage] = useState(bonuses.length ? 'bonus-0' : 'empty');
+  const [focusedNode, setFocusedNode] = useModConfigByPath(focusedNodePath);
 
-  const createBonusList = () => {
-    return bonuses.map((bonus, index) => (
-      <ListboxItem key={`bonus-${index}`}>
-        {bonus.getReadableName()}
-      </ListboxItem>
-    ));
-  };
+  const [page, setPage] = useState(
+    focusedNode.data.bonuses.length ? 'bonus-0' : 'empty',
+  );
 
   const createPages = () => {
-    return bonuses.map((bonus, index) => (
-      <Page key={index} name={`bonus-${index}`}>
-        <BonusPage
-          selectedBonus={bonus.getTypeValue()}
-          onSelectionChange={() => {
-            console.log('selection changed');
-          }}
-          fields={bonus}
-        />
-      </Page>
-    ));
+    return [];
+    // return bonuses.map((bonus, index) => (
+    //   <Page key={index} name={`bonus-${index}`}>
+    //     <EditBonus
+    //       selectedBonus={bonus.getTypeValue()}
+    //       onSelectionChange={() => {
+    //         console.log('selection changed');
+    //       }}
+    //       fields={bonus}
+    //     />
+    //   </Page>
+    // ));
   };
 
   const addBonus = async () => {
     try {
-      setFocusedNode((prev) => {
-        if (!prev?.data?.bonuses) {
-          prev.data.bonuses = [];
-        }
-
-        prev.data.bonuses.push(
-          createFieldsOfType(EBonus.AllAttributes).build(),
-        );
-
-        return prev;
-      });
+      // DEV
     } catch (err) {
       await handleError(err);
     }
@@ -102,14 +84,18 @@ export default function BonusModal({
         <ModalBody className="px-3">
           <div className="flex h-52">
             <div className="flex flex-col w-60">
-              {bonuses.length > 0 ? (
+              {focusedNode.data.bonuses.length > 0 ? (
                 <ScrollShadow>
                   <Listbox
                     onSelectionChange={onClickBonus}
                     selectionMode="single"
                     selectedKeys={page}
                   >
-                    {createBonusList()}
+                    {focusedNode.data.bonuses.map((bonus, index) => (
+                      <ListboxItem key={`bonus-${index}`}>
+                        {bonus.type}
+                      </ListboxItem>
+                    ))}
                   </Listbox>
                 </ScrollShadow>
               ) : (
