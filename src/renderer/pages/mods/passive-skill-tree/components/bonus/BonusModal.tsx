@@ -1,4 +1,3 @@
-import { Node } from 'reactflow';
 import {
   Button,
   Divider,
@@ -15,7 +14,6 @@ import React, { Key, useState } from 'react';
 import { Plus } from '@phosphor-icons/react';
 import { Page, Pager } from '../../../../../components/pager/Pager';
 import { useErrorHandler } from '../../../../../core/errors/hooks/useErrorHandler';
-import EditBonus from './EditBonus';
 import { useModConfigByPath } from '../../../../../hooks/use-mod-config';
 
 interface BonusModalProps {

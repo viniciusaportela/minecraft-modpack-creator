@@ -1,5 +1,5 @@
 import { useShallow } from 'zustand/react/shallow';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import set from 'lodash.set';
 import get from 'lodash.get';
 import { useModConfigStore } from '../store/mod-config.store';
@@ -14,7 +14,7 @@ export function useModConfig(selector: (state: unknown) => any) {
         .getState()
         .setConfig(modConfig, modifierCb, skipRealmWrite);
     },
-    [],
+    [modConfig],
   );
 
   return [
@@ -30,12 +30,14 @@ export function useModConfig(selector: (state: unknown) => any) {
 export function useModConfigByPath(path: string) {
   const [st, setState] = useModConfig((st) => get(st, path));
 
-  const stMemoized = useMemo(() => st, [st]);
-  const setStateMemoized = useCallback(() => {
-    setState((oldState: any) => {
-      return set(oldState, path, stMemoized);
-    });
-  }, []);
+  const setStateMemoized = useCallback(
+    (newState: unknown) => {
+      setState((oldState: any) => {
+        return set(oldState, path, newState);
+      });
+    },
+    [st, path],
+  );
 
-  return [stMemoized, setStateMemoized];
+  return [st, setStateMemoized];
 }

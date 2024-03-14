@@ -40,6 +40,10 @@ export const ModConfigProvider = memo(
 
         const st = useModConfigStore.getState();
         if (!st[mod._id.toString()]) {
+          console.log(
+            'has not been set modId, set with',
+            modConfig.parseConfig(),
+          );
           const mostUpdatedConfig = modConfig.parseConfig();
           st.setConfig(
             modConfig,

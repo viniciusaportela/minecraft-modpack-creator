@@ -6,7 +6,7 @@ import {
   Switch,
   useDisclosure,
 } from '@nextui-org/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X } from '@phosphor-icons/react';
 import PickerButton from '../../../../components/ItemPickerButton/PickerButton';
 import { PickerType } from '../../../../typings/picker-type.enum';
@@ -59,12 +59,12 @@ export default function EditSkillPanel({
               variant="bordered"
               placeholder="Skill title"
               value={focusedNode.data.title}
-              onValueChange={(value) =>
+              onValueChange={(value) => {
                 setFocusedNode({
                   ...focusedNode,
                   data: { ...focusedNode.data, title: value },
-                })
-              }
+                });
+              }}
             />
             <div className="flex items-center">
               <span className="text-sm">Title Color:</span>

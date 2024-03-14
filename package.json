@@ -76,6 +76,7 @@
     "electron-log": "^4.4.8",
     "electron-updater": "^6.1.4",
     "framer-motion": "^11.0.6",
+    "immer": "^10.0.4",
     "lodash.clonedeep": "^4.5.0",
     "lodash.get": "^4.4.2",
     "lodash.intersection": "^4.4.0",

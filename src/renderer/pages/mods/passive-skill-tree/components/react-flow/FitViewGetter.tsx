@@ -1,11 +1,11 @@
 import { useReactFlow } from 'reactflow';
-import React from 'react';
+import React, { memo } from 'react';
 
 interface PositionGetterProps {
   fnRef: React.MutableRefObject<any>;
 }
 
-export default function FitViewGetter({ fnRef }: PositionGetterProps) {
+const FitViewGetter = memo(({ fnRef }: PositionGetterProps) => {
   const reactFlow = useReactFlow();
 
   if (fnRef) {
@@ -13,4 +13,6 @@ export default function FitViewGetter({ fnRef }: PositionGetterProps) {
   }
 
   return null;
-}
+});
+
+export default FitViewGetter;

@@ -1,23 +1,27 @@
 import { create } from 'zustand';
-import cloneDeep from 'lodash.clonedeep';
+import { immer } from 'zustand/middleware/immer';
 import { ModConfigModel } from '../core/models/mod-config.model';
 
-export const useModConfigStore = create((zustandSet) => ({
-  setConfig: (
-    modConfig: ModConfigModel,
-    modifierCb: (oldState: any) => any,
-    skipRealmWrite = false,
-  ) => {
-    zustandSet((oldState: any) => {
-      const modConfigCopy = cloneDeep(oldState[modConfig.mod.toString()] ?? {});
+export const useModConfigStore = create(
+  immer((immerSet) => ({
+    setConfig: (
+      modConfig: ModConfigModel,
+      modifierCb: (oldState: any) => any,
+      skipRealmWrite = false,
+    ) => {
+      let updatedConfig: any;
 
-      const updatedConfig = modifierCb(modConfigCopy);
+      immerSet((currentState: any) => {
+        updatedConfig = modifierCb(currentState[modConfig.mod.toString()]);
 
-      if (!skipRealmWrite) {
-        modConfig.writeConfig(updatedConfig);
-      }
+        // if (!skipRealmWrite) {
+        //   modConfig.writeConfig(updatedConfig);
+        // }
 
-      return { [modConfig.mod.toString()]: updatedConfig };
-    });
-  },
-}));
+        currentState[modConfig.mod.toString()] = updatedConfig;
+      });
+
+      return updatedConfig;
+    },
+  })),
+);

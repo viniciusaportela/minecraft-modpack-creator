@@ -71,33 +71,13 @@ export default function EditTree() {
   const reactFlowRef = useRef<HTMLDivElement>();
 
   const [{ nodes, edges }, setConfig] = useModConfig((st: any) => ({
-    nodes: st.tree.nodes,
-    edges: st.tree.edges,
+    nodes: st.tree.nodes as Node[],
+    edges: st.tree.edges as Edge[],
   }));
 
-  const [flowNodes, setFlowNodes] = useState<Node[]>(nodes);
-  const [flowEdges, setFlowEdges] = useState<Edge[]>(edges);
-  const [focusedNode, setFocusedNode] = useState<Node | null>(null);
   const [isPanning, setIsPanning] = useState(false);
-
-  useEffect(() => {
-    setConfig((oldState: any) => {
-      set(oldState, 'tree.nodes', flowNodes);
-      set(
-        oldState,
-        'tree.mainTree.skillIds',
-        flowNodes.map((node: Node) => node.id),
-      );
-      return oldState;
-    });
-  }, [flowNodes]);
-
-  useEffect(() => {
-    setConfig((oldState: any) => {
-      set(oldState, 'tree.edges', flowEdges);
-      return oldState;
-    });
-  }, [flowEdges]);
+  const [focusedNode, setFocusedNode] = useState<Node | null>(null);
+  const [focusedNodePath, setFocusedNodePath] = useState<string | null>(null);
 
   useEffect(() => {
     const onKeyDown = (ev) => {
@@ -129,24 +109,38 @@ export default function EditTree() {
         );
         if (hasDeletedFocused) {
           setFocusedNode(null);
+          setFocusedNodePath(null);
         }
       }
-      setFlowNodes((nds) => applyNodeChanges(changes, nds));
+
+      setConfig((curState: any) => {
+        return set(
+          curState,
+          'tree.nodes',
+          applyNodeChanges(changes, curState.tree.nodes),
+        );
+      });
     },
-    [focusedNode, setFlowNodes],
+    [focusedNode],
   );
-  const onEdgesChange = useCallback(
-    (changes) => {
-      return setFlowEdges((eds) => applyEdgeChanges(changes, eds));
-    },
-    [setFlowEdges],
-  );
+
+  const onEdgesChange = useCallback((changes) => {
+    setConfig((curState: any) => {
+      return set(
+        curState,
+        'tree.edges',
+        applyEdgeChanges(changes, curState.tree.edges),
+      );
+    });
+  }, []);
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      setFlowEdges((edges) => {
-        const filtered = flowNodes.filter((n) => n.id === connection.source);
-        return filtered.reduce((edgs, node) => {
+      setConfig((curState: any) => {
+        const filtered = curState.tree.nodes.filter(
+          (n) => n.id === connection.source,
+        );
+        const newEdges = filtered.reduce((edgs, node) => {
           return addEdge(
             {
               source: node.id,
@@ -158,43 +152,55 @@ export default function EditTree() {
             edgs,
           );
         }, edges);
+
+        set(curState, 'tree.edges', newEdges);
+        return curState;
       });
     },
-
-    [flowNodes, setFlowEdges],
+    [nodes, edges],
   );
 
-  const onEdgeDelete = useCallback(
-    (edges) => {
-      setFlowEdges((eds) => {
-        return eds.filter((e) => !edges.includes(e.id));
-      });
-    },
-    [setFlowEdges],
-  );
+  const onEdgeDelete = useCallback((edges) => {
+    setConfig((curState: any) => {
+      return set(
+        curState,
+        'tree.edges',
+        curState.tree.edges.filter((e) => !edges.includes(e.id)),
+      );
+    });
+  }, []);
 
   const onEdgeClick = useCallback(
     (ev: React.MouseEvent<Element, MouseEvent>, edge: Edge) => {
       if (ev.altKey) {
-        setFlowEdges((eds) => {
-          return eds.filter((e) => edge.id !== e.id);
+        setConfig((curState: any) => {
+          return set(
+            curState,
+            'tree.edges',
+            curState.tree.edges.filter((e) => e.id !== edge.id),
+          );
         });
       }
     },
     [],
   );
 
-  const onNodeClick = useCallback((ev: ReactMouseEvent, node: Node) => {
-    setFocusedNode(node);
-  }, []);
+  const onNodeClick = useCallback(
+    (ev: ReactMouseEvent, node: Node) => {
+      setFocusedNode(node);
+      const index = nodes.findIndex((n) => n.id === node.id);
+      setFocusedNodePath(`tree.nodes[${index}]`);
+    },
+    [nodes],
+  );
 
   const addSkill = () => {
     const bounding = reactFlowRef.current.getBoundingClientRect();
 
     const reactFlowX =
-      flowNodes.length > 0 ? bounding.left + bounding.width / 2 - 16 : 0;
+      nodes.length > 0 ? bounding.left + bounding.width / 2 - 16 : 0;
     const reactFlowY =
-      flowNodes.length > 0 ? bounding.top + bounding.height / 2 - 64 : 0;
+      nodes.length > 0 ? bounding.top + bounding.height / 2 - 64 : 0;
 
     const position = screenToFlowPosition.current({
       x: reactFlowX,
@@ -227,8 +233,12 @@ export default function EditTree() {
       },
     };
 
-    setFlowNodes((nds) => [...nds, newNode]);
-    if (flowNodes.length === 0) {
+    setConfig((curState: any) => {
+      return set(curState, 'tree.nodes', [...curState.tree.nodes, newNode]);
+    });
+
+    const isAddingTheFirst = nodes.length === 0;
+    if (isAddingTheFirst) {
       setTimeout(() => {
         fitView.current?.();
       }, 0);
@@ -236,8 +246,12 @@ export default function EditTree() {
   };
 
   const startBlank = () => {
-    setFlowNodes([]);
-    setFlowEdges([]);
+    setConfig((curState) => {
+      set(curState, 'tree.nodes', []);
+      set(curState, 'tree.edges', []);
+
+      return curState;
+    });
   };
 
   const loadFromEditor = async () => {
@@ -246,12 +260,9 @@ export default function EditTree() {
       skillTreeMod,
     ).initializeConfig(skillTreeMod.getConfig());
 
-    setConfig(skillTreeMod, () => {
+    setConfig(() => {
       return updatedConfig;
     });
-
-    setFlowNodes(updatedConfig.tree.nodes);
-    setFlowEdges(updatedConfig.tree.edges);
   };
 
   const onDropDownAction = (key: Key) => {
@@ -312,8 +323,8 @@ export default function EditTree() {
           connectionRadius={10}
           fitView
           proOptions={{ hideAttribution: true }}
-          nodes={flowNodes}
-          edges={flowEdges}
+          nodes={nodes}
+          edges={edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           ref={reactFlowRef}
@@ -322,9 +333,12 @@ export default function EditTree() {
           <FitViewGetter fnRef={fitView} />
         </ReactFlow>
         <EditSkillPanel
-          focusedNode={focusedNode}
-          setFlowNodes={setFlowNodes}
-          onClose={() => setFocusedNode(null)}
+          key={focusedNodePath}
+          focusedNodePath={focusedNodePath!}
+          onClose={() => {
+            setFocusedNodePath(null);
+            setFocusedNode(null);
+          }}
         />
         <Button
           className="absolute bottom-2 right-2"
