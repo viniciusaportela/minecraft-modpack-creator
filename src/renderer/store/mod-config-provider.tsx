@@ -12,6 +12,7 @@ interface ModConfigProviderProps extends PropsWithChildren {
   mod: ModModel;
 }
 
+// TODO
 export const ModConfigProvider = memo(
   ({ children, mod }: ModConfigProviderProps) => {
     const handleError = useErrorHandler();
@@ -45,13 +46,10 @@ export const ModConfigProvider = memo(
             modConfig.parseConfig(),
           );
           const mostUpdatedConfig = modConfig.parseConfig();
-          st.setConfig(
-            modConfig,
-            () => {
-              return mostUpdatedConfig;
-            },
-            true,
-          );
+
+          useModConfigStore.setState({
+            [mod._id.toString()]: mostUpdatedConfig,
+          });
         }
       } catch (err) {
         await handleError(err);

@@ -86,20 +86,16 @@ export class SkillTree extends BaseMod {
     await Promise.all(promises);
   }
 
-  async initializeConfig(config: any) {
+  async initializeTree() {
     const configFile = await this.getConfigFromFiles(this.project.path);
 
-    const updatedCfg = {
-      ...config,
-      initialized: true,
-      tree: {
-        nodes: [] as any[],
-        edges: [] as any[],
-        mainTree: { skillIds: [] as any[], id: 'skilltree:main_tree' },
-      },
+    const updatedTree = {
+      nodes: [] as any[],
+      edges: [] as any[],
+      mainTree: { skillIds: [] as any[], id: 'skilltree:main_tree' },
     };
 
-    updatedCfg.tree.nodes = configFile.skills.map((cfg) => {
+    updatedTree.nodes = configFile.skills.map((cfg) => {
       return {
         id: cfg.id,
         position: { x: cfg.positionX, y: cfg.positionY },
@@ -114,7 +110,7 @@ export class SkillTree extends BaseMod {
 
     configFile.skills.forEach((skill) => {
       skill.directConnections.forEach((conn) => {
-        updatedCfg.tree.edges.push({
+        updatedTree.edges.push({
           id: `${skill.id}_${conn}`,
           source: skill.id,
           target: conn,
@@ -126,7 +122,7 @@ export class SkillTree extends BaseMod {
       });
 
       skill.longConnections.forEach((conn) => {
-        updatedCfg.tree.edges.push({
+        updatedTree.edges.push({
           id: `long_${skill.id}_${conn}`,
           source: skill.id,
           target: conn,
@@ -138,11 +134,17 @@ export class SkillTree extends BaseMod {
       });
     });
 
-    updatedCfg.tree.mainTree.skillIds = configFile.skills.map(
-      (skill) => skill.id,
-    );
+    updatedTree.mainTree.skillIds = configFile.skills.map((skill) => skill.id);
 
-    return updatedCfg;
+    return updatedTree;
+  }
+
+  async initializeConfig(config: any) {
+    return {
+      ...config,
+      initialized: true,
+      tree: this.initializeTree(),
+    };
   }
 
   private async getConfigFromFiles(projectPath: string) {

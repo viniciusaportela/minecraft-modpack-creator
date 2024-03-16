@@ -28,6 +28,7 @@ module.exports = {
     'react-hooks/rules-of-hooks': 'off',
     'react/function-component-definition': 'off',
     'react/prop-types': 'off',
+    'no-continue': 'off',
   },
   parserOptions: {
     ecmaVersion: 2022,

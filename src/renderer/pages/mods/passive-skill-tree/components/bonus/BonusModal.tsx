@@ -14,12 +14,12 @@ import React, { Key, useState } from 'react';
 import { Plus } from '@phosphor-icons/react';
 import { Page, Pager } from '../../../../../components/pager/Pager';
 import { useErrorHandler } from '../../../../../core/errors/hooks/useErrorHandler';
-import { useModConfigByPath } from '../../../../../hooks/use-mod-config';
+import { useModConfig } from '../../../../../hooks/use-mod-config';
 
 interface BonusModalProps {
   isOpen: boolean;
   onOpenChange: () => void;
-  focusedNodePath: string;
+  focusedNodePath: string[];
 }
 
 export default function BonusModal({
@@ -28,7 +28,7 @@ export default function BonusModal({
   focusedNodePath,
 }: BonusModalProps) {
   const handleError = useErrorHandler();
-  const [focusedNode, setFocusedNode] = useModConfigByPath(focusedNodePath);
+  const [focusedNode] = useModConfig(focusedNodePath);
 
   const [page, setPage] = useState(
     focusedNode.data.bonuses.length ? 'bonus-0' : 'empty',

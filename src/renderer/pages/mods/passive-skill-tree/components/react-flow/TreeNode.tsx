@@ -5,14 +5,11 @@ import LazyTexture from '../../../../../components/lazy-texture/LazyTexture';
 import { TextureLoader } from '../../../../../core/domains/minecraft/texture/texture-loader';
 
 export default memo(({ data, id }: { data: any; id: string }) => {
-  // const connectionNodeId = useStore((state) => state.connectionNodeId);
+  const connectionNodeId = useStore((state) => state.connectionNodeId);
   const [backgroundImg, setBackgroundImg] = useState<string | null>(null);
 
-  // const isConnecting = !!connectionNodeId;
-  // const isTarget = connectionNodeId && connectionNodeId !== id;
-
-  const isConnecting = false;
-  const isTarget = false;
+  const isConnecting = !!connectionNodeId;
+  const isTarget = connectionNodeId && connectionNodeId !== id;
 
   useLayoutEffect(() => {
     const textureId = data.backgroundTexture

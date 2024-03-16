@@ -6,15 +6,15 @@ import {
   DropdownTrigger,
 } from '@nextui-org/react';
 import { Key } from 'react';
-import { useModConfigByPath } from '../../../../../../hooks/use-mod-config';
+import { useModConfig } from '../../../../../../hooks/use-mod-config';
 
 interface ChoiceProps {
-  path: string;
+  path: string[];
   options: (number | string)[] | { label: string; value: string | number }[];
 }
 
 export default function ChoiceField({ options, path }: ChoiceProps) {
-  const [value, setValue] = useModConfigByPath(path);
+  const [value, setValue] = useModConfig(path);
 
   const getLabel = (value: string | number) => {
     if (options.length === 0) {

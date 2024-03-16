@@ -38,7 +38,3 @@ html, body, #root, main {
 .app-bar-drag {
   -webkit-app-region: drag;
 }
-
-.is-panning .react-flow__edge, .is-panning .react-flow__handle.react-flow__handle {
-  pointer-events: none !important;
-}

@@ -57,10 +57,13 @@ export default function Projects() {
 
   const open = async (projectId: Types.ObjectId) => {
     try {
+      console.log('open', useModConfigStore.getState());
       useModConfigStore.setState(
         (st: any) => ({
-          __cachedMods: null,
-          setConfig: st.setConfig,
+          hooks: {},
+          updateConfig: st.updateConfig,
+          registerHook: st.registerHook,
+          unregisterHook: st.unregisterHook,
         }),
         true,
       );

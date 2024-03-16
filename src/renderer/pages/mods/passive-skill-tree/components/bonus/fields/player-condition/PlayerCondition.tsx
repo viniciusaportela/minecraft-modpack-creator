@@ -7,7 +7,7 @@ import {
 } from '@nextui-org/react';
 import { ElementType, Key } from 'react';
 import { FunctionWithDefaultConfig } from '../../../../interfaces/function-with-default-config';
-import { useModConfigByPath } from '../../../../../../../hooks/use-mod-config';
+import { useModConfig } from '../../../../../../../hooks/use-mod-config';
 import PlayerConditionNone from './PlayerConditionNone';
 
 export interface PlayerConditionChildProps {
@@ -85,14 +85,14 @@ const OPTIONS: { label: string; value: PlayerConditionType }[] = [
 ];
 
 interface PlayerConditionProps {
-  path: string;
+  path: string[];
 }
 
 export const PlayerCondition: FunctionWithDefaultConfig<
   PlayerConditionProps,
   PlayerConditionType
 > = ({ path }) => {
-  const [value, setValue] = useModConfigByPath(path);
+  const [value, setValue] = useModConfig(path);
 
   console.log('PlayerCondition', value);
 

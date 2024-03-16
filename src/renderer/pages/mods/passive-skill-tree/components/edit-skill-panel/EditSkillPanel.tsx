@@ -6,15 +6,17 @@ import {
   Switch,
   useDisclosure,
 } from '@nextui-org/react';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { X } from '@phosphor-icons/react';
-import PickerButton from '../../../../components/ItemPickerButton/PickerButton';
-import { PickerType } from '../../../../typings/picker-type.enum';
-import BonusModal from './bonus/BonusModal';
-import { useModConfigByPath } from '../../../../hooks/use-mod-config';
+import PickerButton from '../../../../../components/ItemPickerButton/PickerButton';
+import { PickerType } from '../../../../../typings/picker-type.enum';
+import BonusModal from '../bonus/BonusModal';
+import { useModConfig } from '../../../../../hooks/use-mod-config';
+import { formatTextureInput } from './utils/format-texture-input';
+import { formatTextureOutput } from './utils/format-texture-output';
 
 interface EditSkillPanelProps {
-  focusedNodePath: string;
+  focusedNodePath: string[];
   onClose: () => void;
 }
 
@@ -23,18 +25,48 @@ export default function EditSkillPanel({
   onClose,
 }: EditSkillPanelProps) {
   const { isOpen, onOpenChange, onOpen } = useDisclosure();
-  const [focusedNode, setFocusedNode] = useModConfigByPath(focusedNodePath);
+  const [focusedNodeData, setFocusedNodeData] = useModConfig([
+    ...(focusedNodePath ?? []),
+    'data',
+  ]);
 
-  if (!focusedNode) return null;
+  const [title, setTitle] = useModConfig([
+    ...(focusedNodePath ?? []),
+    'data',
+    'title',
+  ]);
 
-  const formatTextureInput = (texture: string) => {
-    return texture.replace('.png', '').replace('textures/', '');
-  };
+  const [titleColor, setTitleColor] = useModConfig([
+    ...(focusedNodePath ?? []),
+    'data',
+    'titleColor',
+  ]);
 
-  const formatTextureOutput = (texture: string) => {
-    const [modId, path] = texture.split(':');
-    return `${modId}:textures/${path}.png`;
-  };
+  const [iconTexture, setIconTexture] = useModConfig([
+    ...(focusedNodePath ?? []),
+    'data',
+    'iconTexture',
+  ]);
+
+  const [backgroundTexture, setBackgroundTexture] = useModConfig([
+    ...(focusedNodePath ?? []),
+    'data',
+    'backgroundTexture',
+  ]);
+
+  const [borderTexture, setBorderTexture] = useModConfig([
+    ...(focusedNodePath ?? []),
+    'data',
+    'borderTexture',
+  ]);
+
+  const [buttonSize, setButtonSize] = useModConfig([
+    ...(focusedNodePath ?? []),
+    'data',
+    'buttonSize',
+  ]);
+
+  if (!focusedNodeData) return null;
 
   return (
     <>
@@ -58,12 +90,9 @@ export default function EditSkillPanel({
               size="sm"
               variant="bordered"
               placeholder="Skill title"
-              value={focusedNode.data.title}
+              value={title}
               onValueChange={(value) => {
-                setFocusedNode({
-                  ...focusedNode,
-                  data: { ...focusedNode.data, title: value },
-                });
+                setTitle(() => value);
               }}
             />
             <div className="flex items-center">
@@ -71,17 +100,11 @@ export default function EditSkillPanel({
               <input
                 type="color"
                 className="ml-auto"
-                value={`#${focusedNode.data.titleColor?.toLowerCase() ?? 'ffffff'}`}
+                value={`#${titleColor?.toLowerCase() ?? '#ffffff'}`}
                 onChange={(e) => {
-                  setFocusedNode({
-                    ...focusedNode,
-                    data: {
-                      ...focusedNode.data,
-                      titleColor: e.target.value
-                        ?.toUpperCase()
-                        .replace('#', ''),
-                    },
-                  });
+                  setTitleColor(() =>
+                    e.target.value?.toUpperCase().replace('#', ''),
+                  );
                 }}
               />
             </div>
@@ -91,17 +114,10 @@ export default function EditSkillPanel({
                 type={PickerType.Texture}
                 className="h-8 ml-auto"
                 value={
-                  formatTextureInput(focusedNode.data.iconTexture) ??
-                  'skilltree:icons/void'
+                  formatTextureInput(iconTexture) ?? 'skilltree:icons/void'
                 }
                 onPick={(value) =>
-                  setFocusedNode({
-                    ...focusedNode,
-                    data: {
-                      ...focusedNode.data,
-                      iconTexture: formatTextureOutput(value),
-                    },
-                  })
+                  setIconTexture(() => formatTextureOutput(value))
                 }
               />
             </div>
@@ -111,17 +127,11 @@ export default function EditSkillPanel({
                 type={PickerType.SkillTreeBackground}
                 className="h-8 ml-auto"
                 value={
-                  formatTextureInput(focusedNode.data.backgroundTexture) ??
+                  formatTextureInput(backgroundTexture) ??
                   'skilltree:icons/background/lesser'
                 }
                 onPick={(value) =>
-                  setFocusedNode({
-                    ...focusedNode,
-                    data: {
-                      ...focusedNode.data,
-                      backgroundTexture: formatTextureOutput(value),
-                    },
-                  })
+                  setBackgroundTexture(() => formatTextureOutput(value))
                 }
               />
             </div>
@@ -131,17 +141,11 @@ export default function EditSkillPanel({
                 type={PickerType.SkillTreeBorder}
                 className="h-8 ml-auto"
                 value={
-                  formatTextureInput(focusedNode.data.borderTexture) ??
+                  formatTextureInput(borderTexture) ??
                   'skilltree:tooltip/lesser'
                 }
                 onPick={(value) =>
-                  setFocusedNode({
-                    ...focusedNode,
-                    data: {
-                      ...focusedNode.data,
-                      borderTexture: formatTextureOutput(value),
-                    },
-                  })
+                  setBorderTexture(() => formatTextureOutput(value))
                 }
               />
             </div>
@@ -150,29 +154,18 @@ export default function EditSkillPanel({
               size="sm"
               variant="bordered"
               placeholder="16"
-              value={focusedNode.data.buttonSize ?? 16}
-              onValueChange={(text) =>
-                setFocusedNode({
-                  ...focusedNode,
-                  data: {
-                    ...focusedNode.data,
-                    buttonSize: parseFloat(text),
-                  },
-                })
-              }
+              value={buttonSize ?? 16}
+              onValueChange={(text) => setButtonSize(() => parseFloat(text))}
             />
 
             <Switch
               size="sm"
-              isSelected={focusedNode.data.isStartingPoint}
+              isSelected={focusedNodeData.isStartingPoint}
               onValueChange={(isSelected) =>
-                setFocusedNode({
-                  ...focusedNode,
-                  data: {
-                    ...focusedNode.data,
-                    isStartingPoint: isSelected,
-                  },
-                })
+                setFocusedNodeData(() => ({
+                  ...focusedNodeData.data,
+                  isStartingPoint: isSelected,
+                }))
               }
             >
               Is starting point
