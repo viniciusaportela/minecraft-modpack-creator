@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { original } from 'immer';
 import { IUseModConfigOptions } from '../hooks/use-mod-config';
 
 export function curriedReadByPath(currentState: any) {
@@ -85,7 +84,6 @@ export const useModConfigStore = create(
       });
 
       const hook = useModConfigStore.getState().hooks[sourceId];
-      console.log('hook', hook, updatedValue);
       if (hook) {
         hook.listeners.forEach((listener) => {
           listener.onChange(updatedValue);
@@ -111,7 +109,6 @@ export const useModConfigStore = create(
           }
 
           if (options.listenMeAndChildrenChanges) {
-            console.log(original(hook.path), 'is child of', path);
             if (doesPath(hook.path).isChildOf(path)) {
               hook.listeners.push({ hookId: id, onChange });
             }
@@ -125,11 +122,6 @@ export const useModConfigStore = create(
 
           if (options.listenForeignChanges) {
             for (let i = 0; i < options.listenForeignChanges.length; i++) {
-              console.log(
-                original(hook.path),
-                'is child of',
-                options.listenForeignChanges[i],
-              );
               if (
                 doesPath(hook.path).isChildOf(options.listenForeignChanges[i])
               ) {
@@ -139,7 +131,6 @@ export const useModConfigStore = create(
           }
 
           if (hook.options.listenMeAndChildrenChanges) {
-            console.log(path, 'is child of', original(hook.path));
             if (doesPath(path).isChildOf(hook.path)) {
               state.hooks[id].listeners.push({
                 hookId: hook.hookId,
@@ -159,11 +150,6 @@ export const useModConfigStore = create(
 
           if (hook.options.listenForeignChanges) {
             for (let i = 0; i < hook.options.listenForeignChanges.length; i++) {
-              console.log(
-                path,
-                'is child of',
-                original(hook.options.listenForeignChanges[i]),
-              );
               if (
                 doesPath(path).isChildOf(hook.options.listenForeignChanges[i])
               ) {
@@ -176,11 +162,6 @@ export const useModConfigStore = create(
           }
         }
       });
-
-      console.log(
-        'after register',
-        JSON.stringify(useModConfigStore.getState().hooks, null, 2),
-      );
     },
     unregisterHook: (id: string) => {
       immerSet((state) => {
@@ -197,11 +178,6 @@ export const useModConfigStore = create(
 
         delete state.hooks[id];
       });
-      console.log(
-        'after unregister hook',
-        id,
-        useModConfigStore.getState().hooks,
-      );
     },
   })),
 );

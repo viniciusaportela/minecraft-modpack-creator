@@ -1,5 +1,11 @@
 import './App.css';
-import { lazy, Suspense, useLayoutEffect, useState } from 'react';
+import {
+  lazy,
+  LazyExoticComponent,
+  Suspense,
+  useLayoutEffect,
+  useState,
+} from 'react';
 import { NextUIProvider, Progress } from '@nextui-org/react';
 import { ipcRenderer } from 'electron';
 import Realm from 'realm';
@@ -12,12 +18,22 @@ import { ModModel } from './core/models/mod.model';
 import { GlobalStateModel } from './core/models/global-state.model';
 import { useAppStore } from './store/app.store';
 
-// const MainApp = lazy(() => import('./MainApp'));
-// const Picker = lazy(() => import('./pages/picker/Picker'));
-
-import MainApp from './MainApp';
-import Picker from './pages/picker/Picker';
 import { ModConfigModel } from './core/models/mod-config.model';
+
+let MainApp:
+  | typeof import('./MainApp')
+  | LazyExoticComponent<typeof import('./MainApp').default>;
+let Picker:
+  | typeof import('./pages/picker/Picker')
+  | LazyExoticComponent<typeof import('./pages/picker/Picker').default>;
+
+if (process.env.NODE_ENV === 'development') {
+  MainApp = require('./MainApp').default;
+  Picker = require('./pages/picker/Picker').default;
+} else {
+  MainApp = lazy(() => import('./MainApp'));
+  Picker = lazy(() => import('./pages/picker/Picker'));
+}
 
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -38,7 +54,7 @@ export default function App() {
           ModConfigModel,
           GlobalStateModel,
         ],
-        deleteRealmIfMigrationNeeded: true,
+        deleteRealmIfMigrationNeeded: process.env.NODE_ENV === 'development',
         path: `${dataFolder}/minecraft_toolkit.realm`,
       });
 

@@ -143,7 +143,7 @@ export class SkillTree extends BaseMod {
     return {
       ...config,
       initialized: true,
-      tree: this.initializeTree(),
+      tree: await this.initializeTree(),
     };
   }
 

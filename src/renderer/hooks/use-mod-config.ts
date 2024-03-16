@@ -57,7 +57,6 @@ export function useModConfig<T = any>(
 
   const saveToRealmDebounce = useMemo(() => {
     return debounce(() => {
-      console.log('run inside debounce');
       modConfig.writeConfig(useModConfigStore.getState()[modId]);
     }, 1000);
   }, []);

@@ -9,7 +9,6 @@ import React, {
   Key,
   type MouseEvent as ReactMouseEvent,
   useCallback,
-  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -78,10 +77,6 @@ export default function EditTree() {
   const [edges, setEdges] = useModConfig<Edge[]>(['tree', 'edges'], {
     listenMeAndChildrenChanges: true,
   });
-
-  useEffect(() => {
-    console.log('nodes changed!');
-  }, [nodes]);
 
   const [focusedNode, setFocusedNode] = useState<Node | null>(null);
   const [focusedNodePath, setFocusedNodePath] = useState<string[] | null>(null);

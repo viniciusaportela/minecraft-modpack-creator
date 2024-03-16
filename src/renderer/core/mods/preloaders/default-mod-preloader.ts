@@ -18,6 +18,7 @@ export class DefaultModPreloader implements IModPreloader {
   async generateConfig(): Promise<Record<string, unknown>> {
     return {
       configs: await this.getUserConfigs(),
+      initialized: false,
     };
   }
 
