@@ -66,6 +66,12 @@ export default function EditSkillPanel({
     'buttonSize',
   ]);
 
+  const [isStartingPoint, setIsStartingPoint] = useModConfig([
+    ...(focusedNodePath ?? []),
+    'data',
+    'isStartingPoint',
+  ]);
+
   if (!focusedNodeData) return null;
 
   return (
@@ -160,12 +166,9 @@ export default function EditSkillPanel({
 
             <Switch
               size="sm"
-              isSelected={focusedNodeData.isStartingPoint}
+              isSelected={isStartingPoint}
               onValueChange={(isSelected) =>
-                setFocusedNodeData(() => ({
-                  ...focusedNodeData.data,
-                  isStartingPoint: isSelected,
-                }))
+                setIsStartingPoint(() => isSelected)
               }
             >
               Is starting point

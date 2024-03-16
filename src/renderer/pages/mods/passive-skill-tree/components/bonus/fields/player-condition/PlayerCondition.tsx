@@ -9,6 +9,7 @@ import { ElementType, Key } from 'react';
 import { FunctionWithDefaultConfig } from '../../../../interfaces/function-with-default-config';
 import { useModConfig } from '../../../../../../../hooks/use-mod-config';
 import PlayerConditionNone from './PlayerConditionNone';
+import Label from '../Label';
 
 export interface PlayerConditionChildProps {
   path: string;
@@ -97,11 +98,12 @@ export const PlayerCondition: FunctionWithDefaultConfig<
   console.log('PlayerCondition', value);
 
   const getSelectedLabel = () => {
-    const found = OPTIONS.find((option) => option.value === value);
+    const found = OPTIONS.find((option) => option.value === value.type);
     return found ? found.label : '-';
   };
 
   const getSelectedKeys = () => {
+    console.log('getSelectedKeys', [value.type]);
     return [value.type];
   };
 
@@ -125,6 +127,7 @@ export const PlayerCondition: FunctionWithDefaultConfig<
 
   return (
     <>
+      <Label>Player Condition</Label>
       <Dropdown>
         <DropdownTrigger>
           <Button>{getSelectedLabel()}</Button>

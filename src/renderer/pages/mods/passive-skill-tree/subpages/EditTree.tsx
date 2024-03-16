@@ -197,7 +197,7 @@ export default function EditTree() {
     };
 
     setNodes((curState: any) => {
-      return curState.push(newNode);
+      return [...curState, newNode];
     });
 
     const isAddingTheFirst = nodes.length === 0;

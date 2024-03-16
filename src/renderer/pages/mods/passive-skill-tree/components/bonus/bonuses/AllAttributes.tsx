@@ -8,18 +8,19 @@ export const AllAttributes: FunctionWithDefaultConfig<BonusProps> = ({
   bonusPath,
 }) => {
   return (
-    <>
-      <NumberField path={`${bonusPath}.amount`} />
-      <OperationField path={`${bonusPath}.operation`} />
-      <PlayerCondition path={`${bonusPath}.player_condition`} />
-    </>
+    <div className="flex flex-col gap-2">
+      <NumberField path={[...bonusPath, 'amount']} label="Amount" />
+      <OperationField path={[...bonusPath, 'operation']} />
+      <PlayerCondition path={[...bonusPath, 'player_condition']} />
+    </div>
   );
 };
 
 AllAttributes.getDefaultConfig = () => {
   return {
+    type: 'skilltree:all_attributes',
     amount: 1,
-    operation: 'add',
-    player_condition: PlayerCondition.getDefaultConfig(),
+    operation: OperationField.getDefaultConfig(),
+    player_condition: PlayerCondition.getDefaultConfig('skilltree:none'),
   };
 };

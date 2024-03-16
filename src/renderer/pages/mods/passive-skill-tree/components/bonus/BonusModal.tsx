@@ -10,11 +10,13 @@ import {
   ScrollShadow,
   Selection,
 } from '@nextui-org/react';
-import React, { Key, useState } from 'react';
+import React, { Key, useEffect, useState } from 'react';
 import { Plus } from '@phosphor-icons/react';
 import { Page, Pager } from '../../../../../components/pager/Pager';
 import { useErrorHandler } from '../../../../../core/errors/hooks/useErrorHandler';
 import { useModConfig } from '../../../../../hooks/use-mod-config';
+import { AllAttributes } from './bonuses/AllAttributes';
+import EditBonus from './EditBonus';
 
 interface BonusModalProps {
   isOpen: boolean;
@@ -28,30 +30,41 @@ export default function BonusModal({
   focusedNodePath,
 }: BonusModalProps) {
   const handleError = useErrorHandler();
-  const [focusedNode] = useModConfig(focusedNodePath);
-
-  const [page, setPage] = useState(
-    focusedNode.data.bonuses.length ? 'bonus-0' : 'empty',
+  const [bonuses, setBonuses] = useModConfig(
+    [...focusedNodePath, 'data', 'bonuses'],
+    {
+      listenMeAndChildrenChanges: true,
+    },
   );
 
+  useEffect(() => {
+    console.log('bonuses changed', bonuses);
+  }, [bonuses]);
+
+  const [page, setPage] = useState(bonuses.length ? 'bonus-0' : 'empty');
+
   const createPages = () => {
-    return [];
-    // return bonuses.map((bonus, index) => (
-    //   <Page key={index} name={`bonus-${index}`}>
-    //     <EditBonus
-    //       selectedBonus={bonus.getTypeValue()}
-    //       onSelectionChange={() => {
-    //         console.log('selection changed');
-    //       }}
-    //       fields={bonus}
-    //     />
-    //   </Page>
-    // ));
+    return bonuses.map((bonus, index) => (
+      <Page key={index} name={`bonus-${index}`}>
+        <EditBonus
+          selectedBonusPath={[...focusedNodePath, 'data', 'bonuses', index]}
+          onSelectionChange={(keys) => {
+            console.log('selection changed', keys);
+          }}
+        />
+      </Page>
+    ));
   };
 
   const addBonus = async () => {
     try {
-      // DEV
+      const defaultConfig = AllAttributes.getDefaultConfig();
+      console.log('defaultConfig', defaultConfig);
+      setBonuses((bonuses) => [...bonuses, defaultConfig]);
+
+      if (page === 'empty') {
+        setPage('bonus-0');
+      }
     } catch (err) {
       await handleError(err);
     }
@@ -65,13 +78,13 @@ export default function BonusModal({
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="3xl">
       <ModalContent>
-        <ModalHeader className="pb-2">
+        <ModalHeader className="pb-2 px-3">
           <div className="w-60 mr-4 flex">
             <span>Bonuses</span>
             <Button
               color="primary"
               size="sm"
-              className="w-10 ml-auto mr-2"
+              className="w-10 ml-auto"
               onPress={addBonus}
             >
               <Plus />
@@ -80,16 +93,24 @@ export default function BonusModal({
           <span className="px-4">Edit Bonus</span>
         </ModalHeader>
         <ModalBody className="px-3">
-          <div className="flex h-52">
+          <div className="flex min-h-52 gap-8">
             <div className="flex flex-col w-60">
-              {focusedNode.data.bonuses.length > 0 ? (
+              {bonuses.length > 0 ? (
                 <ScrollShadow>
                   <Listbox
                     onSelectionChange={onClickBonus}
+                    disallowEmptySelection
+                    itemClasses={{
+                      base: 'data-[selected=true]:bg-zinc-700',
+                    }}
+                    classNames={{
+                      base: 'p-0',
+                    }}
                     selectionMode="single"
-                    selectedKeys={page}
+                    selectedKeys={[page]}
+                    hideSelectedIcon
                   >
-                    {focusedNode.data.bonuses.map((bonus, index) => (
+                    {bonuses.map((bonus, index) => (
                       <ListboxItem key={`bonus-${index}`}>
                         {bonus.type}
                       </ListboxItem>
@@ -104,9 +125,9 @@ export default function BonusModal({
             </div>
             <Divider
               orientation="vertical"
-              className="mt-[-72px] h-[calc(100%+80px)] mx-4"
+              className="absolute top-0 bottom-0 left-[268px]"
             />
-            <div className="flex flex-col flex-1 w-0 px-2">
+            <div className="flex flex-col flex-1 w-0">
               <Pager page={page} initialPage={page} onPageChange={setPage}>
                 <Page name="empty" />
                 {createPages()}

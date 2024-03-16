@@ -1,3 +1,3 @@
 export interface BonusProps {
-  bonusPath: string;
+  bonusPath: string[];
 }
