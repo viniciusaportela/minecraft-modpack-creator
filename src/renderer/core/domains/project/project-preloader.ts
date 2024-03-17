@@ -4,7 +4,7 @@ import { CurseDirectory } from '../minecraft/directory/curse-directory';
 import JarLoader from '../minecraft/jar-loader';
 import { JarHandler } from '../minecraft/jar-handler';
 import { ModModel } from '../../models/mod.model';
-import { ModPreloaderFactory } from '../../mods/preloaders/mod-preloader-factory';
+import { ModPreloaderFactory } from '../preloaders/mod-preloader-factory';
 import { ProjectModel } from '../../models/project.model';
 import { ModConfigModel } from '../../models/mod-config.model';
 

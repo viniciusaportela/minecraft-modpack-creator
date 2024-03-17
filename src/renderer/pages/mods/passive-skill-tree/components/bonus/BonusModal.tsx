@@ -93,7 +93,7 @@ export default function BonusModal({
           <span className="px-4">Edit Bonus</span>
         </ModalHeader>
         <ModalBody className="px-3">
-          <div className="flex min-h-52 gap-8">
+          <div className="flex h-[420px] gap-8">
             <div className="flex flex-col w-60">
               {bonuses.length > 0 ? (
                 <ScrollShadow>

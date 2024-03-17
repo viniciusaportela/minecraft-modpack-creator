@@ -4,15 +4,16 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
+  ScrollShadow,
   Selection,
 } from '@nextui-org/react';
 import { useModConfig } from '../../../../../hooks/use-mod-config';
 import {
   ALL_BONUSES,
+  COMPONENTS_BY_BONUS,
   EBonus,
   ReadableByBonus,
 } from '../../../../../core/domains/mods/skilltree/enums/skill-bonus.enum';
-import { AllAttributes } from './bonuses/AllAttributes';
 
 interface BonusPageProps {
   onSelectionChange: (keys: Selection) => void;
@@ -23,21 +24,17 @@ export default function EditBonus({
   selectedBonusPath,
   onSelectionChange,
 }: BonusPageProps) {
-  const [bonus, setBonus] = useModConfig(selectedBonusPath, {
-    listenMeAndChildrenChanges: true,
+  const [bonus] = useModConfig(selectedBonusPath, {
+    listenChanges: true,
   });
 
-  const PAGE_BY_BONUS = {
-    [EBonus.AllAttributes]: AllAttributes,
-  };
-
-  console.log(bonus, ALL_BONUSES);
-
   return (
-    <>
+    <ScrollShadow className="flex flex-col no-scrollbar">
       <Dropdown size="lg">
         <DropdownTrigger>
-          <Button variant="bordered">{bonus.type}</Button>
+          <Button variant="bordered" className="min-h-[42px]">
+            {bonus.type}
+          </Button>
         </DropdownTrigger>
         <DropdownMenu
           items={ALL_BONUSES.map((bonus) => ({ key: bonus, label: bonus }))}
@@ -50,7 +47,9 @@ export default function EditBonus({
       <span className="font-bold mt-3 mb-2">
         {ReadableByBonus[bonus.type as EBonus] ?? bonus.type}
       </span>
-      {PAGE_BY_BONUS[bonus.type as EBonus]({ bonusPath: selectedBonusPath })}
-    </>
+      {COMPONENTS_BY_BONUS[bonus.type as EBonus]({
+        path: selectedBonusPath,
+      })}
+    </ScrollShadow>
   );
 }

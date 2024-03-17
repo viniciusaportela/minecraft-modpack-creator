@@ -1,19 +1,18 @@
-import {
-  Button,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-} from '@nextui-org/react';
-import { ElementType, Key } from 'react';
 import { FunctionWithDefaultConfig } from '../../../../interfaces/function-with-default-config';
-import { useModConfig } from '../../../../../../../hooks/use-mod-config';
 import PlayerConditionNone from './PlayerConditionNone';
-import Label from '../Label';
-
-export interface PlayerConditionChildProps {
-  path: string;
-}
+import { PlayerConditionAttributeValue } from './PlayerConditionAttributeValue';
+import { PlayerConditionBurning } from './PlayerConditionBurning';
+import { ComponentChoice } from '../ComponentChoice';
+import { PlayerConditionDualWielding } from './PlayerConditionDualWielding';
+import { PlayerConditionEffectAmount } from './PlayerConditionEffectAmount';
+import { PlayerConditionFishing } from './PlayerConditionFishing';
+import { PlayerConditionFoodLevel } from './PlayerConditionFoodLevel';
+import { PlayerConditionHasEffect } from './PlayerConditionHasEffect';
+import { PlayerConditionHasGems } from './PlayerConditionHasGems';
+import { PlayerConditionHasItemEquipped } from './PlayerConditionHasItemEquipped';
+import { PlayerConditionHasItemInHand } from './PlayerConditionHasItemInHand';
+import { PlayerConditionHealthPercentage } from './PlayerConditionHealthPercentage';
+import { PlayerConditionUnderwater } from './PlayerConditionUnderwater';
 
 type PlayerConditionType =
   | 'skilltree:none'
@@ -30,131 +29,92 @@ type PlayerConditionType =
   | 'skilltree:health_percentage'
   | 'skilltree:underwater';
 
-const OPTIONS: { label: string; value: PlayerConditionType }[] = [
+const OPTIONS: {
+  label: string;
+  value: PlayerConditionType;
+  component: FunctionWithDefaultConfig;
+}[] = [
   {
     label: 'None',
     value: 'skilltree:none',
+    component: PlayerConditionNone,
   },
   {
     label: 'Attribute Value',
     value: 'skilltree:attribute_value',
+    component: PlayerConditionAttributeValue,
   },
   {
     label: 'Burning',
     value: 'skilltree:burning',
+    component: PlayerConditionBurning,
   },
   {
     label: 'Dual Wielding',
     value: 'skilltree:dual_wielding',
+    component: PlayerConditionDualWielding,
   },
   {
     label: 'Effect Amount',
     value: 'skilltree:effect_amount',
+    component: PlayerConditionEffectAmount,
   },
   {
     label: 'Fishing',
     value: 'skilltree:fishing',
+    component: PlayerConditionFishing,
   },
   {
     label: 'Food Level',
     value: 'skilltree:food_level',
+    component: PlayerConditionFoodLevel,
   },
   {
     label: 'Has Effect',
     value: 'skilltree:has_effect',
+    component: PlayerConditionHasEffect,
   },
   {
     label: 'Has Gems',
     value: 'skilltree:has_gems',
+    component: PlayerConditionHasGems,
   },
   {
     label: 'Has Item Equipped',
     value: 'skilltree:has_item_equipped',
+    component: PlayerConditionHasItemEquipped,
   },
   {
     label: 'Has Item In Hand',
     value: 'skilltree:has_item_in_hand',
+    component: PlayerConditionHasItemInHand,
   },
   {
     label: 'Health Percentage',
     value: 'skilltree:health_percentage',
+    component: PlayerConditionHealthPercentage,
   },
   {
     label: 'Underwater',
     value: 'skilltree:underwater',
+    component: PlayerConditionUnderwater,
   },
 ];
 
-interface PlayerConditionProps {
-  path: string[];
-}
-
-export const PlayerCondition: FunctionWithDefaultConfig<
-  PlayerConditionProps,
-  PlayerConditionType
-> = ({ path }) => {
-  const [value, setValue] = useModConfig(path);
-
-  console.log('PlayerCondition', value);
-
-  const getSelectedLabel = () => {
-    const found = OPTIONS.find((option) => option.value === value.type);
-    return found ? found.label : '-';
-  };
-
-  const getSelectedKeys = () => {
-    console.log('getSelectedKeys', [value.type]);
-    return [value.type];
-  };
-
-  const renderCurrentCondition = () => {
-    const componentByOption: Record<PlayerConditionType, ElementType> = {
-      'skilltree:none': PlayerConditionNone,
-    };
-
-    const Component =
-      componentByOption[getSelectedKeys()[0] as keyof typeof componentByOption];
-
-    return <Component path={path} />;
-  };
-
-  const onChangeType = (key: Key) => {
-    const newDefault = PlayerCondition.getDefaultConfig(
-      key as PlayerConditionType,
-    );
-    setValue(newDefault);
-  };
-
+export const PlayerCondition: FunctionWithDefaultConfig = ({ path }) => {
   return (
-    <>
-      <Label>Player Condition</Label>
-      <Dropdown>
-        <DropdownTrigger>
-          <Button>{getSelectedLabel()}</Button>
-        </DropdownTrigger>
-        <DropdownMenu onAction={onChangeType} selectedKeys={getSelectedKeys()}>
-          {OPTIONS.map((option) => (
-            <DropdownItem key={option.value}>{option.label}</DropdownItem>
-          ))}
-        </DropdownMenu>
-      </Dropdown>
-      {renderCurrentCondition()}
-    </>
+    <ComponentChoice
+      label="Player Condition"
+      path={path}
+      options={OPTIONS.map((option) => ({
+        label: option.label,
+        value: option.value,
+        component: option.component,
+      }))}
+    />
   );
 };
 
-PlayerCondition.getDefaultConfig = (type?: PlayerConditionType) => {
-  if (!type) {
-    return {
-      type: 'skilltree:none',
-    };
-  }
-
-  const defaultByOption: Record<PlayerConditionType, any> = {
-    'skilltree:none': {
-      type: 'skilltree:none',
-    },
-  };
-
-  return defaultByOption[type];
+PlayerCondition.getDefaultConfig = () => {
+  return PlayerConditionNone.getDefaultConfig();
 };

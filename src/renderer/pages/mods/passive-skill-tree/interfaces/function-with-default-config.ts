@@ -1,6 +1,8 @@
 import React from 'react';
 
-export interface FunctionWithDefaultConfig<T = any, TArgs = never>
-  extends React.FC<T> {
-  getDefaultConfig: (args?: TArgs) => any;
+export interface FunctionWithDefaultConfig<
+  TProps = { path: string[] },
+  TDefaultConfigArgs = never,
+> extends React.FC<TProps> {
+  getDefaultConfig: (args?: TDefaultConfigArgs) => any;
 }

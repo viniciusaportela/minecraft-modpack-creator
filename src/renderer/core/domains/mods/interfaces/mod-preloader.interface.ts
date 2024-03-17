@@ -1,4 +1,4 @@
-import { IMod } from '../../domains/minecraft/interfaces/curse-metadata.interface';
+import { IMod } from '../../minecraft/interfaces/curse-metadata.interface';
 
 export interface IModPreloader {
   generateConfig(): Promise<Record<string, unknown>>;

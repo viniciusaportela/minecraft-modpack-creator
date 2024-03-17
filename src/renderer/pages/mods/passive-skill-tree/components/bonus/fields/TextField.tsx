@@ -2,12 +2,12 @@ import { Input } from '@nextui-org/react';
 import { useModConfig } from '../../../../../../hooks/use-mod-config';
 import Label from './Label';
 
-interface NumberFieldProps {
+interface TextFieldProps {
   path: string[];
   label: string;
 }
 
-export default function NumberField({ path, label }: NumberFieldProps) {
+export const TextField = ({ path, label }: TextFieldProps) => {
   const [value, setValue] = useModConfig(path);
 
   return (
@@ -18,12 +18,9 @@ export default function NumberField({ path, label }: NumberFieldProps) {
         classNames={{
           inputWrapper: 'px-3 py-1 h-10',
         }}
-        value={value ?? -1}
-        type="number"
-        onValueChange={(newValue) =>
-          setValue(() => (parseFloat(newValue) === -1 ? undefined : newValue))
-        }
+        value={value}
+        onValueChange={(newValue) => setValue(() => newValue)}
       />
     </>
   );
-}
+};

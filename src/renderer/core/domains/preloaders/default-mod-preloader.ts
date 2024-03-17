@@ -1,9 +1,9 @@
 import { existsSync } from 'node:fs';
 import toml from 'toml';
 import { readFile } from 'node:fs/promises';
-import { IModPreloader } from '../interfaces/mod-preloader.interface';
-import JarLoader from '../../domains/minecraft/jar-loader';
-import { ICurseMetadata } from '../../domains/minecraft/interfaces/curse-metadata.interface';
+import { IModPreloader } from '../mods/interfaces/mod-preloader.interface';
+import JarLoader from '../minecraft/jar-loader';
+import { ICurseMetadata } from '../minecraft/interfaces/curse-metadata.interface';
 
 export class DefaultModPreloader implements IModPreloader {
   private jar: JarLoader;

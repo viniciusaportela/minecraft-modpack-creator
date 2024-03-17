@@ -1,18 +1,17 @@
 import NumberField from '../fields/NumberField';
 import { FunctionWithDefaultConfig } from '../../../interfaces/function-with-default-config';
-import { BonusProps } from '../../../interfaces/bonus-props.interface';
 import { OperationField } from '../fields/OperationField';
 import { PlayerCondition } from '../fields/player-condition/PlayerCondition';
+import { PlayerMultiplier } from '../fields/player-multiplier/PlayerMultiplier';
 
-export const AllAttributes: FunctionWithDefaultConfig<BonusProps> = ({
-  bonusPath,
-}) => {
+export const AllAttributes: FunctionWithDefaultConfig = ({ path }) => {
   return (
-    <div className="flex flex-col gap-2">
-      <NumberField path={[...bonusPath, 'amount']} label="Amount" />
-      <OperationField path={[...bonusPath, 'operation']} />
-      <PlayerCondition path={[...bonusPath, 'player_condition']} />
-    </div>
+    <>
+      <NumberField path={[...path, 'amount']} label="Amount" />
+      <OperationField path={[...path, 'operation']} />
+      <PlayerCondition path={[...path, 'player_condition']} />
+      <PlayerMultiplier path={[...path, 'player_multiplier']} />
+    </>
   );
 };
 
@@ -21,6 +20,7 @@ AllAttributes.getDefaultConfig = () => {
     type: 'skilltree:all_attributes',
     amount: 1,
     operation: OperationField.getDefaultConfig(),
-    player_condition: PlayerCondition.getDefaultConfig('skilltree:none'),
+    player_condition: PlayerCondition.getDefaultConfig(),
+    player_multiplier: PlayerMultiplier.getDefaultConfig(),
   };
 };
