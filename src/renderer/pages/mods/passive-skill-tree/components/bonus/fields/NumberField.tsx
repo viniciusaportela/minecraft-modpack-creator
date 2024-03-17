@@ -5,9 +5,14 @@ import Label from './Label';
 interface NumberFieldProps {
   path: string[];
   label: string;
+  acceptMinusOne?: boolean;
 }
 
-export default function NumberField({ path, label }: NumberFieldProps) {
+export default function NumberField({
+  path,
+  label,
+  acceptMinusOne,
+}: NumberFieldProps) {
   const [value, setValue] = useModConfig(path);
 
   return (
@@ -21,7 +26,11 @@ export default function NumberField({ path, label }: NumberFieldProps) {
         value={value ?? -1}
         type="number"
         onValueChange={(newValue) =>
-          setValue(() => (parseFloat(newValue) === -1 ? undefined : newValue))
+          setValue(() =>
+            parseFloat(newValue) === -1 && !acceptMinusOne
+              ? undefined
+              : newValue,
+          )
         }
       />
     </>
