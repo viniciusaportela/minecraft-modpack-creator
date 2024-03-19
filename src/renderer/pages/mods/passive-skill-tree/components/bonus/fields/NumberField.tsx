@@ -1,6 +1,8 @@
 import { Input } from '@nextui-org/react';
+import { useEffect } from 'react';
 import { useModConfig } from '../../../../../../hooks/use-mod-config';
 import Label from './Label';
+import { useModConfigStore } from '../../../../../../store/mod-config.store';
 
 interface NumberFieldProps {
   path: string[];
@@ -13,7 +15,16 @@ export default function NumberField({
   label,
   acceptMinusOne,
 }: NumberFieldProps) {
+  const pathWithoutLastPiece = path.slice(0, -1);
   const [value, setValue] = useModConfig(path);
+
+  console.log(useModConfigStore.getState());
+
+  useEffect(() => {
+    console.log('NumberField first render', pathWithoutLastPiece, path, value);
+  }, []);
+
+  console.log('NumberField', path, value);
 
   return (
     <>
@@ -27,7 +38,7 @@ export default function NumberField({
         type="number"
         onValueChange={(newValue) =>
           setValue(() =>
-            parseFloat(newValue) === -1 && !acceptMinusOne
+            parseFloat(newValue.replace(',', '.')) === -1 && !acceptMinusOne
               ? undefined
               : newValue,
           )

@@ -10,13 +10,14 @@ import {
   ScrollShadow,
   Selection,
 } from '@nextui-org/react';
-import React, { Key, useEffect, useState } from 'react';
+import React, { Key, useState } from 'react';
 import { Plus } from '@phosphor-icons/react';
 import { Page, Pager } from '../../../../../components/pager/Pager';
 import { useErrorHandler } from '../../../../../core/errors/hooks/useErrorHandler';
 import { useModConfig } from '../../../../../hooks/use-mod-config';
 import { AllAttributes } from './bonuses/AllAttributes';
 import EditBonus from './EditBonus';
+import { COMPONENTS_BY_BONUS } from '../../../../../core/domains/mods/skilltree/enums/skill-bonus.enum';
 
 interface BonusModalProps {
   isOpen: boolean;
@@ -30,27 +31,33 @@ export default function BonusModal({
   focusedNodePath,
 }: BonusModalProps) {
   const handleError = useErrorHandler();
+
   const [bonuses, setBonuses] = useModConfig(
     [...focusedNodePath, 'data', 'bonuses'],
     {
-      listenMeAndChildrenChanges: true,
+      listenMeAndExternalChanges: true,
     },
   );
 
-  useEffect(() => {
-    console.log('bonuses changed', bonuses);
-  }, [bonuses]);
+  const [page, setPage] = useState(bonuses?.length ? 'bonus-0' : 'empty');
 
-  const [page, setPage] = useState(bonuses.length ? 'bonus-0' : 'empty');
+  const onSelectKey = (index: number, key: Key) => {
+    const defaultConfig =
+      COMPONENTS_BY_BONUS()[key as string].getDefaultConfig() ??
+      AllAttributes.getDefaultConfig();
+
+    setBonuses((bonuses) => {
+      bonuses[index] = defaultConfig;
+      return bonuses;
+    });
+  };
 
   const createPages = () => {
-    return bonuses.map((bonus, index) => (
-      <Page key={index} name={`bonus-${index}`}>
+    return bonuses?.map((bonus, index) => (
+      <Page name={`bonus-${index}`}>
         <EditBonus
           selectedBonusPath={[...focusedNodePath, 'data', 'bonuses', index]}
-          onSelectionChange={(keys) => {
-            console.log('selection changed', keys);
-          }}
+          onSelect={(key) => onSelectKey(index, key)}
         />
       </Page>
     ));
@@ -75,6 +82,11 @@ export default function BonusModal({
     setPage(Array.from(key as Set<Key>)[0] as string);
   };
 
+  console.log(
+    'generated page',
+    `${bonuses?.[page.match(/(\d+)/)![1] || 0]?.type}`,
+  );
+
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="3xl">
       <ModalContent>
@@ -95,7 +107,7 @@ export default function BonusModal({
         <ModalBody className="px-3">
           <div className="flex h-[420px] gap-8">
             <div className="flex flex-col w-60">
-              {bonuses.length > 0 ? (
+              {bonuses?.length > 0 ? (
                 <ScrollShadow>
                   <Listbox
                     onSelectionChange={onClickBonus}
@@ -128,7 +140,12 @@ export default function BonusModal({
               className="absolute top-0 bottom-0 left-[268px]"
             />
             <div className="flex flex-col flex-1 w-0">
-              <Pager page={page} initialPage={page} onPageChange={setPage}>
+              <Pager
+                page={page}
+                initialPage={page}
+                onPageChange={setPage}
+                key={`${bonuses?.[page.match(/(\d+)/)![1] || 0]?.type}`}
+              >
                 <Page name="empty" />
                 {createPages()}
               </Pager>

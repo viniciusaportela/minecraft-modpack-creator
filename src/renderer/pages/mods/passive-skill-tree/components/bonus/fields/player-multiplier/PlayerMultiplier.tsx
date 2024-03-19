@@ -68,9 +68,20 @@ const OPTIONS: {
   },
 ];
 
-export const PlayerMultiplier: FunctionWithDefaultConfig = ({ path }) => {
+interface PlayerMultiplierProps {
+  path: string[];
+  label?: string;
+}
+
+export const PlayerMultiplier: FunctionWithDefaultConfig<
+  PlayerMultiplierProps
+> = ({ path, label }) => {
   return (
-    <ComponentChoice path={path} label="Player Multiplier" options={OPTIONS} />
+    <ComponentChoice
+      path={path}
+      label={label ?? 'Player Multiplier'}
+      options={OPTIONS}
+    />
   );
 };
 

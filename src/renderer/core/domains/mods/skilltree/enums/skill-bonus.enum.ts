@@ -1,5 +1,4 @@
 import { AllAttributes } from '../../../../../pages/mods/passive-skill-tree/components/bonus/bonuses/AllAttributes';
-import { FunctionWithDefaultConfig } from '../../../../../pages/mods/passive-skill-tree/interfaces/function-with-default-config';
 import { ArrowRetrieval } from '../../../../../pages/mods/passive-skill-tree/components/bonus/bonuses/ArrowRetrieval';
 import { CraftedItemBonus } from '../../../../../pages/mods/passive-skill-tree/components/bonus/bonuses/CraftedItemBonus';
 import { QuiverCapacity } from '../../../../../pages/mods/passive-skill-tree/components/bonus/bonuses/QuiverCapacity';
@@ -30,7 +29,7 @@ export enum EBonus {
   ArrowRetrieval = 'skilltree:arrow_retrieval',
   Attribute = 'skilltree:attribute',
   BlockBreakSpeed = 'skilltree:block_break_speed',
-  CanNotUseItem = 'skilltree:can_not_use_item',
+  CanNotUseItem = 'skilltree:cant_use_item',
   Command = 'skilltree:command',
   CraftedItemBonus = 'skilltree:crafted_item_bonus',
   CritChance = 'skilltree:crit_chance',
@@ -55,7 +54,7 @@ export enum EBonus {
 
 export const ALL_BONUSES = Object.values(EBonus);
 
-export const COMPONENTS_BY_BONUS: Record<EBonus, FunctionWithDefaultConfig> = {
+export const COMPONENTS_BY_BONUS = () => ({
   [EBonus.AllAttributes]: AllAttributes,
   [EBonus.ArrowRetrieval]: ArrowRetrieval,
   [EBonus.CraftedItemBonus]: CraftedItemBonus,
@@ -81,7 +80,7 @@ export const COMPONENTS_BY_BONUS: Record<EBonus, FunctionWithDefaultConfig> = {
   [EBonus.JumpHeight]: JumpHeight,
   [EBonus.LootDuplication]: LootDuplication,
   [EBonus.RepairEfficiency]: RepairEfficiency,
-};
+});
 
 export const ReadableByBonus: Record<EBonus, string> = {
   [EBonus.AllAttributes]: 'All Attributes',

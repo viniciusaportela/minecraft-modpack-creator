@@ -7,8 +7,8 @@ export const ItemBonusPotionDuration: FunctionWithDefaultConfig = ({
 }) => {
   return (
     <>
-      <NumberField path={[...path, 'multiplier']} label="Multiplier" />;
-      <OperationField path={[...path, 'operation']} />;
+      <NumberField path={[...path, 'multiplier']} label="Multiplier" />
+      <OperationField path={[...path, 'operation']} />
     </>
   );
 };

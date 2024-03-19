@@ -62,6 +62,8 @@ export function Pager({
         child.type?.displayName === 'Page',
     );
 
+    console.log(pageToRender);
+
     return pageToRender ?? childrenArray[0];
   }, [contextValue.page]);
 

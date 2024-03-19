@@ -1,10 +1,15 @@
 import { FunctionWithDefaultConfig } from '../../../../interfaces/function-with-default-config';
-import { ItemCondition } from '../item-condition/ItemCondition';
+import NumberField from '../NumberField';
 
 export const PlayerConditionHealthPercentage: FunctionWithDefaultConfig = ({
   path,
 }) => {
-  return <ItemCondition path={[...path, 'item_condition']} />;
+  return (
+    <>
+      <NumberField path={[...path, 'min']} label="Min" />
+      <NumberField path={[...path, 'max']} label="Max" />
+    </>
+  );
 };
 
 PlayerConditionHealthPercentage.getDefaultConfig = () => {

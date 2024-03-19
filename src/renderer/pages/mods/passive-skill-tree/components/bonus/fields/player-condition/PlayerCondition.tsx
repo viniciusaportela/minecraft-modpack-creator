@@ -101,10 +101,17 @@ const OPTIONS: {
   },
 ];
 
-export const PlayerCondition: FunctionWithDefaultConfig = ({ path }) => {
+interface PlayerConditionProps {
+  path: string[];
+  label?: string;
+}
+
+export const PlayerCondition: FunctionWithDefaultConfig<
+  PlayerConditionProps
+> = ({ path, label }) => {
   return (
     <ComponentChoice
-      label="Player Condition"
+      label={label ?? 'Player Condition'}
       path={path}
       options={OPTIONS.map((option) => ({
         label: option.label,

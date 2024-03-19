@@ -5,7 +5,7 @@ import { ItemBonus } from '../fields/item-bonus/ItemBonus';
 export const CraftedItemBonus: FunctionWithDefaultConfig = ({ path }) => {
   return (
     <>
-      <ItemCondition path={[...path, 'chance']} />
+      <ItemCondition path={[...path, 'item_condition']} />
       <ItemBonus path={[...path, 'item_bonus']} />
     </>
   );
@@ -13,7 +13,7 @@ export const CraftedItemBonus: FunctionWithDefaultConfig = ({ path }) => {
 
 CraftedItemBonus.getDefaultConfig = () => {
   return {
-    type: 'skilltree:created_item_bonus',
+    type: 'skilltree:crafted_item_bonus',
     item_condition: ItemCondition.getDefaultConfig(),
     item_bonus: ItemBonus.getDefaultConfig(),
   };

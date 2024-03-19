@@ -67,6 +67,21 @@ export function doesPath(path: string[]) {
   };
 }
 
+function addListenerTo(
+  listener: { onChange: (...args: any[]) => void; hookId: string },
+  obj: any,
+) {
+  const alreadyHasListener = obj.listeners.find(
+    (l) => l.hookId === listener.hookId,
+  );
+
+  if (alreadyHasListener) {
+    return;
+  }
+
+  obj.listeners.push(listener);
+}
+
 export const useModConfigStore = create(
   immer((immerSet) => ({
     hooks: {},
@@ -75,22 +90,24 @@ export const useModConfigStore = create(
       path: string[],
       modifierCb: (currentState: any) => any,
     ) => {
-      let updatedValue: any;
-
       immerSet((currentState: any) => {
         const stateInPath = curriedReadByPath(currentState)(path);
-        updatedValue = modifierCb(stateInPath);
-        curriedWriteByPath(currentState)(path, updatedValue);
+        const modified = modifierCb(stateInPath);
+        curriedWriteByPath(currentState)(path, modified);
       });
+
+      const updatedStateInPath = curriedReadByPath(
+        useModConfigStore.getState(),
+      )(path);
 
       const hook = useModConfigStore.getState().hooks[sourceId];
       if (hook) {
         hook.listeners.forEach((listener) => {
-          listener.onChange(updatedValue);
+          listener.onChange(updatedStateInPath);
         });
       }
 
-      return updatedValue;
+      return updatedStateInPath;
     },
     registerHook: (
       id: string,
@@ -108,15 +125,19 @@ export const useModConfigStore = create(
             continue;
           }
 
-          if (options.listenMeAndChildrenChanges) {
+          if (options.listenMeAndExternalChanges) {
             if (doesPath(hook.path).isChildOf(path)) {
-              hook.listeners.push({ hookId: id, onChange });
+              addListenerTo({ hookId: id, onChange }, hook);
+            }
+
+            if (doesPath(path).isChildOf(hook.path)) {
+              addListenerTo({ hookId: id, onChange }, hook);
             }
           }
 
           if (options.listenChanges) {
             if (doesPath(hook.path).is(path)) {
-              hook.listeners.push({ hookId: id, onChange });
+              addListenerTo({ hookId: id, onChange }, hook);
             }
           }
 
@@ -125,26 +146,39 @@ export const useModConfigStore = create(
               if (
                 doesPath(hook.path).isChildOf(options.listenForeignChanges[i])
               ) {
-                hook.listeners.push({ hookId: id, onChange });
+                addListenerTo({ hookId: id, onChange }, hook);
+              }
+
+              if (
+                doesPath(options.listenForeignChanges[i]).isChildOf(hook.path)
+              ) {
+                addListenerTo({ hookId: id, onChange }, hook);
               }
             }
           }
 
           if (hook.options.listenMeAndChildrenChanges) {
             if (doesPath(path).isChildOf(hook.path)) {
-              state.hooks[id].listeners.push({
-                hookId: hook.hookId,
-                onChange: hook.onChange,
-              });
+              addListenerTo(
+                { hookId, onChange: hook.onChange },
+                state.hooks[id],
+              );
+            }
+
+            if (doesPath(hook.path).isChildOf(path)) {
+              addListenerTo(
+                { hookId, onChange: hook.onChange },
+                state.hooks[id],
+              );
             }
           }
 
           if (hook.options.listenChanges) {
             if (doesPath(path).is(hook.path)) {
-              state.hooks[id].listeners.push({
-                hookId: hook.hookId,
-                onChange: hook.onChange,
-              });
+              addListenerTo(
+                { hookId, onChange: hook.onChange },
+                state.hooks[id],
+              );
             }
           }
 
@@ -153,22 +187,33 @@ export const useModConfigStore = create(
               if (
                 doesPath(path).isChildOf(hook.options.listenForeignChanges[i])
               ) {
-                state.hooks[id].listeners.push({
-                  hookId: hook.hookId,
-                  onChange: hook.onChange,
-                });
+                addListenerTo(
+                  { hookId, onChange: hook.onChange },
+                  state.hooks[id],
+                );
+              }
+
+              if (
+                doesPath(hook.options.listenForeignChanges[i]).isChildOf(path)
+              ) {
+                addListenerTo(
+                  { hookId, onChange: hook.onChange },
+                  state.hooks[id],
+                );
               }
             }
           }
         }
       });
+
+      console.log('after hook register', useModConfigStore.getState());
     },
-    unregisterHook: (id: string) => {
+    unregisterHook: (hookToDelete: string) => {
       immerSet((state) => {
         for (const hookId in state.hooks) {
           const hook = state.hooks[hookId];
           const listenerIndex = hook.listeners.findIndex(
-            (listener) => listener.hookId === id,
+            (listener) => listener.hookId === hookToDelete,
           );
 
           if (listenerIndex !== -1) {
@@ -176,8 +221,9 @@ export const useModConfigStore = create(
           }
         }
 
-        delete state.hooks[id];
+        delete state.hooks[hookToDelete];
       });
+      console.log('after hook unregister', useModConfigStore.getState());
     },
   })),
 );

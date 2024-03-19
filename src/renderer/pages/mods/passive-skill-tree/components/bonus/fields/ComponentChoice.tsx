@@ -54,9 +54,27 @@ export const ComponentChoice = ({
     return <Component path={path} />;
   };
 
+  const calculateLabelColorFromNestedLevel = () => {
+    const baseColorHue = 17;
+    const baseColorSaturation = 63;
+    const baseColorLightness = 51;
+
+    const BASE_PATH_LENGTH = 7;
+    const nestedLevel = path.length - BASE_PATH_LENGTH;
+
+    const hue = baseColorHue + nestedLevel * 25;
+
+    return `hsl(${hue}, ${baseColorSaturation}%, ${baseColorLightness}%)`;
+  };
+
   return (
     <>
-      <Label>{label}</Label>
+      <Label
+        className="font-bold"
+        style={{ color: calculateLabelColorFromNestedLevel() }}
+      >
+        {label}
+      </Label>
       <Dropdown>
         <DropdownTrigger>
           <Button>{getSelectedLabel()}</Button>

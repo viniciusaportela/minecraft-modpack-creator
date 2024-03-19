@@ -20,6 +20,5 @@ PlayerConditionHasGems.getDefaultConfig = () => {
     min: 1,
     max: undefined,
     item_condition: ItemCondition.getDefaultConfig(),
-    player_multiplier: PlayerMultiplier.getDefaultConfig(),
   };
 };

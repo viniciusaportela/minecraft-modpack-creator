@@ -8,7 +8,7 @@ import { useModConfigCtx } from '../store/mod-config.context';
 
 export interface IUseModConfigOptions {
   listenChanges?: boolean;
-  listenMeAndChildrenChanges?: boolean;
+  listenMeAndExternalChanges?: boolean;
   listenForeignChanges?: string[][];
 }
 
@@ -78,14 +78,4 @@ export function useModConfig<T = any>(
   );
 
   return [internalState, updateState];
-}
-
-// DEV fn to only update data, not listen
-export function useWriteConfig() {
-  const modConfig = useModConfigCtx();
-  const updateConfig = useModConfigStore((st) => st.updateConfig);
-
-  return (config: any) => {
-    writeConfig(modConfig.mod.toString(), config);
-  };
 }

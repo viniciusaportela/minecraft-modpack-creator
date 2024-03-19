@@ -25,10 +25,9 @@ export default function EditSkillPanel({
   onClose,
 }: EditSkillPanelProps) {
   const { isOpen, onOpenChange, onOpen } = useDisclosure();
-  const [focusedNodeData, setFocusedNodeData] = useModConfig([
-    ...(focusedNodePath ?? []),
-    'data',
-  ]);
+  const [focusedNodeData] = useModConfig([...(focusedNodePath ?? []), 'data']);
+
+  console.log('focusedNodeData', focusedNodeData, focusedNodePath);
 
   const [title, setTitle] = useModConfig([
     ...(focusedNodePath ?? []),

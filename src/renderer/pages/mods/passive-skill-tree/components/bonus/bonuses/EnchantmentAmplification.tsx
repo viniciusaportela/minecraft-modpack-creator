@@ -42,7 +42,7 @@ export const EnchantmentAmplification: FunctionWithDefaultConfig = ({
 
 EnchantmentAmplification.getDefaultConfig = () => {
   return {
-    type: 'skilltree:enchnatment_amplification',
+    type: 'skilltree:enchantment_amplification',
     enchantment_condition: 'skilltree:none',
     chance: 0.1,
   };

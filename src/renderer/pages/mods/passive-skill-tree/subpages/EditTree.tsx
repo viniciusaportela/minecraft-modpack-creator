@@ -75,7 +75,7 @@ export default function EditTree() {
     ],
   });
   const [edges, setEdges] = useModConfig<Edge[]>(['tree', 'edges'], {
-    listenMeAndChildrenChanges: true,
+    listenMeAndExternalChanges: true,
   });
 
   const [focusedNode, setFocusedNode] = useState<Node | null>(null);
@@ -209,6 +209,8 @@ export default function EditTree() {
   };
 
   const startBlank = () => {
+    setFocusedNode(null);
+    setFocusedNodePath(null);
     setNodes(() => {
       return [];
     });
@@ -223,6 +225,8 @@ export default function EditTree() {
       skillTreeMod,
     ).initializeTree();
 
+    setFocusedNode(null);
+    setFocusedNodePath(null);
     setNodes(() => {
       return updatedTree.nodes;
     });

@@ -20,12 +20,18 @@ export const EventListenerBlock: FunctionWithDefaultConfig = ({ path }) => {
       <ChoiceField
         path={[...path, 'target']}
         options={TARGET_OPTIONS}
-        label={'Target'}
+        label="Target"
       />
       <PlayerCondition path={[...path, 'player_condition']} />
       <PlayerMultiplier path={[...path, 'player_multiplier']} />
-      <PlayerCondition path={[...path, 'enemy_condition']} />
-      <PlayerMultiplier path={[...path, 'enemy_multiplier']} />
+      <PlayerCondition
+        path={[...path, 'enemy_condition']}
+        label="Enemy Condition"
+      />
+      <PlayerMultiplier
+        path={[...path, 'enemy_multiplier']}
+        label="Enemy Multiplier"
+      />
     </>
   );
 };
