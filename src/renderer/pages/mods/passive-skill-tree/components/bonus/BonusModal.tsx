@@ -11,7 +11,7 @@ import {
   Selection,
 } from '@nextui-org/react';
 import React, { Key, useState } from 'react';
-import { Plus } from '@phosphor-icons/react';
+import { Plus, X } from '@phosphor-icons/react';
 import { v4 } from 'uuid';
 import { Page, Pager } from '../../../../../components/pager/Pager';
 import { useErrorHandler } from '../../../../../core/errors/hooks/useErrorHandler';
@@ -89,6 +89,13 @@ export default function BonusModal({
     }
   };
 
+  const deleteBonus = (index: number) => {
+    setBonuses((bonuses) => {
+      bonuses.splice(index, 1);
+      return bonuses;
+    });
+  };
+
   const onClickBonus = (key: Selection) => {
     console.log('key', key);
     setPage(Array.from(key as Set<Key>)[0] as string);
@@ -130,7 +137,20 @@ export default function BonusModal({
                     hideSelectedIcon
                   >
                     {bonuses.map((bonus, index) => (
-                      <ListboxItem key={`bonus-${index}`}>
+                      <ListboxItem
+                        key={`bonus-${index}`}
+                        endContent={
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            className="ml-auto"
+                            variant="light"
+                            onPress={() => deleteBonus(index)}
+                          >
+                            <X />
+                          </Button>
+                        }
+                      >
                         {bonus.type}
                       </ListboxItem>
                     ))}

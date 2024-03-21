@@ -1,3 +1,4 @@
+import { v4 } from 'uuid';
 import { FunctionWithDefaultConfig } from '../../../../interfaces/function-with-default-config';
 import { ComponentChoice } from '../ComponentChoice';
 import { useModConfig } from '../../../../../../../hooks/use-mod-config';
@@ -32,7 +33,11 @@ export const ItemBonusSkillBonus: FunctionWithDefaultConfig = ({ path }) => {
 
 ItemBonusSkillBonus.getDefaultConfig = () => {
   return {
-    type: 'skilltree:all_attributes',
-    skill_bonus: AllAttributes.getDefaultConfig(),
+    type: 'skilltree:skill_bonus',
+    skill_bonus: {
+      ...AllAttributes.getDefaultConfig(),
+      name: 'Skill',
+      id: v4(),
+    },
   };
 };

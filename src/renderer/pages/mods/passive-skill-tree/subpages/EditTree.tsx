@@ -9,7 +9,6 @@ import React, {
   Key,
   type MouseEvent as ReactMouseEvent,
   useCallback,
-  useEffect,
   useRef,
   useState,
 } from 'react';
