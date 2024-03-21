@@ -1,12 +1,12 @@
 import path from 'path';
 import { readFile } from 'node:fs/promises';
-import { BaseDirectory } from './base-directory';
-import { ICurseMetadata } from '../interfaces/curse-metadata.interface';
+import { BaseDirectory } from '../base/base-directory';
+import { ICurseMetadata } from '../../minecraft/interfaces/curse-metadata.interface';
 
-export class CurseDirectory extends BaseDirectory {
+export class CurseforgeDirectory extends BaseDirectory {
   async getMinecraftJarPath() {
     const initialPart = this.modpackFolder.split('Instances')[0];
-    const { gameVersion } = await this.getMetadata();
+    const { gameVersion } = await this.readMetadata();
 
     return path.join(
       initialPart,
@@ -17,7 +17,7 @@ export class CurseDirectory extends BaseDirectory {
     );
   }
 
-  async getMetadata(): Promise<ICurseMetadata> {
+  async readMetadata(): Promise<ICurseMetadata> {
     const instancePath = path.join(
       this.modpackFolder,
       'minecraftinstance.json',

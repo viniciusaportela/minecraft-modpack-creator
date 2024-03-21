@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ipcRenderer } from 'electron';
 import { Button, Divider, Input, useDisclosure } from '@nextui-org/react';
 import { ArrowClockwise, MagnifyingGlass } from '@phosphor-icons/react';
@@ -17,6 +17,7 @@ import { useAppStore } from '../../store/app.store';
 import ProjectService from '../../core/domains/project/project-service';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { useModConfigStore } from '../../store/mod-config.store';
+import { Launchers } from '../../core/domains/launchers/launchers';
 
 export default function Projects() {
   const handleError = useErrorHandler();
@@ -24,6 +25,8 @@ export default function Projects() {
   const realm = useAppStore((st) => st.realm)!;
   const { navigate } = usePager();
   const globalState = useQueryFirst(GlobalStateModel);
+
+  const projectService = useRef(new ProjectService()).current;
 
   const {
     isOpen: isModalOpen,
@@ -37,7 +40,7 @@ export default function Projects() {
   const [filterText, setFilterText] = useState('');
 
   useEffect(() => {
-    ProjectService.populateProjects().catch(handleError);
+    projectService.populateProjects().catch(handleError);
     ipcRenderer.send('resize', 800, 600);
     ipcRenderer.send('make-no-resizable');
 
@@ -48,7 +51,7 @@ export default function Projects() {
 
   const onAddNewProject = async (modpackFolder: string) => {
     try {
-      await ProjectService.createFromFolder(modpackFolder);
+      await projectService.createFromFolder(modpackFolder);
       onModalClose();
     } catch (err) {
       await handleError(err);
@@ -107,9 +110,7 @@ export default function Projects() {
           <div className="flex-1 app-bar-drag h-full" />
           <Button
             isIconOnly
-            onPress={() =>
-              ProjectService.populateProjects(true).catch(handleError)
-            }
+            onPress={() => projectService.populateProjects().catch(handleError)}
             size="sm"
             variant="flat"
             className="mr-2"
@@ -126,7 +127,7 @@ export default function Projects() {
             title={p.name}
             projectId={p._id}
             key={p.name}
-            isCurseForge={p.source === 'curseforge'}
+            isCurseForge={p.launcher === 'curseforge'}
             onOpen={open}
           />
         ))}

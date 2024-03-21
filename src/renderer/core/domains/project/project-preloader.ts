@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import Realm from 'realm';
-import { CurseDirectory } from '../minecraft/directory/curse-directory';
+import { CurseforgeDirectory } from '../launchers/curseforge/curseforge-directory';
 import JarLoader from '../minecraft/jar-loader';
 import { JarHandler } from '../minecraft/jar-handler';
 import { ModModel } from '../../models/mod.model';
@@ -27,8 +27,8 @@ export class ProjectPreloader {
   }
 
   async preload() {
-    const directory = new CurseDirectory(this.project.path);
-    const dirMods = await directory.getModJarPaths();
+    const directory = new CurseforgeDirectory(this.project.path);
+    const dirMods = await directory.getAllModPaths();
 
     this.onProgressCb?.({ totalProgress: (dirMods.length + 1) * 3 });
 

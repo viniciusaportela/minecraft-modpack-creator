@@ -1,7 +1,7 @@
 import Realm, { BSON, ObjectSchema } from 'realm';
-import { useAppStore } from '../../store/app.store';
+import { IProjectData } from '../domains/launchers/base/base-launcher';
 
-export class ProjectModel extends Realm.Object {
+export class ProjectModel extends Realm.Object implements IProjectData {
   _id!: BSON.ObjectId;
 
   name!: string;
@@ -18,36 +18,13 @@ export class ProjectModel extends Realm.Object {
 
   loaded!: boolean;
 
-  source!: string;
+  launcher!: string;
 
   cachedAmountInstalledMods?: number;
 
   modsChecksum?: string;
 
   orphan!: boolean;
-
-  recipes!: string;
-
-  getRecipes(): Record<string, unknown>[] {
-    return JSON.parse(this.recipes!);
-  }
-
-  setRecipes(newRecipes: Record<string, unknown>[]) {
-    const { realm } = useAppStore.getState();
-    realm.write(() => {
-      this.recipes = JSON.stringify(newRecipes);
-    });
-  }
-
-  removeRecipe(index: number) {
-    const recipes = this.getRecipes();
-    recipes.splice(index, 1);
-
-    const { realm } = useAppStore.getState();
-    realm.write(() => {
-      this.recipes = JSON.stringify(recipes);
-    });
-  }
 
   static schema: ObjectSchema = {
     name: 'Project',
@@ -61,7 +38,7 @@ export class ProjectModel extends Realm.Object {
       minecraftVersion: 'string',
       loaderVersion: 'string',
       loader: 'string',
-      source: 'string',
+      launcher: 'string',
       cachedAmountInstalledMods: 'int?',
       modsChecksum: 'string?',
       orphan: {
@@ -72,7 +49,6 @@ export class ProjectModel extends Realm.Object {
         type: 'bool',
         default: false,
       },
-      recipes: 'string',
     },
     primaryKey: '_id',
   };

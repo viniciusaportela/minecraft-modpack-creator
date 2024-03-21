@@ -1,70 +1,65 @@
-import { existsSync } from 'node:fs';
-import { readdir } from 'node:fs/promises';
-import CurseForgeStrategy from './strategies/curse-forge.strategy';
-import BusinessLogicError from '../../errors/business-logic-error';
 import { useAppStore } from '../../../store/app.store';
-import { BusinessError } from '../../errors/business-error.enum';
-import getCurseForgeFolder from '../minecraft/helpers/get-curse-forge-folder';
 import { ProjectModel } from '../../models/project.model';
+import { Launchers } from '../launchers/launchers';
 
 export default class ProjectService {
-  static async createFromFolder(modpackFolder: string) {
-    const { realm } = useAppStore.getState();
-    const modpackFolderExists = existsSync(modpackFolder);
+  private launchers: Launchers;
 
-    if (!modpackFolderExists) {
-      throw new BusinessLogicError({
-        code: BusinessError.FolderNotFound,
-        message: `Chosen folder "${modpackFolder}" doesn't exists`,
-      });
-    }
-
-    const instanceJson = existsSync(`${modpackFolder}/minecraftinstance.json`);
-
-    if (!instanceJson) {
-      throw new BusinessLogicError({
-        code: BusinessError.InvalidProject,
-        message: `Currently only CurseForge modpacks are supported. Please select a valid CurseForge modpack folder.`,
-      });
-    }
-
-    await new CurseForgeStrategy(realm).createFromFolder(modpackFolder);
+  constructor() {
+    this.launchers = new Launchers();
   }
 
-  static async populateProjects(force = false) {
+  async createFromFolder(folder: string) {
     const { realm } = useAppStore.getState();
 
-    const globalState = realm.objects('GlobalState')[0];
-
-    if (!force && globalState.hasCheckedForProjects) {
-      return;
-    }
-
-    const curseFolder = getCurseForgeFolder();
-
-    if (curseFolder) {
-      const folders = await readdir(curseFolder);
-      const promises = folders.map((f: string) =>
-        ProjectService.createFromFolder(`${curseFolder}/${f}`),
-      );
-      await Promise.all(promises);
-
-      const projects = realm.objects<ProjectModel>('Project');
-      const orphanedProjects = projects.filter(
-        (p) => !folders.includes(p.name),
-      );
-
-      realm.write(() => {
-        orphanedProjects.forEach((p) => {
-          p.orphan = true;
-        });
-      });
-    } else {
-      console.warn('Curseforge folder not found');
-    }
+    const data = await this.launchers.getProjectData(folder);
 
     realm.write(() => {
-      globalState.hasCheckedForProjects = true;
+      const exists = realm
+        .objects<ProjectModel>(ProjectModel.schema.name)
+        .filtered(`path = "${folder}"`);
+
+      if (exists[0]) {
+        exists[0].cachedAmountInstalledMods = data.cachedAmountInstalledMods;
+        exists[0].loader = data.loader;
+        exists[0].loaderVersion = data.loaderVersion;
+        exists[0].minecraftVersion = data.minecraftVersion;
+        exists[0].orphan = false;
+        return;
+      }
+
+      realm.create<ProjectModel>(ProjectModel.schema.name, {
+        name: data.name,
+        path: folder,
+        minecraftVersion: data.minecraftVersion,
+        loaderVersion: data.loaderVersion,
+        loader: data.loader,
+        launcher: data.launcher,
+        cachedAmountInstalledMods: data.cachedAmountInstalledMods,
+      });
+    });
+  }
+
+  async populateProjects() {
+    const { realm } = useAppStore.getState();
+
+    const modpackFolders = await this.launchers.findModpackFolders();
+    console.log(modpackFolders);
+
+    const promises = modpackFolders.map(async (folder) => {
+      await this.createFromFolder(folder);
+    });
+    await Promise.all(promises);
+
+    const projects = realm.objects<ProjectModel>('Project');
+    const orphanedProjects = projects.filter(
+      (p) => !modpackFolders.includes(p.path),
+    );
+
+    realm.write(() => {
+      orphanedProjects.forEach((p) => {
+        p.orphan = true;
+      });
     });
   }
 }
