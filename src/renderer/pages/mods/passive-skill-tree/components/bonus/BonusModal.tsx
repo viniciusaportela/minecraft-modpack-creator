@@ -12,6 +12,7 @@ import {
 } from '@nextui-org/react';
 import React, { Key, useState } from 'react';
 import { Plus } from '@phosphor-icons/react';
+import { v4 } from 'uuid';
 import { Page, Pager } from '../../../../../components/pager/Pager';
 import { useErrorHandler } from '../../../../../core/errors/hooks/useErrorHandler';
 import { useModConfig } from '../../../../../hooks/use-mod-config';
@@ -47,7 +48,11 @@ export default function BonusModal({
       AllAttributes.getDefaultConfig();
 
     setBonuses((bonuses) => {
-      bonuses[index] = defaultConfig;
+      bonuses[index] = {
+        ...defaultConfig,
+        name: 'Skill',
+        id: v4(),
+      };
       return bonuses;
     });
   };
@@ -67,7 +72,14 @@ export default function BonusModal({
     try {
       const defaultConfig = AllAttributes.getDefaultConfig();
       console.log('defaultConfig', defaultConfig);
-      setBonuses((bonuses) => [...bonuses, defaultConfig]);
+      setBonuses((bonuses) => [
+        ...bonuses,
+        {
+          ...defaultConfig,
+          name: 'Skill',
+          id: v4(),
+        },
+      ]);
 
       if (page === 'empty') {
         setPage('bonus-0');
@@ -81,11 +93,6 @@ export default function BonusModal({
     console.log('key', key);
     setPage(Array.from(key as Set<Key>)[0] as string);
   };
-
-  console.log(
-    'generated page',
-    `${bonuses?.[page.match(/(\d+)/)![1] || 0]?.type}`,
-  );
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="3xl">
@@ -144,7 +151,7 @@ export default function BonusModal({
                 page={page}
                 initialPage={page}
                 onPageChange={setPage}
-                key={`${bonuses?.[page.match(/(\d+)/)![1] || 0]?.type}`}
+                key={`${bonuses?.[page.match(/(\d+)/)?.[1] || 0]?.type}`}
               >
                 <Page name="empty" />
                 {createPages()}

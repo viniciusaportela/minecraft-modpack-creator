@@ -92,6 +92,7 @@
     "reactflow": "^11.10.4",
     "realm": "^12.6.1",
     "toml": "^3.0.0",
+    "uuid": "^9.0.1",
     "zustand": "^4.5.1"
   },
   "devDependencies": {
@@ -115,6 +116,7 @@
     "@types/react-test-renderer": "^18.0.1",
     "@types/react-window": "^1.8.8",
     "@types/terser-webpack-plugin": "^5.0.4",
+    "@types/uuid": "^9.0.8",
     "@types/webpack-bundle-analyzer": "^4.6.0",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",

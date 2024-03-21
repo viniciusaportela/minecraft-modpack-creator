@@ -32,7 +32,7 @@ export const GainedExperience: FunctionWithDefaultConfig = ({ path }) => {
       <ChoiceField
         path={[...path, 'experience_source']}
         options={OPTIONS}
-        label={'Experience Source'}
+        label="Experience Source"
       />
     </>
   );

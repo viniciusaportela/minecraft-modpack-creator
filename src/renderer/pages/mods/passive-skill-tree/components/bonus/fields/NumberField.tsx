@@ -36,13 +36,14 @@ export default function NumberField({
         }}
         value={value ?? -1}
         type="number"
-        onValueChange={(newValue) =>
+        onValueChange={(newValue) => {
+          const formattedValue = newValue.replace(',', '.');
+          const numberValue = parseFloat(formattedValue);
+
           setValue(() =>
-            parseFloat(newValue.replace(',', '.')) === -1 && !acceptMinusOne
-              ? undefined
-              : newValue,
-          )
-        }
+            numberValue === -1 && !acceptMinusOne ? undefined : numberValue,
+          );
+        }}
       />
     </>
   );

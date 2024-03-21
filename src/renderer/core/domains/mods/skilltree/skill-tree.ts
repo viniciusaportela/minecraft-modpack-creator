@@ -6,6 +6,7 @@ import { BaseMod } from '../base-mod';
 export class SkillTree extends BaseMod {
   async build() {
     const config = this.config.parseConfig();
+    console.log('parsedConfig', config);
 
     const basePath = path.join(
       this.project.path,
@@ -39,8 +40,15 @@ export class SkillTree extends BaseMod {
     const skillsPath = path.join(basePath, 'data', 'skilltree', 'skills');
     await mkdir(skillsPath, { recursive: true });
 
+    const filesInsideSkills = await readdir(skillsPath);
+
+    for await (const file of filesInsideSkills) {
+      await unlink(path.join(skillsPath, file));
+    }
+
     const skills = config.tree.nodes.map((node: Node) => ({
       ...node.data,
+      label: undefined,
       projectId: undefined,
       modpackFolder: undefined,
       positionX: node.position.x,
@@ -55,36 +63,12 @@ export class SkillTree extends BaseMod {
 
     for await (const skill of skills) {
       const skillWithoutMod = skill.id.split(':')[1];
-
       const skillPath = path.join(skillsPath, `${skillWithoutMod}.json`);
       await writeFile(skillPath, JSON.stringify(skill, null, 2));
     }
   }
 
-  async postBuild() {
-    const skillsPath = path.join(
-      this.project.path,
-      'skilltree',
-      'editor',
-      'data',
-      'skilltree',
-      'skills',
-    );
-
-    const files = await readdir(skillsPath);
-
-    const allValidSkills = this.config
-      .parseConfig()
-      .tree.nodes.map((node: Node) => `${node.id.split(':')[1]}.json`);
-
-    const promises = files.map(async (file) => {
-      if (!allValidSkills.includes(file)) {
-        await unlink(path.join(skillsPath, file));
-      }
-    });
-
-    await Promise.all(promises);
-  }
+  async postBuild() {}
 
   async initializeTree() {
     const configFile = await this.getConfigFromFiles(this.project.path);

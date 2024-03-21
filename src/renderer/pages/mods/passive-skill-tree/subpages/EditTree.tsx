@@ -9,6 +9,7 @@ import React, {
   Key,
   type MouseEvent as ReactMouseEvent,
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -27,6 +28,7 @@ import {
   NoteBlank,
   Plus,
 } from '@phosphor-icons/react';
+import { original } from 'immer';
 import TreeNode from '../components/react-flow/TreeNode';
 import Title from '../../../../components/title/Title';
 import SkillEdge from '../components/react-flow/SkillEdge';
@@ -45,6 +47,7 @@ import EditSkillPanel from '../components/edit-skill-panel/EditSkillPanel';
 import ScreenToFlowPositionGetter from '../components/react-flow/ScreenToFlowPositionGetter';
 import FitViewGetter from '../components/react-flow/FitViewGetter';
 import { useModConfig } from '../../../../hooks/use-mod-config';
+import { useModConfigStore } from '../../../../store/mod-config.store';
 
 const edgeTypes = {
   skill_edge: SkillEdge,
@@ -72,11 +75,13 @@ export default function EditTree() {
     listenForeignChanges: [
       ['tree', 'nodes', '*', 'data', 'backgroundTexture'],
       ['tree', 'nodes', '*', 'data', 'iconTexture'],
+      ['tree', 'nodes', '*', 'data', 'buttonSize'],
     ],
   });
   const [edges, setEdges] = useModConfig<Edge[]>(['tree', 'edges'], {
     listenMeAndExternalChanges: true,
   });
+  const [, setMainTree] = useModConfig(['tree', 'mainTree']);
 
   const [focusedNode, setFocusedNode] = useState<Node | null>(null);
   const [focusedNodePath, setFocusedNodePath] = useState<string[] | null>(null);
@@ -85,13 +90,17 @@ export default function EditTree() {
 
   const onNodesChange = useCallback(
     (changes) => {
-      if (focusedNode) {
-        const hasDeletedFocused = changes.find(
-          (c) => c.type === 'remove' && c.id === focusedNode.id,
-        );
-        if (hasDeletedFocused) {
-          setFocusedNode(null);
-          setFocusedNodePath(null);
+      if (changes.find((c) => c.type === 'remove')) {
+        rebuildMainTree();
+
+        if (focusedNode) {
+          const hasDeletedFocused = changes.find(
+            (c) => c.type === 'remove' && c.id === focusedNode.id,
+          );
+          if (hasDeletedFocused) {
+            setFocusedNode(null);
+            setFocusedNodePath(null);
+          }
         }
       }
 
@@ -110,10 +119,8 @@ export default function EditTree() {
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      setEdges((curEdges) => {
-        const filtered = curEdges.tree.nodes.filter(
-          (n) => n.id === connection.source,
-        );
+      setEdges(() => {
+        const filtered = nodes.filter((n) => n.id === connection.source);
         return filtered.reduce((edgs, node) => {
           return addEdge(
             {
@@ -157,6 +164,16 @@ export default function EditTree() {
     [nodes],
   );
 
+  const rebuildMainTree = () => {
+    setMainTree((mainTree) => {
+      mainTree.skillIds = useModConfigStore
+        .getState()
+        [skillTreeMod._id.toString()].tree.nodes.map((node) => node.id);
+      console.log('new maintree', original(mainTree));
+      return mainTree;
+    });
+  };
+
   const addSkill = () => {
     const bounding = reactFlowRef.current.getBoundingClientRect();
 
@@ -165,10 +182,16 @@ export default function EditTree() {
     const reactFlowY =
       nodes.length > 0 ? bounding.top + bounding.height / 2 - 64 : 0;
 
-    const position = screenToFlowPosition.current({
-      x: reactFlowX,
-      y: reactFlowY,
-    });
+    const isAddingTheFirst = nodes.length === 0;
+
+    console.log('isAddingTHeFirst', isAddingTheFirst);
+
+    const position = isAddingTheFirst
+      ? { x: 0, y: 0 }
+      : screenToFlowPosition.current({
+          x: reactFlowX,
+          y: reactFlowY,
+        });
 
     const id = `skilltree:skill_node_${Date.now()}`;
 
@@ -189,8 +212,8 @@ export default function EditTree() {
         modpackFolder: project.path,
         projectId: project._id.toString(),
         title: 'New skill',
-        positionX: reactFlowX,
-        positionY: reactFlowY,
+        positionX: position.x,
+        positionY: position.y,
         buttonSize: 16,
         isStartingPoint: false,
       },
@@ -200,7 +223,7 @@ export default function EditTree() {
       return [...curState, newNode];
     });
 
-    const isAddingTheFirst = nodes.length === 0;
+    rebuildMainTree();
     if (isAddingTheFirst) {
       setTimeout(() => {
         fitView.current?.();
@@ -217,6 +240,7 @@ export default function EditTree() {
     setEdges(() => {
       return [];
     });
+    rebuildMainTree();
   };
 
   const loadFromEditor = async () => {
@@ -233,6 +257,7 @@ export default function EditTree() {
     setEdges(() => {
       return updatedTree.edges;
     });
+    rebuildMainTree();
   };
 
   const onDropDownAction = (key: Key) => {

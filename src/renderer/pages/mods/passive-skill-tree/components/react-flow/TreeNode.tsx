@@ -27,17 +27,17 @@ export default memo(({ data, id }: { data: any; id: string }) => {
 
   return (
     <div
-      className="w-5 h-5 flex items-center justify-center relative pixelated"
-      style={
-        backgroundImg
-          ? {
-              backgroundImage: `url(${backgroundImg})`,
-              backgroundSize: '3.75rem 1.25rem',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: '0px 0px',
-            }
-          : undefined
-      }
+      className="flex items-center justify-center relative pixelated"
+      style={{
+        width: data.buttonSize,
+        height: data.buttonSize,
+        ...(backgroundImg && {
+          backgroundImage: `url(${backgroundImg})`,
+          backgroundSize: `${3 * data.buttonSize}px ${data.buttonSize}px`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: '0px 0px',
+        }),
+      }}
     >
       <LazyTexture
         textureId={data.iconTexture

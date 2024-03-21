@@ -1,5 +1,4 @@
 import { FunctionWithDefaultConfig } from '../../../interfaces/function-with-default-config';
-import { BonusProps } from '../../../interfaces/bonus-props.interface';
 import NumberField from '../fields/NumberField';
 import { ItemCondition } from '../fields/item-condition/ItemCondition';
 
