@@ -6,31 +6,42 @@ import {
   CardFooter,
   Chip,
   Image,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   Skeleton,
 } from '@nextui-org/react';
 import { Types } from 'realm';
-import { Warning } from '@phosphor-icons/react';
+import { CaretDown, TrashSimple, Warning } from '@phosphor-icons/react';
 import CurseForgeLogo from '../../../assets/curse-forge-logo.svg';
 import MinecraftLogo from '../../../assets/minecraft.png';
 import SKLauncherLogo from '../../../assets/sklauncher-logo.png';
 import { useQueryById } from '../../../hooks/realm.hook';
 import { ProjectModel } from '../../../core/models/project.model';
+import capitalize from '../../../helpers/capitalize';
 
 interface ProjectCardProps {
   title: string;
   projectId: Types.ObjectId;
   onOpen?: (projectId: Types.ObjectId) => void;
+  onDelete?: (projectId: Types.ObjectId) => void;
+  onOpenVersionPicker?: (projectId: Types.ObjectId, version: string) => void;
   launcher: string;
+  hasVersionButton?: boolean;
 }
 
 export default function ProjectCard({
   title,
   projectId,
   onOpen,
+  onOpenVersionPicker,
+  onDelete,
   launcher,
+  hasVersionButton,
 }: ProjectCardProps) {
   const project = useQueryById(ProjectModel, projectId);
   const [loadingProjectMetadata, setLoadingProjectMetadata] = useState(true);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   useEffect(() => {
     if (project) {
@@ -78,6 +89,11 @@ export default function ProjectCard({
     );
   };
 
+  const internalOnDelete = () => {
+    setIsPopoverOpen(false);
+    onDelete?.(projectId);
+  };
+
   return (
     <Card className="h-44 w-80">
       <CardBody className="pb-0 pt-5 px-4 flex-col items-start">
@@ -109,7 +125,7 @@ export default function ProjectCard({
         </Skeleton>
         <Skeleton isLoaded={!loadingProjectMetadata}>
           <small className="text-sm">
-            {project?.loader ?? 'Unknown'} |{' '}
+            {capitalize(project?.loader) ?? 'Unknown'} |{' '}
             {project?.minecraftVersion ?? 'Unknown'}
           </small>
         </Skeleton>
@@ -120,15 +136,58 @@ export default function ProjectCard({
         </Skeleton>
       </CardBody>
 
-      <CardFooter className="flex justify-between">
+      <CardFooter className="flex justify-end">
+        {hasVersionButton && (
+          <Button
+            size="sm"
+            className="w-16"
+            isIconOnly
+            onPress={() =>
+              onOpenVersionPicker?.(projectId, project?.minecraftVersion)
+            }
+          >
+            {project?.minecraftVersion}
+            <CaretDown className="ml-1" />
+          </Button>
+        )}
+        {project.loaded && (
+          <Popover
+            backdrop="opaque"
+            isOpen={isPopoverOpen}
+            onOpenChange={(open) => setIsPopoverOpen(open)}
+          >
+            <PopoverTrigger>
+              <Button size="sm" className="ml-2" isIconOnly>
+                <TrashSimple />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <div className="p-2 flex flex-col gap-2">
+                <span>
+                  Are you sure you want to delete this project?
+                  <br />
+                  <b>You can't undo this operation</b>
+                </span>
+                <Button
+                  size="sm"
+                  color="danger"
+                  onPress={() => internalOnDelete?.()}
+                >
+                  Confirm
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+
         <Button
           size="sm"
-          color="primary"
-          className="ml-auto"
+          color={project.loaded ? 'primary' : 'default'}
+          className="ml-2"
           isDisabled={project.orphan}
           onPress={() => onOpen?.(projectId)}
         >
-          Open
+          {project.loaded ? 'Open' : 'Create'}
         </Button>
       </CardFooter>
     </Card>

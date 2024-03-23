@@ -30,7 +30,7 @@ export default function AppBar() {
   };
 
   return (
-    <div className="w-full h-unit-10 select-none flex items-center pr-1.5 py-0 bg-zinc-900 border-solid border-b-[0.5px] border-b-zinc-800">
+    <div className="w-full h-[40px] min-h-[40px] select-none flex items-center pr-1.5 py-0 bg-zinc-900 border-solid border-b-[0.5px] border-b-zinc-800">
       {goBack && (
         <Button
           variant="light"

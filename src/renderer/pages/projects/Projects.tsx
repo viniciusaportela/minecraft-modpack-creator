@@ -25,8 +25,14 @@ export default function Projects() {
   const realm = useAppStore((st) => st.realm)!;
   const { navigate } = usePager();
   const globalState = useQueryFirst(GlobalStateModel);
+  const [initialVersion, setInitialVersion] = useState('');
 
   const projectService = useRef(new ProjectService()).current;
+
+  const versionPickerParams = useRef<{
+    projectId: Types.ObjectId;
+    redirect: boolean;
+  } | null>(null);
 
   const {
     isOpen: isModalOpen,
@@ -67,6 +73,10 @@ export default function Projects() {
 
   const validateMinecraftProject = (project: ProjectModel) => {
     if (project.minecraftVersion === 'unknown') {
+      versionPickerParams.current = {
+        projectId: project._id,
+        redirect: true,
+      };
       onMinecraftVersionPickerOpen();
       return false;
     }
@@ -119,12 +129,34 @@ export default function Projects() {
     console.log('picked', chosenVersion);
     realm.write(() => {
       const project = projects.find(
-        (p) => p._id.toString() === globalState.selectedProjectId!.toString(),
+        (p) =>
+          p._id.toString() ===
+          versionPickerParams.current?.projectId.toString(),
       )!;
-      project.minecraftVersion = chosenVersion;
+
+      if (project) {
+        project.minecraftVersion = chosenVersion;
+      }
     });
+
     onMinecraftVersionPickerClose();
-    navigate('project-preload');
+
+    if (versionPickerParams.current?.redirect) {
+      navigate('project-preload');
+    }
+  };
+
+  const deleteProject = async (projectId: Types.ObjectId) => {
+    projectService.deleteProject(projectId).catch(handleError);
+  };
+
+  const onOpenVersionPicker = (projectId: Types.ObjectId, version: string) => {
+    versionPickerParams.current = {
+      projectId,
+      redirect: false,
+    };
+    setInitialVersion(version);
+    onMinecraftVersionPickerOpen();
   };
 
   return (
@@ -163,10 +195,13 @@ export default function Projects() {
         {filteredProjects.map((p) => (
           <ProjectCard
             title={p.name}
+            hasVersionButton={p.launcher === 'minecraft'}
             projectId={p._id}
             key={p.name}
             launcher={p.launcher}
             onOpen={open}
+            onDelete={deleteProject}
+            onOpenVersionPicker={onOpenVersionPicker}
           />
         ))}
       </div>
@@ -181,6 +216,7 @@ export default function Projects() {
         isOpen={isMinecraftVersionPickerOpen}
         onOpenChange={onMinecraftVersionPickerOpenChange}
         onPickVersion={onPickMinecraftVersion}
+        initialVersion={initialVersion}
       />
     </>
   );

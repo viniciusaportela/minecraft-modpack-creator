@@ -1,6 +1,12 @@
+import { Types } from 'realm';
 import { useAppStore } from '../../../store/app.store';
 import { ProjectModel } from '../../models/project.model';
 import { Launchers } from '../launchers/launchers';
+import { TextureModel } from '../../models/texture.model';
+import { BlockModel } from '../../models/block.model';
+import { ItemModel } from '../../models/item.model';
+import { ModConfigModel } from '../../models/mod-config.model';
+import { ModModel } from '../../models/mod.model';
 
 export default class ProjectService {
   private launchers: Launchers;
@@ -64,5 +70,61 @@ export default class ProjectService {
         p.orphan = true;
       });
     });
+  }
+
+  async deleteProject(projectId: Types.ObjectId) {
+    const { realm } = useAppStore.getState();
+    try {
+      realm.beginTransaction();
+      const project = realm.objectForPrimaryKey<ProjectModel>(
+        ProjectModel,
+        projectId,
+      );
+
+      if (!project) {
+        throw new Error('Project not found');
+      }
+
+      const textures = realm
+        .objects(TextureModel.schema.name)
+        .filtered(`project = $0`, projectId);
+      realm.delete(textures);
+
+      const blocks = realm
+        .objects(BlockModel.schema.name)
+        .filtered(`project = $0`, projectId);
+      realm.delete(blocks);
+
+      const items = realm
+        .objects(ItemModel.schema.name)
+        .filtered(`project = $0`, projectId);
+      realm.delete(items);
+
+      const mods = realm
+        .objects(ModModel.schema.name)
+        .filtered(`project = $0`, projectId);
+
+      for (const mod of mods) {
+        const modConfigs = realm
+          .objects(ModConfigModel.schema.name)
+          .filtered(`mod = $0`, mod._id);
+        realm.delete(modConfigs);
+      }
+
+      realm.delete(mods);
+
+      project.loaded = false;
+
+      if (project.orphan) {
+        realm.delete(project);
+      }
+
+      realm.commitTransaction();
+    } catch (e) {
+      if (realm.isInTransaction) {
+        realm.cancelTransaction();
+      }
+      throw e;
+    }
   }
 }

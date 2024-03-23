@@ -7,7 +7,7 @@ import {
   ModalContent,
   ModalHeader,
 } from '@nextui-org/react';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 
 const MINECRAFT_VERSIONS = [
   '1.20.4',
@@ -86,12 +86,18 @@ interface MinecraftVersionPickerModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onPickVersion: (version: string) => void;
+  initialVersion?: string;
 }
 
 export const MinecraftVersionPickerModal: FC<
   MinecraftVersionPickerModalProps
-> = ({ isOpen, onOpenChange, onPickVersion }) => {
+> = ({ isOpen, onOpenChange, onPickVersion, initialVersion }) => {
   const [value, setValue] = useState(MINECRAFT_VERSIONS[0]);
+
+  useEffect(() => {
+    console.log('initialversion changed', initialVersion);
+    setValue(initialVersion ?? MINECRAFT_VERSIONS[0]);
+  }, [initialVersion]);
 
   console.log('MinecraftVersionPicker', value);
 
@@ -109,7 +115,7 @@ export const MinecraftVersionPickerModal: FC<
           <Autocomplete
             size="sm"
             allowsCustomValue
-            value={value}
+            inputValue={value}
             onInputChange={(v) => setValue(v)}
             label="Minecraft Version"
             onKeyDown={(e: any) => e.continuePropagation()}
