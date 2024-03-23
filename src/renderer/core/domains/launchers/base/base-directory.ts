@@ -9,8 +9,12 @@ export abstract class BaseDirectory {
     this.modpackFolder = modpackFolder;
   }
 
+  getModsPath() {
+    return path.join(this.modpackFolder, 'mods');
+  }
+
   async getAllModPaths() {
-    return this.getAllFilesFromFolder(path.join(this.modpackFolder, 'mods'));
+    return this.getAllFilesFromFolder(this.getModsPath());
   }
 
   abstract getMinecraftJarPath(): Promise<string>;

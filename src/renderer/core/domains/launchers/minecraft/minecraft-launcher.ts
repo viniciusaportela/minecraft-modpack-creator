@@ -31,7 +31,7 @@ export class MinecraftLauncher extends BaseLauncher {
     return {
       name: 'Minecraft',
       path: folder,
-      minecraftVersion: '',
+      minecraftVersion: 'unknown',
       loaderVersion: '1.0.0',
       loader: 'unknown',
       launcher: 'minecraft',

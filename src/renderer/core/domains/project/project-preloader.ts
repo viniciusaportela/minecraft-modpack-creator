@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import Realm from 'realm';
+import { stat } from 'node:fs/promises';
 import JarLoader from '../minecraft/jar-loader';
 import { JarHandler } from '../minecraft/jar-handler';
 import { ModModel } from '../../models/mod.model';
@@ -10,6 +11,8 @@ import { Launchers } from '../launchers/launchers';
 import { useAppStore } from '../../../store/app.store';
 import { BaseLauncher } from '../launchers/base/base-launcher';
 import { BaseMetadata } from '../launchers/base/base-metadata';
+import BusinessLogicError from '../../errors/business-logic-error';
+import { BusinessError } from '../../errors/business-error.enum';
 
 export class ProjectPreloader {
   private onProgressCb?: (progress: {
@@ -43,6 +46,20 @@ export class ProjectPreloader {
       throw new Error("Couldn't find the Launcher for this folder");
     }
 
+    // first check if mods exists
+    const existsModsFolder = await stat(directory.getModsPath())
+      .then(() => true)
+      .catch(() => false);
+
+    if (!existsModsFolder) {
+      throw new BusinessLogicError({
+        code: BusinessError.PreloadError,
+        message:
+          'Mods folder not found. Try running this modpack for the first time.',
+        meta: { path: directory.getModsPath() },
+      });
+    }
+
     const modPaths = await directory.getAllModPaths();
     const STEPS_PER_MOD = 3;
     this.onProgressCb?.({
@@ -52,6 +69,19 @@ export class ProjectPreloader {
     this.updateModsChecksum(modPaths);
 
     const minecraftJarPath = await directory.getMinecraftJarPath();
+
+    const existsMinecraftJar = await stat(minecraftJarPath)
+      .then(() => true)
+      .catch(() => false);
+    if (!existsMinecraftJar) {
+      throw new BusinessLogicError({
+        code: BusinessError.PreloadError,
+        message:
+          'Minecraft jar not found. Try running this modpack for the first time.',
+        meta: { path: minecraftJarPath },
+      });
+    }
+
     modPaths.push(minecraftJarPath);
 
     for await (const modFile of modPaths) {

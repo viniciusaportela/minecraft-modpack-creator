@@ -53,7 +53,7 @@ export default function LoadProjectModal({
               Load Project
             </ModalHeader>
             <ModalBody>
-              <span>Insert your CurseForge modpack folder</span>
+              <span>Insert your modpack folder</span>
               <div className="flex">
                 <Input
                   size="sm"

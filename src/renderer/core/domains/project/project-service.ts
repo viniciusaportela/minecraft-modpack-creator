@@ -23,7 +23,10 @@ export default class ProjectService {
         exists[0].cachedAmountInstalledMods = data.cachedAmountInstalledMods;
         exists[0].loader = data.loader;
         exists[0].loaderVersion = data.loaderVersion;
-        exists[0].minecraftVersion = data.minecraftVersion;
+        exists[0].minecraftVersion =
+          (data.minecraftVersion === 'unknown'
+            ? exists[0].minecraftVersion
+            : data.minecraftVersion) ?? 'unknown';
         exists[0].orphan = false;
         return;
       }

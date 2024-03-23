@@ -17,6 +17,7 @@ import { useAppStore } from '../../store/app.store';
 import ProjectService from '../../core/domains/project/project-service';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { useModConfigStore } from '../../store/mod-config.store';
+import { MinecraftVersionPickerModal } from './components/MinecraftVersionPickerModal';
 
 export default function Projects() {
   const handleError = useErrorHandler();
@@ -32,6 +33,13 @@ export default function Projects() {
     onOpenChange: onModalOpenChange,
     onOpen: onModalOpen,
     onClose: onModalClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isMinecraftVersionPickerOpen,
+    onOpenChange: onMinecraftVersionPickerOpenChange,
+    onOpen: onMinecraftVersionPickerOpen,
+    onClose: onMinecraftVersionPickerClose,
   } = useDisclosure();
 
   const projects = useQuery(ProjectModel);
@@ -57,6 +65,15 @@ export default function Projects() {
     }
   };
 
+  const validateMinecraftProject = (project: ProjectModel) => {
+    if (project.minecraftVersion === 'unknown') {
+      onMinecraftVersionPickerOpen();
+      return false;
+    }
+
+    return true;
+  };
+
   const open = async (projectId: Types.ObjectId) => {
     try {
       console.log('open', useModConfigStore.getState());
@@ -76,6 +93,16 @@ export default function Projects() {
         selectedProjectId: projectId,
       });
 
+      const project = projects.find(
+        (p) => p._id.toString() === globalState.selectedProjectId!.toString(),
+      )!;
+      console.log('project', project);
+      if (project.launcher === 'minecraft') {
+        if (!validateMinecraftProject(project)) {
+          return;
+        }
+      }
+
       navigate('project-preload');
     } catch (e) {
       await handleError(e);
@@ -87,6 +114,18 @@ export default function Projects() {
         p.name.toLowerCase().includes(filterText.toLowerCase()),
       )
     : projects;
+
+  const onPickMinecraftVersion = (chosenVersion: string) => {
+    console.log('picked', chosenVersion);
+    realm.write(() => {
+      const project = projects.find(
+        (p) => p._id.toString() === globalState.selectedProjectId!.toString(),
+      )!;
+      project.minecraftVersion = chosenVersion;
+    });
+    onMinecraftVersionPickerClose();
+    navigate('project-preload');
+  };
 
   return (
     <>
@@ -136,6 +175,12 @@ export default function Projects() {
         isOpen={isModalOpen}
         onOpenChange={onModalOpenChange}
         onPressLoad={onAddNewProject}
+      />
+
+      <MinecraftVersionPickerModal
+        isOpen={isMinecraftVersionPickerOpen}
+        onOpenChange={onMinecraftVersionPickerOpenChange}
+        onPickVersion={onPickMinecraftVersion}
       />
     </>
   );
