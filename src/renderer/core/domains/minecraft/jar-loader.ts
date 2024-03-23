@@ -117,4 +117,21 @@ export default class JarLoader {
       });
     }
   }
+
+  async getModId() {
+    if (await this.isMinecraft()) {
+      return 'minecraft';
+    }
+
+    const metadata = await this.getMetadata();
+    if (metadata) {
+      return metadata.mods[0].modId;
+    }
+
+    return 'unknown';
+  }
+
+  getModpackPath() {
+    return this.jarPath.split('mods')[0];
+  }
 }

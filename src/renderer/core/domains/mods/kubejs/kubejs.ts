@@ -4,6 +4,8 @@ import { ProjectModel } from '../../../models/project.model';
 import { BaseMod } from '../base-mod';
 
 export class KubeJS extends BaseMod {
+  // DEV add recipes
+
   async build(project: ProjectModel, mod: ModModel) {
     // console.log('Building project...');
     // console.log(recipes);

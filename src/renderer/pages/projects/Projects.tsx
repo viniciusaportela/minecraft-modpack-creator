@@ -17,7 +17,6 @@ import { useAppStore } from '../../store/app.store';
 import ProjectService from '../../core/domains/project/project-service';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { useModConfigStore } from '../../store/mod-config.store';
-import { Launchers } from '../../core/domains/launchers/launchers';
 
 export default function Projects() {
   const handleError = useErrorHandler();
@@ -127,7 +126,7 @@ export default function Projects() {
             title={p.name}
             projectId={p._id}
             key={p.name}
-            isCurseForge={p.launcher === 'curseforge'}
+            launcher={p.launcher}
             onOpen={open}
           />
         ))}

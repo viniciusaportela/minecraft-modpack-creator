@@ -8,6 +8,7 @@ import { useQuery, useQueryById, useQueryFirst } from '../../hooks/realm.hook';
 import { ProjectModel } from '../../core/models/project.model';
 import { GlobalStateModel } from '../../core/models/global-state.model';
 import { ModModel } from '../../core/models/mod.model';
+import { ModConfigProvider } from '../../store/mod-config-provider';
 
 interface IRecipeProps {
   isVisible: boolean;
@@ -20,14 +21,14 @@ export default function Recipes({ isVisible }: IRecipeProps) {
     obj.filtered('modId != $0 AND project = $1', ModId.Minecraft, project._id),
   );
 
-  const isKubeJSEnabled = mods.find((mod) => mod.modId === ModId.KubeJS);
+  const kubeJSMod = mods.find((mod) => mod.modId === ModId.KubeJS);
 
   return (
     <div
       className="p-5 pt-0"
       style={{ display: isVisible ? undefined : 'none' }}
     >
-      {!isKubeJSEnabled && (
+      {!kubeJSMod && (
         <>
           <h1 className="text-xl font-bold">Your custom recipes</h1>
           <div className="bg-danger mt-3 p-3 rounded-md flex items-center drop-shadow-md">
@@ -40,18 +41,20 @@ export default function Recipes({ isVisible }: IRecipeProps) {
         </>
       )}
 
-      {isKubeJSEnabled && (
-        <Pager initialPage="dashboard">
-          <Page name="recipe-list">
-            <RecipeList />
-          </Page>
-          <Page name="add-recipe-list">
-            <AddRecipeList />
-          </Page>
-          <Page name="add-shaped-recipe">
-            <AddShaped />
-          </Page>
-        </Pager>
+      {kubeJSMod && (
+        <ModConfigProvider mod={kubeJSMod}>
+          <Pager initialPage="dashboard">
+            <Page name="recipe-list">
+              <RecipeList />
+            </Page>
+            <Page name="add-recipe-list">
+              <AddRecipeList />
+            </Page>
+            <Page name="add-shaped-recipe">
+              <AddShaped />
+            </Page>
+          </Pager>
+        </ModConfigProvider>
       )}
     </div>
   );

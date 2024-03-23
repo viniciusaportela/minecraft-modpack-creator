@@ -1,9 +1,9 @@
 import { existsSync } from 'node:fs';
 import toml from 'toml';
 import { readFile } from 'node:fs/promises';
-import { IModPreloader } from '../mods/interfaces/mod-preloader.interface';
-import JarLoader from '../minecraft/jar-loader';
-import { ICurseMetadata } from '../minecraft/interfaces/curse-metadata.interface';
+import { IModPreloader } from '../interfaces/mod-preloader.interface';
+import JarLoader from '../../minecraft/jar-loader';
+import { ICurseMetadata } from '../../minecraft/interfaces/curse-metadata.interface';
 
 export class DefaultModPreloader implements IModPreloader {
   private jar: JarLoader;
@@ -20,22 +20,6 @@ export class DefaultModPreloader implements IModPreloader {
       configs: await this.getUserConfigs(),
       initialized: false,
     };
-  }
-
-  async getCurseMetadata() {
-    try {
-      const modpackFolder = this.jar.jarPath.replace(/mods\/.*/g, '');
-      const curseMeta = JSON.parse(
-        await readFile(`${modpackFolder}/minecraftinstance.json`, 'utf-8'),
-      ) as ICurseMetadata;
-
-      return curseMeta.installedAddons.find(
-        (addon) => addon.fileNameOnDisk === this.jar.jarPath.split('/').pop(),
-      )!;
-    } catch (err) {
-      console.warn(err);
-      return null;
-    }
   }
 
   async getUserConfigs(): Promise<Record<string, unknown>> {

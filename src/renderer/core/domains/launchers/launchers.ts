@@ -3,26 +3,46 @@ import { CurseforgeLauncher } from './curseforge/curseforge-launcher';
 import { BaseLauncher } from './base/base-launcher';
 import BusinessLogicError from '../../errors/business-logic-error';
 import { BusinessError } from '../../errors/business-error.enum';
+import { MinecraftLauncher } from './minecraft/minecraft-launcher';
+import { SKLauncher } from './sklauncher/sk-launcher';
 
 export class Launchers {
   private launchers: BaseLauncher[];
 
   constructor() {
-    this.launchers = [
-      // new MinecraftLauncher(),
+    this.launchers = Launchers.initializeLaunchers();
+  }
+
+  static initializeLaunchers() {
+    return [
+      new MinecraftLauncher(),
       new CurseforgeLauncher(),
-      // new SKLauncher(),
+      new SKLauncher(),
     ];
   }
 
-  async getByFolder(folder: string) {
-    for await (const launcher of this.launchers) {
+  static async getByFolder(folder: string) {
+    const launchers = this.initializeLaunchers();
+
+    for await (const launcher of launchers) {
       if (await launcher.isFolderOfThisLauncher(folder)) {
         return launcher;
       }
     }
 
     return null;
+  }
+
+  static getByName(name: string) {
+    const launcherByName = {
+      minecraft: MinecraftLauncher,
+      curseforge: CurseforgeLauncher,
+      sklauncher: SKLauncher,
+    };
+
+    return name in launcherByName
+      ? new launcherByName[name as keyof typeof launcherByName]()
+      : null;
   }
 
   async getProjectData(folder: string) {
@@ -35,7 +55,7 @@ export class Launchers {
       });
     }
 
-    const launcher = await this.getByFolder(folder);
+    const launcher = await Launchers.getByFolder(folder);
 
     if (!launcher) {
       throw new BusinessLogicError({

@@ -1,11 +1,8 @@
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { readdir, stat } from 'node:fs/promises';
 import path from 'path';
 import os from 'os';
 import { BaseLauncher, IProjectData } from '../base/base-launcher';
-import { BaseDirectory } from '../base/base-directory';
 import { CurseforgeDirectory } from './curseforge-directory';
-import { ProjectModel } from '../../../models/project.model';
-import { useAppStore } from '../../../../store/app.store';
 
 export class CurseforgeLauncher extends BaseLauncher {
   constructor() {
@@ -15,7 +12,9 @@ export class CurseforgeLauncher extends BaseLauncher {
   async getProjectData(folder: string): Promise<IProjectData> {
     const directory = this.getDirectory(folder);
 
-    const curseInstance = await directory.readMetadata();
+    const curseInstance = await directory
+      .readMetadata()
+      .then((m) => m.getRaw());
 
     return {
       name: curseInstance.name,

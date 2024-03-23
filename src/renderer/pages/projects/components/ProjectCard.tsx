@@ -12,6 +12,7 @@ import { Types } from 'realm';
 import { Warning } from '@phosphor-icons/react';
 import CurseForgeLogo from '../../../assets/curse-forge-logo.svg';
 import MinecraftLogo from '../../../assets/minecraft.png';
+import SKLauncherLogo from '../../../assets/sklauncher-logo.png';
 import { useQueryById } from '../../../hooks/realm.hook';
 import { ProjectModel } from '../../../core/models/project.model';
 
@@ -19,14 +20,14 @@ interface ProjectCardProps {
   title: string;
   projectId: Types.ObjectId;
   onOpen?: (projectId: Types.ObjectId) => void;
-  isCurseForge?: boolean;
+  launcher: string;
 }
 
 export default function ProjectCard({
   title,
   projectId,
   onOpen,
-  isCurseForge,
+  launcher,
 }: ProjectCardProps) {
   const project = useQueryById(ProjectModel, projectId);
   const [loadingProjectMetadata, setLoadingProjectMetadata] = useState(true);
@@ -40,6 +41,42 @@ export default function ProjectCard({
   if (!project) {
     return null;
   }
+
+  const getLauncherLogo = () => {
+    const logoByLauncher = {
+      minecraft: MinecraftLogo,
+      curseforge: CurseForgeLogo,
+      sklauncher: SKLauncherLogo,
+    };
+
+    return (
+      logoByLauncher[launcher as keyof typeof logoByLauncher] ?? MinecraftLogo
+    );
+  };
+
+  const getNameByLauncher = () => {
+    const nameByLauncher = {
+      minecraft: 'Minecraft',
+      curseforge: 'CurseForge',
+      sklauncher: 'SKLauncher',
+    };
+
+    return (
+      nameByLauncher[launcher as keyof typeof nameByLauncher] ?? 'Minecraft'
+    );
+  };
+
+  const getColorByLauncher = () => {
+    const colorByLauncher = {
+      minecraft: 'success',
+      curseforge: 'warning',
+      sklauncher: 'primary',
+    } as const;
+
+    return (
+      colorByLauncher[launcher as keyof typeof colorByLauncher] ?? 'primary'
+    );
+  };
 
   return (
     <Card className="h-44 w-80">
@@ -60,23 +97,20 @@ export default function ProjectCard({
             <Chip
               variant="flat"
               size="sm"
-              color="warning"
+              color={getColorByLauncher()}
               className="mb-2"
               startContent={
-                <Image
-                  src={isCurseForge ? CurseForgeLogo : MinecraftLogo}
-                  width={20}
-                  height={20}
-                />
+                <Image src={getLauncherLogo()} width={20} height={20} />
               }
             >
-              {isCurseForge ? 'CurseForge' : 'Minecraft'}
+              {getNameByLauncher()}
             </Chip>
           )}
         </Skeleton>
         <Skeleton isLoaded={!loadingProjectMetadata}>
           <small className="text-sm">
-            {project?.loader ?? ''} | {project?.minecraftVersion ?? ''}
+            {project?.loader ?? 'Unknown'} |{' '}
+            {project?.minecraftVersion ?? 'Unknown'}
           </small>
         </Skeleton>
         <Skeleton isLoaded={!loadingProjectMetadata}>

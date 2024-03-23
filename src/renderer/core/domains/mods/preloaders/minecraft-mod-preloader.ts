@@ -1,9 +1,10 @@
-import { DefaultModPreloader } from '../preloaders/default-mod-preloader';
-import JarLoader from './jar-loader';
+import { DefaultModPreloader } from './default-mod-preloader';
+import JarLoader from '../../minecraft/jar-loader';
+import ModId from '../../../../typings/mod-id.enum';
 
 export class MinecraftModPreloader extends DefaultModPreloader {
   constructor(jar: JarLoader) {
-    super(jar, 'minecraft');
+    super(jar, ModId.Minecraft);
   }
 
   async generateConfig() {

@@ -1,12 +1,15 @@
 import crypto from 'crypto';
 import Realm from 'realm';
-import { CurseforgeDirectory } from '../launchers/curseforge/curseforge-directory';
 import JarLoader from '../minecraft/jar-loader';
 import { JarHandler } from '../minecraft/jar-handler';
 import { ModModel } from '../../models/mod.model';
-import { ModPreloaderFactory } from '../preloaders/mod-preloader-factory';
+import { ModPreloaderFactory } from '../mods/preloaders/mod-preloader-factory';
 import { ProjectModel } from '../../models/project.model';
 import { ModConfigModel } from '../../models/mod-config.model';
+import { Launchers } from '../launchers/launchers';
+import { useAppStore } from '../../../store/app.store';
+import { BaseLauncher } from '../launchers/base/base-launcher';
+import { BaseMetadata } from '../launchers/base/base-metadata';
 
 export class ProjectPreloader {
   private onProgressCb?: (progress: {
@@ -14,10 +17,14 @@ export class ProjectPreloader {
     text?: string;
   }) => void;
 
-  constructor(
-    private readonly realm: Realm,
-    private readonly project: ProjectModel,
-  ) {}
+  private readonly realm: Realm;
+
+  private launcher!: BaseLauncher;
+
+  constructor(private readonly project: ProjectModel) {
+    const { realm } = useAppStore.getState();
+    this.realm = realm;
+  }
 
   onProgress(
     cb: (progress: { totalProgress?: number; text?: string }) => void,
@@ -27,28 +34,35 @@ export class ProjectPreloader {
   }
 
   async preload() {
-    const directory = new CurseforgeDirectory(this.project.path);
-    const dirMods = await directory.getAllModPaths();
+    this.launcher = (await Launchers.getByFolder(
+      this.project.path,
+    )) as BaseLauncher;
+    const directory = this.launcher?.getDirectory(this.project.path);
 
-    this.onProgressCb?.({ totalProgress: (dirMods.length + 1) * 3 });
+    if (!directory) {
+      throw new Error("Couldn't find the Launcher for this folder");
+    }
 
-    this.realm.beginTransaction();
-    const shaHash = crypto.createHash('sha1');
-    shaHash.update(
-      dirMods.reduce((finalStr, modFile) => finalStr + modFile, ''),
-    );
-    this.project.modsChecksum = shaHash.digest('hex');
-    this.realm.commitTransaction();
+    const modPaths = await directory.getAllModPaths();
+    const STEPS_PER_MOD = 3;
+    this.onProgressCb?.({
+      totalProgress: (modPaths.length + 1) * STEPS_PER_MOD,
+    });
+
+    this.updateModsChecksum(modPaths);
 
     const minecraftJarPath = await directory.getMinecraftJarPath();
-    dirMods.push(minecraftJarPath);
+    modPaths.push(minecraftJarPath);
 
-    for await (const modFile of dirMods) {
+    for await (const modFile of modPaths) {
       const jar = await JarLoader.load(modFile);
 
-      const modId = await this.getModId(jar);
+      const modId = await jar.getModId();
 
-      const modDb = await this.getModInDb(modFile, jar);
+      const projectMetadata = await this.launcher
+        .getDirectory(this.project.path)
+        .readMetadata();
+      const modDb = await this.getModInDb(projectMetadata, jar);
 
       const handler = new JarHandler(jar, this.project, this.realm, modDb);
 
@@ -75,37 +89,36 @@ export class ProjectPreloader {
     this.realm.commitTransaction();
   }
 
-  private async getModId(jar: JarLoader) {
-    if (await jar.isMinecraft()) {
-      return 'minecraft';
-    }
-
-    const metadata = await jar.getMetadata();
-    if (metadata) {
-      return metadata.mods[0].modId;
-    }
-
-    return 'unknown';
+  private updateModsChecksum(modPaths: string[]) {
+    this.realm.beginTransaction();
+    const shaHash = crypto.createHash('sha1');
+    shaHash.update(
+      modPaths.reduce((finalStr, modFile) => finalStr + modFile, ''),
+    );
+    this.project.modsChecksum = shaHash.digest('hex');
+    this.realm.commitTransaction();
   }
 
-  private async getModInDb(modFile: string, jar: JarLoader) {
-    const modId = await this.getModId(jar);
-    const mod = ModPreloaderFactory.create(jar, modId);
+  private async getModInDb(projectMetadata: BaseMetadata, jar: JarLoader) {
+    const modId = await jar.getModId();
+    const modPreloader = await ModPreloaderFactory.create(jar);
     const metadata = await jar.getMetadata();
 
     const foundMod = this.realm
       .objects<ModModel>(ModModel.schema.name)
-      .filtered('project = $0 AND jarPath = $1', this.project._id, modFile);
+      .filtered('project = $0 AND jarPath = $1', this.project._id, jar.jarPath);
 
     if (foundMod.length > 0) {
       return foundMod[0];
     }
 
-    const curseMetadata = await mod.getCurseMetadata();
+    console.log('modId', modId);
+    const modMetadata = await projectMetadata.getModMetadata(jar);
+    console.log('modMetadata', modMetadata);
 
     this.realm.beginTransaction();
     const created = this.realm.create<ModModel>(ModModel.schema.name, {
-      jarPath: modFile,
+      jarPath: jar.jarPath,
       modId,
       name: metadata ? metadata.mods[0].displayName : 'Minecraft',
       // TODO has to consider case where version is gotten from MANIFEST.MF
@@ -113,8 +126,8 @@ export class ProjectPreloader {
         ? metadata.mods[0].version
         : this.project.minecraftVersion,
       project: this.project._id,
-      thumbnail: curseMetadata?.thumbnailUrl,
-      website: curseMetadata?.webSiteURL,
+      thumbnail: modMetadata.getThumbnail() ?? undefined,
+      website: modMetadata.getWebsite() ?? undefined,
       dependencies: metadata?.dependencies?.[modId]
         ? metadata.dependencies[modId]
             .filter((d) => d.mandatory)
@@ -123,7 +136,7 @@ export class ProjectPreloader {
     });
 
     this.realm.create(ModConfigModel.schema.name, {
-      json: JSON.stringify(await mod.generateConfig()),
+      json: JSON.stringify(await modPreloader.generateConfig()),
       mod: created._id,
     });
     this.realm.commitTransaction();

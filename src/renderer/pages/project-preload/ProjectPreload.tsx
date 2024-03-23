@@ -39,7 +39,7 @@ export default function ProjectPreload() {
         if (project.loaded) {
           navigate('project');
         } else {
-          const preloader = new ProjectPreloader(realm, project);
+          const preloader = new ProjectPreloader(project);
 
           preloader.onProgress(({ totalProgress, text }) => {
             if (totalProgress) {

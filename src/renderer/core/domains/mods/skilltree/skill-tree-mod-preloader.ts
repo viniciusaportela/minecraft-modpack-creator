@@ -1,9 +1,10 @@
-import { DefaultModPreloader } from '../../preloaders/default-mod-preloader';
+import { DefaultModPreloader } from '../preloaders/default-mod-preloader';
 import JarLoader from '../../minecraft/jar-loader';
+import ModId from '../../../../typings/mod-id.enum';
 
 export class SkillTreeModPreloader extends DefaultModPreloader {
   constructor(jar: JarLoader) {
-    super(jar, 'skilltree');
+    super(jar, ModId.PassiveSkillTree);
   }
 
   async generateConfig() {

@@ -29,6 +29,7 @@ import ModpackBuilder from '../../core/builder/ModpackBuilder';
 import BuildingModal from './components/BuildingModal';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { ModConfigProvider } from '../../store/mod-config-provider';
+import NoThumb from '../../assets/no-thumb.png';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -179,8 +180,7 @@ export default function Project() {
                 >
                   <CardBody className="min-h-fit flex flex-row">
                     <Image
-                      // TODO type config
-                      src={mod.thumbnail}
+                      src={mod.thumbnail ?? NoThumb}
                       className="w-full h-full"
                       classNames={{
                         wrapper: 'min-w-10 min-h-10 w-10 h-10 mr-3',

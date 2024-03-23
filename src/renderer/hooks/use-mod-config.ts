@@ -65,7 +65,6 @@ export function useModConfig<T = any>(
     (modifierCb: (currentState: any) => any, skipRealm?: boolean) => {
       const completePath = [modId, ...path];
 
-      // DEV also consider the listenForForeign (to listen only specific children: listenForForeign: ['tree.nodes.*.data.backgroundIcon'])
       const updatedValue = updateConfig(hookId, completePath, modifierCb);
 
       setInternalState(updatedValue);
