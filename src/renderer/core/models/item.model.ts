@@ -13,6 +13,8 @@ export class ItemModel extends Realm.Object {
 
   project!: Types.ObjectId;
 
+  mod!: Types.ObjectId;
+
   getModel() {
     return JSON.parse(this.modelJson);
   }
@@ -56,6 +58,10 @@ export class ItemModel extends Realm.Object {
       project: {
         type: 'objectId',
         indexed: true,
+      },
+      mod: {
+        indexed: true,
+        type: 'objectId',
       },
     },
     primaryKey: '_id',

@@ -63,6 +63,9 @@ export default function ProjectPreload() {
       console.log(err.stack);
       await handleError(err);
       if (realm.isInTransaction) realm.cancelTransaction();
+      realm.write(() => {
+        globalState.selectedProjectId = undefined;
+      });
       navigate('projects');
     }
   }

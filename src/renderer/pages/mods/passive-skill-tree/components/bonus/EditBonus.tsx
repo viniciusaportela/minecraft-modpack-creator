@@ -58,7 +58,7 @@ export default function EditBonus({
       </span>
       <div className="flex gap-2 flex-col">
         {COMPONENTS_BY_BONUS()[bonus.type as EBonus]({
-          path: selectedBonusPath,
+          basePath: selectedBonusPath,
         })}
       </div>
     </ScrollShadow>

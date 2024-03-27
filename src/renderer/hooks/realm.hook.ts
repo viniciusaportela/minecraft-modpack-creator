@@ -1,11 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BSON, Results, Types } from 'realm';
 import { RealmObject } from 'realm/dist/Object';
-import intersection from 'lodash.intersection';
+import { DefaultObject } from 'realm/dist/schema/types';
 import { GenericModel } from '../typings/generic-model.interface';
 import { useAppStore } from '../store/app.store';
 
-// TODO type
 export function useQuery<T extends GenericModel>(
   model: T,
   filter?: (collection: any) => any,
@@ -42,7 +41,6 @@ export function useQuery<T extends GenericModel>(
 export function useQueryById<T extends GenericModel>(
   model: T,
   id: Types.ObjectId,
-  listenerIgnorePaths?: string[],
 ): InstanceType<T> | null {
   const realm = useAppStore((st) => st.realm);
 
@@ -50,23 +48,34 @@ export function useQueryById<T extends GenericModel>(
     return realm.objectForPrimaryKey(model.schema.name, new BSON.ObjectId(id))!;
   };
 
-  const objectRef = useRef(getObject());
+  const objectRef = useRef<
+    (RealmObject<DefaultObject, never> & DefaultObject) | null
+  >(getObject());
   const [_, setInternalIndex] = useState(0);
 
+  (() => {
+    const isValid = objectRef.current?.isValid();
+
+    if (!isValid) {
+      objectRef.current?.removeAllListeners();
+      objectRef.current = null;
+    }
+  })();
+
   useEffect(() => {
-    objectRef.current.addListener((_, changes) => {
-      if (
-        (changes.changedProperties.length > 0 &&
-          intersection(changes.changedProperties, listenerIgnorePaths)
-            .length === 0) ||
-        changes.deleted
-      ) {
+    objectRef.current?.addListener((_, changes) => {
+      if (changes.deleted) {
+        objectRef.current?.removeAllListeners();
+        objectRef.current = null;
+      }
+
+      if (changes.changedProperties.length > 0 || changes.deleted) {
         setInternalIndex((idx) => idx + 1);
       }
     });
 
     return () => {
-      objectRef.current.removeAllListeners();
+      objectRef.current?.removeAllListeners();
     };
   }, []);
 

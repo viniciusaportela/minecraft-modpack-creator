@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ipcRenderer } from 'electron';
 import { Button, Divider, Input, useDisclosure } from '@nextui-org/react';
 import { ArrowClockwise, MagnifyingGlass } from '@phosphor-icons/react';
@@ -18,6 +18,9 @@ import ProjectService from '../../core/domains/project/project-service';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { useModConfigStore } from '../../store/mod-config.store';
 import { MinecraftVersionPickerModal } from './components/MinecraftVersionPickerModal';
+import { TextureModel } from '../../core/models/texture.model';
+import { ModModel } from '../../core/models/mod.model';
+import { ItemModel } from '../../core/models/item.model';
 
 export default function Projects() {
   const handleError = useErrorHandler();
@@ -51,6 +54,13 @@ export default function Projects() {
   const projects = useQuery(ProjectModel);
 
   const [filterText, setFilterText] = useState('');
+
+  useLayoutEffect(() => {
+    console.log(globalState.selectedProjectId);
+    if (globalState.selectedProjectId) {
+      navigate('project-preload');
+    }
+  }, []);
 
   useEffect(() => {
     projectService.populateProjects().catch(handleError);
@@ -113,36 +123,64 @@ export default function Projects() {
         }
       }
 
+      realm.write(() => {
+        project.lastOpenAt = new Date();
+      });
       navigate('project-preload');
     } catch (e) {
       await handleError(e);
     }
   };
 
-  const filteredProjects = filterText
-    ? projects.filter((p) =>
-        p.name.toLowerCase().includes(filterText.toLowerCase()),
-      )
-    : projects;
-
-  const onPickMinecraftVersion = (chosenVersion: string) => {
-    console.log('picked', chosenVersion);
-    realm.write(() => {
+  const onPickMinecraftVersion = async (chosenVersion: string) => {
+    try {
       const project = projects.find(
         (p) =>
           p._id.toString() ===
           versionPickerParams.current?.projectId.toString(),
       )!;
 
-      if (project) {
+      console.log('picked', chosenVersion);
+      realm.write(() => {
         project.minecraftVersion = chosenVersion;
+        project.loaded = false;
+
+        const minecraftMod = realm
+          .objects<ModModel>(ModModel.schema.name)
+          .filtered('modId = $0 AND project = $1', 'minecraft', project._id)[0];
+
+        if (minecraftMod) {
+          minecraftMod.loadedTextures = false;
+          minecraftMod.loadedItems = false;
+          minecraftMod.loadedBlocks = false;
+
+          const textures = realm
+            .objects(TextureModel.schema.name)
+            .filtered('mod = $0', minecraftMod._id);
+          realm.delete(textures);
+
+          const items = realm
+            .objects(ItemModel.schema.name)
+            .filtered('mod = $0', minecraftMod._id);
+          realm.delete(items);
+
+          const blocks = realm
+            .objects(ItemModel.schema.name)
+            .filtered('mod = $0', minecraftMod._id);
+          realm.delete(blocks);
+        }
+      });
+
+      onMinecraftVersionPickerClose();
+
+      if (versionPickerParams.current?.redirect) {
+        realm.write(() => {
+          project.lastOpenAt = new Date();
+        });
+        navigate('project-preload');
       }
-    });
-
-    onMinecraftVersionPickerClose();
-
-    if (versionPickerParams.current?.redirect) {
-      navigate('project-preload');
+    } catch (e) {
+      await handleError(e);
     }
   };
 
@@ -158,6 +196,30 @@ export default function Projects() {
     setInitialVersion(version);
     onMinecraftVersionPickerOpen();
   };
+
+  const filteredProjects = filterText
+    ? projects.filter((p) =>
+        p.name.toLowerCase().includes(filterText.toLowerCase()),
+      )
+    : Array.from(projects);
+
+  const orderedProjects = filteredProjects.sort((a, b) => {
+    if (a.lastOpenAt && !b.lastOpenAt) {
+      return -1;
+    }
+
+    if (!a.lastOpenAt && b.lastOpenAt) {
+      return 1;
+    }
+
+    if (a.lastOpenAt && b.lastOpenAt) {
+      return b.lastOpenAt.getTime() - a.lastOpenAt.getTime();
+    }
+
+    return 0;
+  });
+
+  console.log(orderedProjects);
 
   return (
     <>
@@ -192,12 +254,11 @@ export default function Projects() {
       </AppBarHeader>
       <div className="flex flex-wrap gap-4 p-5 overflow-y-auto">
         <AddProject onPress={onModalOpen} />
-        {filteredProjects.map((p) => (
+        {orderedProjects.map((p) => (
           <ProjectCard
             title={p.name}
-            hasVersionButton={p.launcher === 'minecraft'}
             projectId={p._id}
-            key={p.name}
+            key={p.path}
             launcher={p.launcher}
             onOpen={open}
             onDelete={deleteProject}

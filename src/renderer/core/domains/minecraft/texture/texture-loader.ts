@@ -6,10 +6,10 @@ import { useAppStore } from '../../../../store/app.store';
 import { ModModel } from '../../../models/mod.model';
 
 export class TextureLoader {
-  private cachedZips = new Map<string, StreamZip.StreamZipAsync>();
+  static cachedZips = new Map<string, StreamZip.StreamZipAsync>();
 
   async load(projectId: Types.ObjectId, textureId: string) {
-    const path = this.getTextureSource(textureId);
+    const path = await this.getFullTextureSource(textureId);
 
     const imageExists = await stat(path)
       .then(() => true)
@@ -59,12 +59,12 @@ export class TextureLoader {
       console.warn(`getZip: mod with id ${modId} not found`);
     }
 
-    const cachedZip = this.cachedZips.get(zipPath);
+    const cachedZip = TextureLoader.cachedZips.get(zipPath);
 
     if (cachedZip) return cachedZip;
 
     const zip = new StreamZip.async({ file: zipPath });
-    this.cachedZips.set(zipPath, zip);
+    TextureLoader.cachedZips.set(zipPath, zip);
 
     return zip;
   }

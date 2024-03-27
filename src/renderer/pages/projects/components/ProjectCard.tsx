@@ -27,7 +27,6 @@ interface ProjectCardProps {
   onDelete?: (projectId: Types.ObjectId) => void;
   onOpenVersionPicker?: (projectId: Types.ObjectId, version: string) => void;
   launcher: string;
-  hasVersionButton?: boolean;
 }
 
 export default function ProjectCard({
@@ -37,7 +36,6 @@ export default function ProjectCard({
   onOpenVersionPicker,
   onDelete,
   launcher,
-  hasVersionButton,
 }: ProjectCardProps) {
   const project = useQueryById(ProjectModel, projectId);
   const [loadingProjectMetadata, setLoadingProjectMetadata] = useState(true);
@@ -48,6 +46,8 @@ export default function ProjectCard({
       setLoadingProjectMetadata(false);
     }
   }, [project]);
+
+  console.log('ProjectCard', title, project);
 
   if (!project) {
     return null;
@@ -137,20 +137,21 @@ export default function ProjectCard({
       </CardBody>
 
       <CardFooter className="flex justify-end">
-        {hasVersionButton && (
-          <Button
-            size="sm"
-            className="w-16"
-            isIconOnly
-            onPress={() =>
-              onOpenVersionPicker?.(projectId, project?.minecraftVersion)
-            }
-          >
-            {project?.minecraftVersion}
-            <CaretDown className="ml-1" />
-          </Button>
-        )}
-        {project.loaded && (
+        {project.launcher === 'minecraft' &&
+          project.minecraftVersion !== 'unknown' && (
+            <Button
+              size="sm"
+              className="w-16"
+              isIconOnly
+              onPress={() =>
+                onOpenVersionPicker?.(projectId, project?.minecraftVersion)
+              }
+            >
+              {project?.minecraftVersion}
+              <CaretDown className="ml-1" />
+            </Button>
+          )}
+        {project.loaded || project.orphan ? (
           <Popover
             backdrop="opaque"
             isOpen={isPopoverOpen}
@@ -178,7 +179,7 @@ export default function ProjectCard({
               </div>
             </PopoverContent>
           </Popover>
-        )}
+        ) : null}
 
         <Button
           size="sm"

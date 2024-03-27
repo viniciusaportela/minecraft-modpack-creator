@@ -7,7 +7,7 @@ import getTextureFromModel from '../../core/domains/minecraft/helpers/get-textur
 import getModelType from '../../core/domains/minecraft/helpers/get-model-type';
 import TextureBox from '../texture-box/TextureBox';
 import { PickerType } from '../../typings/picker-type.enum';
-import getImageComponentFromType from '../../core/domains/minecraft/helpers/get-image-component-from-type';
+import getImageComponentFromPickerType from '../../core/domains/minecraft/helpers/get-image-component-from-picker-type';
 
 interface ItemPickerProps {
   value: string | null;
@@ -40,7 +40,7 @@ export default function PickerButton({
     >
       <Button onPress={press} className={className}>
         {!value && 'Pick'}
-        {value && getImageComponentFromType(type, value, projectId)}
+        {value && getImageComponentFromPickerType(type, value, projectId)}
       </Button>
     </Tooltip>
   );

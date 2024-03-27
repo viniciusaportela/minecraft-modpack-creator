@@ -1,4 +1,5 @@
 import Realm, { BSON, ObjectSchema } from 'realm';
+import { v4 } from 'uuid';
 import { IProjectData } from '../domains/launchers/base/base-launcher';
 
 export class ProjectModel extends Realm.Object implements IProjectData {
@@ -26,6 +27,8 @@ export class ProjectModel extends Realm.Object implements IProjectData {
 
   orphan!: boolean;
 
+  lastOpenAt?: Date;
+
   static schema: ObjectSchema = {
     name: 'Project',
     properties: {
@@ -49,6 +52,7 @@ export class ProjectModel extends Realm.Object implements IProjectData {
         type: 'bool',
         default: false,
       },
+      lastOpenAt: 'date?',
     },
     primaryKey: '_id',
   };

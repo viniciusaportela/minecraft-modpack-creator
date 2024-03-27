@@ -133,9 +133,10 @@ export class JarHandler {
         ItemModel.schema.name,
         {
           itemId: fullItemId,
-          project: this.project._id,
           name: fullItemId, // TODO get name from lang
           modelJson: JSON.stringify(modelJson),
+          mod: this.mod._id,
+          project: this.project._id,
         },
         UpdateMode.Modified,
       );

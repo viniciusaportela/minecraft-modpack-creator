@@ -1,13 +1,11 @@
-import ConfigEditor from '../../../components/config-editor/ConfigEditor';
+import { TreePalm } from '@phosphor-icons/react';
 import { IModPageProps } from '../../../typings/plugin.interface';
 
-export default function DefaultPlugin({ mod, isVisible }: IModPageProps) {
+export default function DefaultPlugin({}: IModPageProps) {
   return (
-    <div
-      className="p-5 pt-0"
-      style={{ display: isVisible ? undefined : 'none' }}
-    >
-      <ConfigEditor modId={mod.addonID} />
+    <div className="flex flex-col flex-1 items-center justify-center">
+      <TreePalm size={24} className="mb-2 text-zinc-700" />
+      <i className="text-zinc-700">Nothing to see here at the moment</i>
     </div>
   );
 }

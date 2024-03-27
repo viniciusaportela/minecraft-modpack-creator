@@ -8,7 +8,7 @@ import { useAppStore } from '../../../../store/app.store';
 import { GlobalStateModel } from '../../../models/global-state.model';
 
 // TODO turn this as a component instead
-export default function getImageComponentFromType(
+export default function getImageComponentFromPickerType(
   type: PickerType,
   value: string,
 ) {

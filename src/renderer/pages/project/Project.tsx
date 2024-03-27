@@ -30,6 +30,9 @@ import BuildingModal from './components/BuildingModal';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { ModConfigProvider } from '../../store/mod-config-provider';
 import NoThumb from '../../assets/no-thumb.png';
+import { useAppStore } from '../../store/app.store';
+import Configs from '../configs/Configs';
+import PageHider from './components/PageHider';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -37,6 +40,7 @@ export default function Project() {
   const { navigate } = usePager();
 
   const handleError = useErrorHandler();
+  const realm = useAppStore((st) => st.realm);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildingProgress, setBuildingProgress] = useState(0);
@@ -111,23 +115,25 @@ export default function Project() {
 
   function getModViewFromTab(tab: string) {
     const mod = getModFromTab(tab);
-    const Plugin = pageByMod[mod.modId as keyof typeof pageByMod];
+    const CustomPlugin = pageByMod[mod.modId as keyof typeof pageByMod];
 
     return (
       <ModConfigProvider mod={mod} key={mod.modId}>
-        {Plugin ? (
-          <Plugin
-            mod={getModFromTab(tab)}
-            isVisible={isVisible(tab)}
-            key={tab}
-          />
-        ) : (
-          <DefaultPlugin
-            mod={getModFromTab(tab)}
-            isVisible={isVisible(tab)}
-            key={tab}
-          />
-        )}
+        <PageHider isVisible={isVisible(tab)}>
+          {CustomPlugin ? (
+            <CustomPlugin
+              mod={getModFromTab(tab)}
+              isVisible={isVisible(tab)}
+              key={tab}
+            />
+          ) : (
+            <DefaultPlugin
+              mod={getModFromTab(tab)}
+              isVisible={isVisible(tab)}
+              key={tab}
+            />
+          )}
+        </PageHider>
       </ModConfigProvider>
     );
   }
@@ -147,7 +153,12 @@ export default function Project() {
       />
       <AppBarHeader
         title={project?.name ?? ''}
-        goBack={() => navigate('projects')}
+        goBack={() => {
+          realm.write(() => {
+            globalState.selectedProjectId = undefined;
+          });
+          navigate('projects');
+        }}
       >
         <AppBarHeaderContainer>
           <div className="flex-1 app-bar-drag h-full" />
@@ -210,6 +221,7 @@ export default function Project() {
             <Tab key="recipes" title="Recipes" />
             <Tab key="items" title="Items" />
             <Tab key="blocks" title="Blocks" />
+            <Tab key="configs" title="Configs" />
             <Tab key="progression" title="Progression" />
             {openedModTabs.map((addon) => (
               <Tab
@@ -230,7 +242,12 @@ export default function Project() {
             ))}
           </Tabs>
         </ScrollShadow>
-        <Recipes isVisible={isVisible('recipes')} />
+        <PageHider isVisible={isVisible('recipes')}>
+          <Recipes />
+        </PageHider>
+        <PageHider isVisible={isVisible('recipes')}>
+          <Configs />
+        </PageHider>
         {openedModTabs.map((addon) => getModViewFromTab(addon.name))}
       </div>
     </div>

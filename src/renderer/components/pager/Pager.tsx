@@ -10,9 +10,7 @@ interface IPagerProps extends PropsWithChildren {
   titleElement?: FunctionComponent<{ title: string }>;
   initialPage: string;
   titleByPage?: Record<string, string | null>;
-  // eslint-disable-next-line react/no-unused-prop-types
   page?: string;
-  // eslint-disable-next-line react/no-unused-prop-types
   onPageChange?: (page: string) => void;
 }
 

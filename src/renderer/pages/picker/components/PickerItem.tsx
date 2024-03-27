@@ -3,7 +3,7 @@ import { CSSProperties } from 'react';
 import { ItemModel } from '../../../core/models/item.model';
 import { BlockModel } from '../../../core/models/block.model';
 import { TextureModel } from '../../../core/models/texture.model';
-import getImageComponentFromType from '../../../core/domains/minecraft/helpers/get-image-component-from-type';
+import getImageComponentFromPickerType from '../../../core/domains/minecraft/helpers/get-image-component-from-picker-type';
 import { PickerType } from '../../../typings/picker-type.enum';
 
 interface PickerItemProps {
@@ -33,7 +33,7 @@ export default function PickerItem({
       style={style}
       onPress={onPress}
     >
-      {getImageComponentFromType(type, getNameFromType())}
+      {getImageComponentFromPickerType(type, getNameFromType())}
       {getNameFromType()}
     </Button>
   );
