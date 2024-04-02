@@ -46,7 +46,6 @@ export class ProjectPreloader {
       throw new Error("Couldn't find the Launcher for this folder");
     }
 
-    // first check if mods exists
     const existsModsFolder = await stat(directory.getModsPath())
       .then(() => true)
       .catch(() => false);

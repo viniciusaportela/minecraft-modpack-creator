@@ -1,26 +1,38 @@
-import { mkdir, readFile } from 'node:fs/promises';
-import path from 'path';
-import { writeFileSync } from 'node:fs';
+import cloneDeep from 'lodash.clonedeep';
+import debounce from 'lodash.debounce';
+import { writeFile } from 'node:fs/promises';
 import { TomlParser } from './TomlParser';
 import { JsonParser } from './JsonParser';
-import { ProjectModel } from '../../../models/project.model';
+
+export const Root = Symbol('Root');
 
 export class ConfigNode {
   private children: ConfigNode[] = [];
 
   private parsed: any = null;
 
-  private realPath: string;
+  private fileType: string = '';
+
+  private debounceWrite;
 
   constructor(
-    private readonly project: ProjectModel,
     private readonly path: string,
     private readonly config: {
       isDirectory?: boolean;
-      isVirtual?: boolean;
     } = {},
   ) {
-    this.realPath = path;
+    this.debounceWrite = debounce(async (data) => {
+      await writeFile(this.path, this.toOriginal(data), 'utf-8');
+    }, 1000);
+
+    if (!config.isDirectory) {
+      this.fileType = path.split('.').pop()!;
+    }
+  }
+
+  static isCompatible(path: string) {
+    const extension = path.split('.').pop()!;
+    return ['toml', 'json'].includes(extension);
   }
 
   isDirectory() {
@@ -41,33 +53,17 @@ export class ConfigNode {
   }
 
   async getData() {
-    return this.parsed;
+    return cloneDeep(this.parsed);
   }
 
-  async initialize() {
+  async writeData(data: any) {
+    this.parsed = cloneDeep(data);
+    this.debounceWrite(data);
+  }
+
+  async loadFile() {
     if (!this.config.isDirectory) {
-      if (this.config.isVirtual) {
-        const basePath = path.join(
-          this.project.path,
-          'minecraft-toolkit',
-          'virtual-configs',
-          this.project._id.toString(),
-        );
-
-        await mkdir(basePath, {
-          recursive: true,
-        });
-
-        const newPath = path.join(basePath, path.basename(this.path));
-
-        // TODO has to consider case where server config is inside a folder
-        const sourceRaw = await readFile(path.join(this.path));
-
-        writeFileSync(newPath, sourceRaw);
-      }
-
-      const extension = this.path.split('.').pop();
-      switch (extension) {
+      switch (this.fileType) {
         case 'toml':
           this.parsed = new TomlParser(this.path).parse();
           break;
@@ -75,10 +71,21 @@ export class ConfigNode {
           this.parsed = new JsonParser(this.path).parse();
           break;
         default:
-          console.warn(`Unknown config file type: ${extension}`);
+          console.warn(`Unknown config file type: ${this.fileType}`);
       }
     }
 
     return this;
+  }
+
+  private toOriginal(data: any) {
+    switch (this.fileType) {
+      case 'toml':
+        return new TomlParser(this.path).toOriginal(data);
+      case 'json':
+        return new JsonParser(this.path).toOriginal(data);
+      default:
+        return '';
+    }
   }
 }

@@ -9,6 +9,7 @@ import { GlobalStateModel } from '../../core/models/global-state.model';
 import { useAppStore } from '../../store/app.store';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { ProjectPreloader } from '../../core/domains/project/project-preloader';
+import { ConfigLoader } from '../../core/domains/minecraft/config/ConfigLoader';
 
 export default function ProjectPreload() {
   const handleError = useErrorHandler();
@@ -37,6 +38,9 @@ export default function ProjectPreload() {
     try {
       if (project) {
         if (project.loaded) {
+          const configLoader = new ConfigLoader(project);
+          const configs = await configLoader.load();
+          useAppStore.setState({ configs });
           navigate('project');
         } else {
           const preloader = new ProjectPreloader(project);
