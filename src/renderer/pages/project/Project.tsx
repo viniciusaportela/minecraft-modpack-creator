@@ -210,7 +210,7 @@ export default function Project() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <ScrollShadow
-          className="p-5 w-full no-scrollbar"
+          className="p-5 w-full no-scrollbar min-h-[80px]"
           orientation="horizontal"
           id="tabs"
         >
@@ -245,7 +245,7 @@ export default function Project() {
         <PageHider isVisible={isVisible('recipes')}>
           <Recipes />
         </PageHider>
-        <PageHider isVisible={isVisible('recipes')}>
+        <PageHider isVisible={isVisible('configs')}>
           <Configs />
         </PageHider>
         {openedModTabs.map((addon) => getModViewFromTab(addon.name))}

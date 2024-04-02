@@ -1,0 +1,64 @@
+import { Folder, GearSix } from '@phosphor-icons/react';
+import path from 'path';
+import { Button } from '@nextui-org/react';
+import clsx from 'clsx';
+import { ConfigNode } from '../../core/domains/minecraft/config/ConfigNode';
+
+export interface FileNodeProps {
+  node: ConfigNode;
+  nestLevel: number;
+  onNodeClick?: (node: ConfigNode) => void;
+}
+
+export default function FileNode({
+  node,
+  nestLevel,
+  onNodeClick,
+}: FileNodeProps) {
+  const nodePath = node.getPath();
+  const name = path.basename(nodePath);
+  const isDirectory = node.isDirectory();
+
+  return (
+    <div
+      className="flex flex-col min-w-fit"
+      style={{ marginLeft: nestLevel > 0 ? 30 : 0 }}
+    >
+      {isDirectory ? (
+        <>
+          <div className={clsx('flex gap-2 items-center min-w-fit my-1.5')}>
+            <Folder
+              weight="fill"
+              size={24}
+              className="min-h-[24px] min-w-[24px] text-zinc-700"
+            />
+            <span className="text-sm font-bold min-w-fit -mb-1.5">{name}</span>
+          </div>
+          {node.getChildren().map((n) => (
+            <FileNode
+              node={n}
+              key={n.getPath()}
+              nestLevel={nestLevel + 1}
+              onNodeClick={onNodeClick}
+            />
+          ))}
+        </>
+      ) : (
+        <Button
+          variant="light"
+          onPress={() => onNodeClick?.(node)}
+          className="justify-start -ml-4"
+          startContent={
+            <GearSix
+              weight="fill"
+              size={20}
+              className="min-h-[20px] min-w-[20px]"
+            />
+          }
+        >
+          <span className="-mb-0.5">{name}</span>
+        </Button>
+      )}
+    </div>
+  );
+}
