@@ -37,7 +37,7 @@ export class ConfigLoader {
           current.addChild(directory);
         } else {
           const fullPath = path.join(currentPath, filePath.name);
-          const node = new ConfigNode(fullPath);
+          const node = await new ConfigNode(fullPath).setupFile();
           if (ConfigNode.isCompatible(fullPath)) {
             current.addChild(node);
           }

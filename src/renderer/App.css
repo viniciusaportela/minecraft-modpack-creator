@@ -38,3 +38,12 @@ html, body, #root, main {
 .app-bar-drag {
   -webkit-app-region: drag;
 }
+
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('./assets/fonts/IBMPlexMono-Regular.ttf') format('truetype');
+}
+
+#code-editor .table {
+  display: inherit;
+}

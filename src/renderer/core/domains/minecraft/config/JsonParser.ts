@@ -1,7 +1,12 @@
 export class JsonParser {
-  constructor(private readonly path: string) {}
+  constructor() {}
 
-  parse() {}
-
-  toOriginal(data: any) {}
+  parse(rawData: any) {
+    try {
+      return JSON.parse(rawData);
+    } catch (err) {
+      console.error('[JsonParser.parse]', err);
+      return {};
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import cloneDeep from 'lodash.clonedeep';
 import debounce from 'lodash.debounce';
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { TomlParser } from './TomlParser';
 import { JsonParser } from './JsonParser';
 
@@ -9,7 +9,9 @@ export const Root = Symbol('Root');
 export class ConfigNode {
   private children: ConfigNode[] = [];
 
-  private parsed: any = null;
+  private rawData: any = null;
+
+  private parser: TomlParser | JsonParser | null = null;
 
   private fileType: string = '';
 
@@ -21,8 +23,8 @@ export class ConfigNode {
       isDirectory?: boolean;
     } = {},
   ) {
-    this.debounceWrite = debounce(async (data) => {
-      await writeFile(this.path, this.toOriginal(data), 'utf-8');
+    this.debounceWrite = debounce(async (newData) => {
+      await writeFile(this.path, newData, 'utf-8');
     }, 1000);
 
     if (!config.isDirectory) {
@@ -52,23 +54,33 @@ export class ConfigNode {
     this.children.push(child);
   }
 
-  async getData() {
-    return cloneDeep(this.parsed);
+  getRawData() {
+    return this.rawData;
   }
 
-  async writeData(data: any) {
-    this.parsed = cloneDeep(data);
+  getFileType() {
+    return this.fileType;
+  }
+
+  getData() {
+    return this.parser?.parse(this.rawData);
+  }
+
+  writeRawData(data: any) {
+    this.rawData = data;
     this.debounceWrite(data);
   }
 
-  async loadFile() {
+  async setupFile() {
     if (!this.config.isDirectory) {
+      this.rawData = await readFile(this.path, 'utf-8');
+
       switch (this.fileType) {
         case 'toml':
-          this.parsed = new TomlParser(this.path).parse();
+          this.parser = new TomlParser();
           break;
         case 'json':
-          this.parsed = new JsonParser(this.path).parse();
+          this.parser = new JsonParser();
           break;
         default:
           console.warn(`Unknown config file type: ${this.fileType}`);
@@ -76,16 +88,5 @@ export class ConfigNode {
     }
 
     return this;
-  }
-
-  private toOriginal(data: any) {
-    switch (this.fileType) {
-      case 'toml':
-        return new TomlParser(this.path).toOriginal(data);
-      case 'json':
-        return new JsonParser(this.path).toOriginal(data);
-      default:
-        return '';
-    }
   }
 }

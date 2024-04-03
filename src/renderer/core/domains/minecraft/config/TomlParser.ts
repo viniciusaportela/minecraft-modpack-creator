@@ -1,7 +1,7 @@
 export class TomlParser {
-  constructor(private readonly path: string) {}
+  constructor() {}
 
-  parse() {}
-
-  toOriginal(data: any) {}
+  parse() {
+    return {};
+  }
 }

@@ -70,6 +70,7 @@
   "dependencies": {
     "@nextui-org/react": "^2.2.9",
     "@phosphor-icons/react": "^2.0.15",
+    "@uiw/react-textarea-code-editor": "^3.0.2",
     "cheerio": "^1.0.0-rc.12",
     "clsx": "^2.1.0",
     "deepmerge": "^4.3.1",
@@ -88,6 +89,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
+    "react-resizable": "^3.0.5",
     "react-router-dom": "^6.16.0",
     "react-window": "^1.8.10",
     "reactflow": "^11.10.4",
@@ -115,6 +117,7 @@
     "@types/node": "20.6.2",
     "@types/react": "^18.2.21",
     "@types/react-dom": "^18.2.7",
+    "@types/react-resizable": "^3.0.7",
     "@types/react-test-renderer": "^18.0.1",
     "@types/react-window": "^1.8.8",
     "@types/recursive-readdir": "^2.2.4",

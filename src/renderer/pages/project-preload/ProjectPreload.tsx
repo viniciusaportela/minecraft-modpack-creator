@@ -37,10 +37,11 @@ export default function ProjectPreload() {
   async function loadProject() {
     try {
       if (project) {
+        const configLoader = new ConfigLoader(project);
+        const configs = await configLoader.load();
+        useAppStore.setState({ configs });
+
         if (project.loaded) {
-          const configLoader = new ConfigLoader(project);
-          const configs = await configLoader.load();
-          useAppStore.setState({ configs });
           navigate('project');
         } else {
           const preloader = new ProjectPreloader(project);
