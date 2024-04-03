@@ -1,10 +1,8 @@
-import cloneDeep from 'lodash.clonedeep';
 import debounce from 'lodash.debounce';
 import { readFile, writeFile } from 'node:fs/promises';
+import path from 'path';
 import { TomlParser } from './TomlParser';
 import { JsonParser } from './JsonParser';
-
-export const Root = Symbol('Root');
 
 export class ConfigNode {
   private children: ConfigNode[] = [];
@@ -43,6 +41,29 @@ export class ConfigNode {
 
   getPath() {
     return this.path;
+  }
+
+  cloneWithFilter(filter: string) {
+    if (this.isDirectory()) {
+      const clonedNode = new ConfigNode(this.path, this.config);
+
+      this.children.forEach((child) => {
+        if (child.isDirectory()) {
+          const childChildren = child.cloneWithFilter(filter);
+          if (childChildren) {
+            clonedNode.addChild(childChildren);
+          }
+        } else if (path.basename(child.getPath()).includes(filter)) {
+          clonedNode.addChild(child);
+        }
+      });
+
+      return clonedNode;
+    }
+
+    return path.basename(this.path).includes(filter)
+      ? new ConfigNode(this.path, this.config)
+      : null;
   }
 
   getChildren() {

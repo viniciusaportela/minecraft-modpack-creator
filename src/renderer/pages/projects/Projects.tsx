@@ -21,6 +21,7 @@ import { MinecraftVersionPickerModal } from './components/MinecraftVersionPicker
 import { TextureModel } from '../../core/models/texture.model';
 import { ModModel } from '../../core/models/mod.model';
 import { ItemModel } from '../../core/models/item.model';
+import SearchBar from '../../components/search-bar/SearchBar';
 
 export default function Projects() {
   const handleError = useErrorHandler();
@@ -219,25 +220,13 @@ export default function Projects() {
     return 0;
   });
 
-  console.log(orderedProjects);
-
   return (
     <>
       <AppBarHeader title="My Projects">
         <AppBarHeaderContainer>
           <div className="flex-1 app-bar-drag h-full" />
           <div className="flex justify-center items-center w-10/12 max-w-[300px] justify-self-center">
-            <Input
-              size="sm"
-              value={filterText}
-              endContent={
-                <MagnifyingGlass size={16} className="text-zinc-500" />
-              }
-              classNames={{
-                inputWrapper: 'h-5',
-              }}
-              onValueChange={(txt) => setFilterText(txt)}
-            />
+            <SearchBar text={filterText} onChange={setFilterText} />
           </div>
           <div className="flex-1 app-bar-drag h-full" />
           <Button
