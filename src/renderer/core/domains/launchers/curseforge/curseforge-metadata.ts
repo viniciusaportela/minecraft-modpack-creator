@@ -2,9 +2,9 @@ import { BaseMetadata } from '../base/base-metadata';
 import { CurseforgeModMetadata } from './curseforge-mod-metadata';
 import JarLoader from '../../minecraft/jar-loader';
 import { NullModMetadata } from '../base/null-mod-metadata';
-import { ICurseMetadata } from '../../minecraft/interfaces/curse-metadata.interface';
+import { ICurseforgeMetadata } from './interfaces/curse-metadata.interface';
 
-export class CurseforgeMetadata extends BaseMetadata<ICurseMetadata> {
+export class CurseforgeMetadata extends BaseMetadata<ICurseforgeMetadata> {
   async getModMetadata(jar: JarLoader) {
     const jarPathSplit = jar.jarPath.split('/');
     const jarFile = jarPathSplit[jarPathSplit.length - 1];

@@ -19,8 +19,6 @@ export const ModConfigProvider = memo(
     const [loading, setLoading] = useState(true);
     const [modConfig] = useState(mod.getConfig());
 
-    console.log('ModConfigProvider', modConfig);
-
     useEffect(() => {
       setup();
     }, []);
@@ -28,7 +26,6 @@ export const ModConfigProvider = memo(
     const setup = async () => {
       try {
         const parsedConfig = modConfig.parseConfig();
-        console.log('parsedConfig', parsedConfig);
 
         if (!parsedConfig.initialized) {
           const project = realm.objectForPrimaryKey<ProjectModel>(
@@ -36,17 +33,14 @@ export const ModConfigProvider = memo(
             mod.project,
           )!;
           const modDomain = ModFactory.create(project, mod);
-          console.log('modDomain', modDomain);
           const initializedConfig =
             await modDomain.initializeConfig(parsedConfig);
-          console.log('initializedConfig', initializedConfig);
           modConfig.writeConfig(initializedConfig);
         }
 
         const st = useModConfigStore.getState();
         if (!st[mod._id.toString()]) {
           const mostUpdatedConfig = modConfig.parseConfig();
-          console.log('mostUpdatedConfig', mostUpdatedConfig);
 
           useModConfigStore.setState({
             [mod._id.toString()]: mostUpdatedConfig,

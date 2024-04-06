@@ -8,11 +8,10 @@ interface RawConfigEditorProps {
 export default function RawConfigEditor({ config }: RawConfigEditorProps) {
   const data = config.getRawData();
   const fileType = config.getFileType();
-  console.log(fileType, data);
 
   return (
     <div
-      className="flex flex-1 overflow-auto"
+      className="flex flex-1 overflow-auto rounded-md"
       style={{ maxHeight: 'calc(100% - 32px)' }}
       id="code-editor"
     >

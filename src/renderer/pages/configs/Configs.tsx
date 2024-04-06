@@ -10,7 +10,6 @@ import { GlobalStateModel } from '../../core/models/global-state.model';
 import { ProjectModel } from '../../core/models/project.model';
 import RefinedConfigEditor from './components/RefinedConfigEditor';
 import { ConfigNode } from '../../core/domains/minecraft/config/ConfigNode';
-import filesTree from '../../components/files-tree/FilesTree';
 import SearchBar from '../../components/search-bar/SearchBar';
 
 export default function Configs() {
@@ -28,7 +27,7 @@ export default function Configs() {
   const getFirstFile = (nodes: ConfigNode[]) => {
     const toRead = [...nodes];
     while (toRead.length) {
-      const node = toRead.pop();
+      const node = toRead.shift();
       if (node) {
         if (node.isDirectory()) {
           toRead.push(...node.getChildren());
@@ -54,7 +53,7 @@ export default function Configs() {
       <Resizable
         size={{ height: 'auto', width: treeWidth }}
         onResize={(e, direction, ref, d) => {
-          setTreeWidth((prev) => ref.clientWidth);
+          setTreeWidth(() => ref.clientWidth);
         }}
         minWidth={200}
         maxWidth={contentSize}

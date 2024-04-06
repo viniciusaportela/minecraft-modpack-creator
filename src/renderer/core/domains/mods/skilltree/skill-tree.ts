@@ -1,9 +1,9 @@
 import path from 'path';
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { Edge, Node } from 'reactflow';
-import { BaseMod } from '../base-mod';
+import { DefaultMod } from '../default-mod';
 
-export class SkillTree extends BaseMod {
+export class SkillTree extends DefaultMod {
   async build() {
     const config = this.config.parseConfig();
     console.log('parsedConfig', config);

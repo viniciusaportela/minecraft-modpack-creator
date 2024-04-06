@@ -1,9 +1,9 @@
 import { IProjectStore } from '../../../../store/interfaces/project-store.interface';
 import { ModModel } from '../../../models/mod.model';
 import { ProjectModel } from '../../../models/project.model';
-import { BaseMod } from '../base-mod';
+import { DefaultMod } from '../default-mod';
 
-export class KubeJS extends BaseMod {
+export class KubeJS extends DefaultMod {
   // DEV add recipes
 
   async build(project: ProjectModel, mod: ModModel) {

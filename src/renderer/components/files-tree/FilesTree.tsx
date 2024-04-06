@@ -17,8 +17,6 @@ const FilesTree = forwardRef<HTMLDivElement, FilesTreeProps>(
 
     const filteredNodes = filterText ? filterNodes() : nodes;
 
-    console.log(filteredNodes);
-
     return (
       <div
         className="overflow-x-auto rounded-md bg-zinc-800 p-3 h-full w-fit"

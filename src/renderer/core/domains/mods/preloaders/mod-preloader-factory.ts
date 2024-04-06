@@ -1,12 +1,11 @@
 import { DefaultModPreloader } from './default-mod-preloader';
 import { SkillTreeModPreloader } from '../skilltree/skill-tree-mod-preloader';
-import { IModPreloader } from '../interfaces/mod-preloader.interface';
 import JarLoader from '../../minecraft/jar-loader';
 import { MinecraftModPreloader } from './minecraft-mod-preloader';
 import { KubejsPreloader } from '../kubejs/kubejs-preloader';
 
 export class ModPreloaderFactory {
-  static async create(jarLoader: JarLoader): Promise<IModPreloader> {
+  static async create(jarLoader: JarLoader): Promise<DefaultModPreloader> {
     const modId = await jarLoader.getModId();
 
     switch (modId) {

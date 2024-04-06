@@ -1,10 +1,12 @@
+import { BusinessError } from './business-error.enum';
+
 export default class BusinessLogicError extends Error {
   constructor({
     code,
     message,
     meta,
   }: {
-    code: string;
+    code: BusinessError;
     message: string;
     meta?: any;
   }) {
@@ -17,7 +19,7 @@ export default class BusinessLogicError extends Error {
 
   message: string;
 
-  code: string;
+  code: BusinessError;
 
   meta?: any;
 

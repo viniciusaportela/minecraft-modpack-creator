@@ -8,7 +8,7 @@ export interface IMod {
   status: number;
 }
 
-export interface ICurseMetadata {
+export interface ICurseforgeMetadata {
   name: string;
   baseModLoader: {
     name: string;

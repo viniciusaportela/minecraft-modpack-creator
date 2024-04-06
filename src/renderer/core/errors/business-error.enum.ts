@@ -3,4 +3,5 @@ export enum BusinessError {
   InvalidProject = 'invalid_project',
   LauncherNotFound = 'launcher_not_found',
   PreloadError = 'preload_error',
+  BuildError = 'build_error',
 }

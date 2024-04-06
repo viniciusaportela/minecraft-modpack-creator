@@ -1,6 +1,14 @@
 import path from 'path';
-import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
+import {
+  cp,
+  mkdir,
+  readdir,
+  readFile,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import recursive from 'recursive-readdir';
+import fsExtra from 'fs-extra';
 import { ConfigNode } from './ConfigNode';
 import { ProjectModel } from '../../../models/project.model';
 
@@ -11,10 +19,11 @@ export class ConfigLoader {
     const configs: ConfigNode[] = [];
     const toReadStack: ConfigNode[] = [];
 
-    // DEV before calling this, check if has any saves, if not alert user to run a map first
-    await this.copyDefaultConfigs();
+    // TODO before calling this, check if has any saves, if not alert user to run a map first
+    await this.copyDefaultConfigsFromSaves();
+    await this.copyConfigsToSafeArea();
 
-    const initialConfigs = this.getInitialConfigs();
+    const initialConfigs = await this.getInitialConfigs();
     toReadStack.push(...initialConfigs);
     configs.push(...initialConfigs);
 
@@ -48,25 +57,51 @@ export class ConfigLoader {
     return configs;
   }
 
-  getInitialConfigs() {
+  static getBaseFolders() {
+    return ['config', 'defaultconfigs'];
+  }
+
+  async copyConfigsToSafeArea() {
+    const basePaths = ConfigLoader.getBaseFolders();
+
+    const safeEditingFolder = path.join(
+      this.project.path,
+      'minecraft_toolkit',
+      'configs',
+    );
+
+    for await (const basePath of basePaths) {
+      await fsExtra.copy(
+        path.join(this.project.path, basePath),
+        path.join(safeEditingFolder, basePath),
+        { overwrite: false },
+      );
+    }
+  }
+
+  async getInitialConfigs() {
     const entries = [];
 
-    entries.push(
-      new ConfigNode(path.join(this.project.path, 'config'), {
-        isDirectory: true,
-      }),
+    const basePaths = ConfigLoader.getBaseFolders();
+
+    const safeEditingFolder = path.join(
+      this.project.path,
+      'minecraft_toolkit',
+      'configs',
     );
 
-    entries.push(
-      new ConfigNode(path.join(this.project.path, 'defaultconfigs'), {
-        isDirectory: true,
-      }),
-    );
+    for await (const basePath of basePaths) {
+      entries.push(
+        new ConfigNode(path.join(safeEditingFolder, basePath), {
+          isDirectory: true,
+        }),
+      );
+    }
 
     return entries;
   }
 
-  private async copyDefaultConfigs() {
+  private async copyDefaultConfigsFromSaves() {
     const basePath = path.join(this.project.path, 'defaultconfigs');
 
     const allSaves = await readdir(path.join(this.project.path, 'saves'));

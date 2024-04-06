@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from '@nextui-org/react';
+import { Badge, Button, Chip } from '@nextui-org/react';
 import { CaretLeft, CornersOut, Minus, X } from '@phosphor-icons/react';
 import { useShallow } from 'zustand/react/shallow';
 import { ipcRenderer } from 'electron';
@@ -44,6 +44,9 @@ export default function AppBar() {
       <span className="text-xl font-bold bg-gradient-to-br from-blue-500 to-green-400 bg-clip-text text-transparent ml-5 min-w-fit">
         {title}
       </span>
+      <Chip size="sm" className="text-xs ml-2">
+        ALPHA
+      </Chip>
       {customMiddleComponent ?? <div className="flex-1 app-bar-drag h-full" />}
       <div className="flex gap-1 ml-2">
         <Button

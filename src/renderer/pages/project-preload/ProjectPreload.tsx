@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Progress } from '@nextui-org/react';
 import { ipcRenderer } from 'electron';
+import { mkdir, stat } from 'node:fs/promises';
+import path from 'path';
 import { usePager } from '../../components/pager/hooks/usePager';
 import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
 import { ProjectModel } from '../../core/models/project.model';
@@ -37,6 +39,17 @@ export default function ProjectPreload() {
   async function loadProject() {
     try {
       if (project) {
+        const minecraftToolkitPath = path.join(
+          project.path,
+          'minecraft_toolkit',
+        );
+        const minecraftToolkitExists = await stat(minecraftToolkitPath).catch(
+          () => null,
+        );
+        if (!minecraftToolkitExists) {
+          await mkdir(minecraftToolkitPath);
+        }
+
         const configLoader = new ConfigLoader(project);
         const configs = await configLoader.load();
         useAppStore.setState({ configs });
@@ -65,7 +78,6 @@ export default function ProjectPreload() {
         throw new Error('Project is undefined on ProjectPreload');
       }
     } catch (err) {
-      console.log(err.stack);
       await handleError(err);
       if (realm.isInTransaction) realm.cancelTransaction();
       realm.write(() => {

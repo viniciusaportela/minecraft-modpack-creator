@@ -1,11 +1,24 @@
-import { ModModel } from '../../models/mod.model';
 import { ProjectModel } from '../../models/project.model';
-import { BaseMod } from './base-mod';
+import { ModModel } from '../../models/mod.model';
+import { ModConfigModel } from '../../models/mod-config.model';
 
-export class DefaultMod extends BaseMod {
-  build(project: ProjectModel, mod: ModModel) {}
+export class DefaultMod {
+  protected config: ModConfigModel;
 
-  preBuild(project: ProjectModel, mod: ModModel) {}
+  constructor(
+    protected readonly project: ProjectModel,
+    protected readonly mod: ModModel,
+  ) {
+    this.config = mod.getConfig();
+  }
 
-  postBuild(project: ProjectModel, mod: ModModel) {}
+  async build(project: ProjectModel, mod: ModModel) {}
+
+  async preBuild(project: ProjectModel, mod: ModModel) {}
+
+  async postBuild(project: ProjectModel, mod: ModModel) {}
+
+  initializeConfig(config: any) {
+    return { ...config, initialized: true };
+  }
 }

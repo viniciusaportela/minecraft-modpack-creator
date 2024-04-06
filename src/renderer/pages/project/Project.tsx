@@ -27,19 +27,18 @@ import ModId from '../../typings/mod-id.enum';
 import { ModModel } from '../../core/models/mod.model';
 import ModpackBuilder from '../../core/builder/ModpackBuilder';
 import BuildingModal from './components/BuildingModal';
-import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { ModConfigProvider } from '../../store/mod-config-provider';
 import NoThumb from '../../assets/no-thumb.png';
 import { useAppStore } from '../../store/app.store';
 import Configs from '../configs/Configs';
 import PageHider from './components/PageHider';
+import BuildErrorReport from '../../components/build-error-modal/BuildErrorReport';
 
 export default function Project() {
   useHorizontalScroll('tabs');
 
   const { navigate } = usePager();
 
-  const handleError = useErrorHandler();
   const realm = useAppStore((st) => st.realm);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [isBuilding, setIsBuilding] = useState(false);
@@ -53,6 +52,13 @@ export default function Project() {
   const mods = useQuery(ModModel, (obj) =>
     obj.filtered('modId != $0 AND project = $1', ModId.Minecraft, project._id),
   );
+
+  const {
+    isOpen: isReportOpen,
+    onOpenChange: onReportOpenChange,
+    onOpen: onOpenReport,
+  } = useDisclosure();
+  const [buildReportError, setBuildReportError] = useState<Error | null>(null);
 
   useLayoutEffect(() => {
     ipcRenderer.send('resize', 1280, 900);
@@ -74,13 +80,19 @@ export default function Project() {
         .build(project);
 
       toast.success('Build successful!');
-    } catch (e) {
-      console.error(e);
-      await handleError(e);
+    } catch (error) {
+      console.error(error);
+      toast.error('Build Failed');
+      openBuildErrorReport(error as Error);
     } finally {
       onClose();
       setIsBuilding(false);
     }
+  }
+
+  function openBuildErrorReport(error: Error) {
+    setBuildReportError(error);
+    onOpenReport();
   }
 
   function clickOnMod(addon: ModModel) {
@@ -250,6 +262,11 @@ export default function Project() {
         </PageHider>
         {openedModTabs.map((addon) => getModViewFromTab(addon.name))}
       </div>
+      <BuildErrorReport
+        isOpen={isReportOpen}
+        onOpenChange={onReportOpenChange}
+        error={buildReportError}
+      />
     </div>
   );
 }

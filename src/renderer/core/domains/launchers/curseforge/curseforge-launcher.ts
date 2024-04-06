@@ -58,11 +58,9 @@ export class CurseforgeLauncher extends BaseLauncher {
     return new CurseforgeDirectory(folder);
   }
 
-  async isFolderOfThisLauncher(folder: string): Promise<boolean> {
-    const exists = await stat(path.join(folder, 'minecraftinstance.json'))
+  isFolderOfThisLauncher(folder: string): Promise<boolean> {
+    return stat(path.join(folder, 'minecraftinstance.json'))
       .then(() => true)
       .catch(() => false);
-
-    return exists;
   }
 }

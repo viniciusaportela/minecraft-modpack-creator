@@ -1,15 +1,21 @@
 import debounce from 'lodash.debounce';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'path';
-import { TomlParser } from './TomlParser';
-import { JsonParser } from './JsonParser';
+import { TomlParser } from './parser/TomlParser';
+import { JsonParser } from './parser/JsonParser';
+import { SNbtParser } from './parser/SNbtParser';
+import { ParserFactory } from './parser/parser-factory';
 
 export class ConfigNode {
   private children: ConfigNode[] = [];
 
   private rawData: any = null;
 
-  private parser: TomlParser | JsonParser | null = null;
+  private parser:
+    | typeof TomlParser
+    | typeof JsonParser
+    | typeof SNbtParser
+    | null = null;
 
   private fileType: string = '';
 
@@ -84,7 +90,12 @@ export class ConfigNode {
   }
 
   getData() {
-    return this.parser?.parse(this.rawData);
+    try {
+      return this.parser?.parse(this.rawData);
+    } catch (error) {
+      console.warn(`Couldn't parse ${this.path}:`, error);
+      return {};
+    }
   }
 
   writeRawData(data: any) {
@@ -95,17 +106,7 @@ export class ConfigNode {
   async setupFile() {
     if (!this.config.isDirectory) {
       this.rawData = await readFile(this.path, 'utf-8');
-
-      switch (this.fileType) {
-        case 'toml':
-          this.parser = new TomlParser();
-          break;
-        case 'json':
-          this.parser = new JsonParser();
-          break;
-        default:
-          console.warn(`Unknown config file type: ${this.fileType}`);
-      }
+      this.parser = ParserFactory.get(this.fileType);
     }
 
     return this;
