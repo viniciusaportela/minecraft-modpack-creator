@@ -1,4 +1,4 @@
-import { TomlParser } from './TomlParser';
+import { TomlParser } from './toml/TomlParser';
 import { JsonParser } from './JsonParser';
 import { SNbtParser } from './SNbtParser';
 

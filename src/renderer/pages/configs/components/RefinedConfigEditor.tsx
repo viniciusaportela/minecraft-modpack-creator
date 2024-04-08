@@ -7,5 +7,8 @@ interface RefinedConfigEditorProps {
 export default function RefinedConfigEditor({
   config,
 }: RefinedConfigEditorProps) {
+  const data = config.getData();
+  console.log(data);
+
   return null;
 }

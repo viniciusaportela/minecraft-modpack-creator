@@ -1,7 +1,9 @@
 export class SNbtParser {
-  static parse() {
+  static parse(rawData: string) {
     return {};
   }
+
+  static async toOriginal() {}
 
   // DEV
   static async isFileValid(path: string) {
