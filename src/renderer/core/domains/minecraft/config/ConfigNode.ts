@@ -38,7 +38,7 @@ export class ConfigNode {
 
   static isCompatible(path: string) {
     const extension = path.split('.').pop()!;
-    return ['toml', 'json'].includes(extension);
+    return ParserFactory.ALLOWED_EXTENSIONS.includes(extension);
   }
 
   isDirectory() {

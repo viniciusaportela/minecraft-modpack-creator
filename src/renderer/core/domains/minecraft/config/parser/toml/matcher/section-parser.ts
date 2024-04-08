@@ -12,7 +12,7 @@ export class SectionParser extends LineParser {
     console.log('parse section', line);
     return this.aggregateWithCommentsAndGroups(line, ctx, {
       type: 'group',
-      name: this.PATTERN.exec(line)![1],
+      name: this.PATTERN.exec(line.trim())![1],
       value: '',
       children: [],
     });

@@ -4,11 +4,11 @@ import { PencilSimple, PenNib } from '@phosphor-icons/react';
 import { Resizable } from 're-resizable';
 import { useAppStore } from '../../store/app.store';
 import FilesTree from '../../components/files-tree/FilesTree';
-import RawConfigEditor from './components/RawConfigEditor';
+import RawConfigEditor from './components/RawConfigEditor/RawConfigEditor';
 import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
 import { GlobalStateModel } from '../../core/models/global-state.model';
 import { ProjectModel } from '../../core/models/project.model';
-import RefinedConfigEditor from './components/RefinedConfigEditor';
+import RefinedConfigEditor from './components/RefinedConfigEditor/RefinedConfigEditor';
 import { ConfigNode } from '../../core/domains/minecraft/config/ConfigNode';
 import SearchBar from '../../components/search-bar/SearchBar';
 
@@ -52,7 +52,7 @@ export default function Configs() {
     <div className="flex h-full">
       <Resizable
         size={{ height: 'auto', width: treeWidth }}
-        onResize={(e, direction, ref, d) => {
+        onResize={(e, direction, ref) => {
           setTreeWidth(() => ref.clientWidth);
         }}
         minWidth={200}

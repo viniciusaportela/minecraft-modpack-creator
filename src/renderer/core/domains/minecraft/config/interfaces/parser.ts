@@ -1,6 +1,6 @@
 export interface RefinedField {
   name: string;
-  value: string | RefinedField[];
+  value: string;
   comment?: string;
   indentation?: number;
   type:

@@ -35,13 +35,14 @@ export abstract class LineParser {
     );
 
     console.log(
-      ctx.last,
+      JSON.stringify(ctx.last, null, 2),
       'last',
-      last,
-      'path',
+      JSON.stringify(last, null, 2),
+      'path:',
       path,
+      ' ',
       'for indent',
-      result.indentation,
+      JSON.stringify(result.indentation, null, 2),
     );
 
     if (!last) {
@@ -114,12 +115,14 @@ export abstract class LineParser {
         };
       }
 
-      // Still behind the indentation, go deeper
-      return this.getLastMatchingIndentation(
-        last.children!,
-        `${path ? `${path}.` : ''}children.${last.children!.length - 1}`,
-        indentation,
-      );
+      if (last.children?.length) {
+        // Still behind the indentation, go deeper
+        return this.getLastMatchingIndentation(
+          last.children!,
+          `${path ? `${path}.` : ''}children.${last.children!.length - 1}`,
+          indentation,
+        );
+      }
     }
 
     // Couldn't match indentation on the deepest level
@@ -146,7 +149,12 @@ export abstract class LineParser {
     root: RefinedField;
     result: RefinedField;
   }): ParseResult {
-    console.log('replaceLast');
+    console.log(
+      'replaceLast',
+      path,
+      JSON.stringify(result, null, 2),
+      JSON.stringify(root, null, 2),
+    );
     if (root.type === 'group') {
       if (!path) {
         return {
@@ -171,9 +179,13 @@ export abstract class LineParser {
       };
     }
 
+    if (path) {
+      set(root, path, result);
+    }
+
     return {
       operation: 'replace',
-      result,
+      result: path ? root : result,
     };
   }
 

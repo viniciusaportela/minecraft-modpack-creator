@@ -1,8 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
 export class JsonParser {
-  constructor() {}
-
   static parse(rawData: any) {
     try {
       return JSON.parse(rawData);

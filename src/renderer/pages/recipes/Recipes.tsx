@@ -23,7 +23,7 @@ export default function Recipes() {
     return (
       <>
         <h1 className="text-xl font-bold">Your custom recipes</h1>
-        <div className="bg-danger mt-3 p-3 rounded-md flex items-center drop-shadow-md">
+        <div className="bg-danger-300 mt-3 p-3 rounded-md flex items-center drop-shadow-md">
           <Warning size={20} weight="bold" />
           <span className="ml-2">
             You don't have KubeJS installed or enabled. You need it to create

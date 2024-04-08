@@ -1,4 +1,8 @@
-import { ParseContext, RefinedParseResult } from '../../interfaces/parser';
+import {
+  ParseContext,
+  RefinedField,
+  RefinedParseResult,
+} from '../../interfaces/parser';
 import { CommentParser } from './matcher/comment-parser';
 import { SectionParser } from './matcher/section-parser';
 import { UnknownParser } from './matcher/unknown-parser';
@@ -21,9 +25,27 @@ export class TomlParser {
       return this.parseLine(line, acc, {
         index,
         lines,
-        last: acc[acc.length - 1],
+        last: this.getLastNotUnknown(acc),
       });
     }, []);
+  }
+
+  /**
+   * Unknown fields are generally empty lines, they can break the flow of the parser if used.
+   * So this function get only non-unknown fields.
+   * @param acc
+   * @private
+   */
+  private static getLastNotUnknown(
+    acc: RefinedParseResult,
+  ): RefinedField | undefined {
+    if (acc.length === 0) {
+      return undefined;
+    }
+
+    return acc[acc.length - 1].type !== 'unknown'
+      ? acc[acc.length - 1]
+      : this.getLastNotUnknown(acc.slice(0, -1));
   }
 
   // eslint-disable-next-line consistent-return

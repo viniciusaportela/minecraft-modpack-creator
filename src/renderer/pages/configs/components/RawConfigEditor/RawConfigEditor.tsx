@@ -1,5 +1,5 @@
 import CodeEditor from '@uiw/react-textarea-code-editor';
-import { ConfigNode } from '../../../core/domains/minecraft/config/ConfigNode';
+import { ConfigNode } from '../../../../core/domains/minecraft/config/ConfigNode';
 
 interface RawConfigEditorProps {
   config: ConfigNode;
@@ -17,7 +17,7 @@ export default function RawConfigEditor({ config }: RawConfigEditorProps) {
     >
       <CodeEditor
         value={data}
-        language={fileType}
+        language={fileType === 'snbt' ? 'js' : fileType}
         onChange={(ev) => config.writeRawData(ev.target.value)}
         style={{
           fontFamily: 'IBM Plex Mono',

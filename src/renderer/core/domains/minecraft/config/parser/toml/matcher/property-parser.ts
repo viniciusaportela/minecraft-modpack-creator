@@ -2,7 +2,7 @@ import { LineParser } from './line-parser';
 import { ParseContext, ParseResult } from '../../../interfaces/parser';
 
 export class PropertyParser extends LineParser {
-  private PATTERN = /"?(.*?)"?\s*=\s*(.*)/;
+  private PATTERN = /"?([^"]*?)"?\s*=\s*(.*)/;
 
   matches(line: string): boolean {
     return this.PATTERN.test(line);
