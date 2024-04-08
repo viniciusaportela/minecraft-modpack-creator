@@ -9,10 +9,7 @@ import {
 export abstract class LineParser {
   abstract matches(line: string): boolean;
 
-  abstract parse(
-    line: string,
-    ctx?: ParseContext,
-  ): { operation: 'add' | 'replace'; result: any };
+  abstract parse(line: string, ctx?: ParseContext): ParseResult;
 
   protected aggregateWithCommentsAndGroups(
     line: string,
@@ -79,13 +76,6 @@ export abstract class LineParser {
     path: string;
   } {
     const last = fields[fields.length - 1];
-    console.group(
-      'getLastMatchingIndentation',
-      fields,
-      path,
-      indentation,
-      last,
-    );
 
     if (last.type === 'group') {
       /* Will get the last matching the indentation
@@ -97,7 +87,6 @@ export abstract class LineParser {
       if (last.indentation! + 1 === indentation) {
         if (last.children!.length === 0) {
           console.log("doesn't have children, returning itself");
-          console.groupEnd();
           return {
             last,
             path,
@@ -108,7 +97,6 @@ export abstract class LineParser {
           `has children, returning last. last.children:`,
           last.children,
         );
-        console.groupEnd();
         return {
           last: last.children![last.children!.length - 1],
           path: `${path ? `${path}.` : ''}children.${last.children!.length - 1}`,
@@ -128,12 +116,10 @@ export abstract class LineParser {
     // Couldn't match indentation on the deepest level
     if (last.indentation !== indentation) {
       console.log("Couldn't match indentation", last.indentation, indentation);
-      console.groupEnd();
       return { last: null, path: '' };
     }
 
     console.log('found edge');
-    console.groupEnd();
     return {
       last,
       path,

@@ -13,13 +13,43 @@ export class PropertyParser extends LineParser {
     console.log('parse property', line, name, value);
     return this.aggregateWithCommentsAndGroups(line, ctx, {
       name: name.trim(),
-      value: value.trim(),
+      value: this.parseValue(value.trim()),
+      array: this.isArray(value.trim()),
       type: this.getType(value),
     });
   }
 
+  private isArray(value: string) {
+    return value.startsWith('[') && value.endsWith(']');
+  }
+
+  private parseValue(value: string): string {
+    if (value.startsWith('"') && value.endsWith('"')) {
+      return value.slice(1, -1);
+    }
+
+    return value;
+  }
+
   private getType(value: string): 'string' | 'number' | 'boolean' {
-    if (value === 'true' || value === 'false') {
+    const isArray = this.isArray(value);
+
+    if (isArray) {
+      const parsed = JSON.parse(value);
+      const [first] = parsed;
+
+      if (typeof first === 'boolean') {
+        return 'boolean';
+      }
+
+      if (typeof first === 'number') {
+        return 'number';
+      }
+
+      return 'string';
+    }
+
+    if (['true', 'false'].includes(value)) {
       return 'boolean';
     }
 

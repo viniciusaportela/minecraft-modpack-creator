@@ -3,8 +3,6 @@ export class SNbtParser {
     return {};
   }
 
-  static async toOriginal() {}
-
   // DEV
   static async isFileValid(path: string) {
     return { isValid: true };

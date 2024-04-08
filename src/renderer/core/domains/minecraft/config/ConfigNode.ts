@@ -94,7 +94,7 @@ export class ConfigNode {
       return this.parser?.parse(this.rawData);
     } catch (error) {
       console.warn(`Couldn't parse ${this.path}:`, error);
-      return {};
+      return null;
     }
   }
 

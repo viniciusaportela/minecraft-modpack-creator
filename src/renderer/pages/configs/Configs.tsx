@@ -79,7 +79,9 @@ export default function Configs() {
             />
             <div className="flex items-center justify-between mb-2 min-h-[40px]">
               <span className="text-lg font-bold mb-1">
-                {selectedConfig.getPath().replace(`${project?.path}/`, '')}
+                {selectedConfig
+                  .getPath()
+                  .replace(`${project?.path}/minecraft_toolkit/configs/`, '')}
               </span>
               {selectedConfig.getFileType() === 'toml' && (
                 <Tabs onSelectionChange={(key) => setEditorType(key as string)}>

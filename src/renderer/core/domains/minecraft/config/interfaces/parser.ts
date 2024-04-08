@@ -1,16 +1,10 @@
 export interface RefinedField {
   name: string;
-  value: string;
+  value: (string | number | boolean) | (string | number | boolean)[];
   comment?: string;
   indentation?: number;
-  type:
-    | 'string'
-    | 'group'
-    | 'array'
-    | 'number'
-    | 'boolean'
-    | 'aggr-comment'
-    | 'unknown';
+  array?: boolean;
+  type: 'string' | 'group' | 'number' | 'boolean' | 'aggr-comment' | 'unknown';
   range?: [number, number];
   children?: RefinedField[];
 }

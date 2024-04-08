@@ -10,10 +10,6 @@ export class JsonParser {
     }
   }
 
-  static async toOriginal(data: any): Promise<string> {
-    return JSON.stringify(data, null, 2);
-  }
-
   static async isFileValid(path: string) {
     try {
       const file = await readFile(path, 'utf-8');

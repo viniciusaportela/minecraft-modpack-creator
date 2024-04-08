@@ -19,20 +19,22 @@ export class TomlParser {
   static parse(rawData: string): RefinedParseResult {
     const lines = rawData.split('\n');
 
-    console.log('lines', lines);
-
-    return lines.reduce<RefinedParseResult>((acc, line, index) => {
+    const parsed = lines.reduce<RefinedParseResult>((acc, line, index) => {
       return this.parseLine(line, acc, {
         index,
         lines,
         last: this.getLastNotUnknown(acc),
       });
     }, []);
+
+    return parsed.filter(
+      (field) => !['unknown', 'aggregated-comment'].includes(field.type),
+    );
   }
 
   /**
    * Unknown fields are generally empty lines, they can break the flow of the parser if used.
-   * So this function get only non-unknown fields.
+   * So this function gets only non-unknown fields.
    * @param acc
    * @private
    */
@@ -60,17 +62,20 @@ export class TomlParser {
       if (parser.matches(line)) {
         console.group('line');
         const { operation, result } = parser.parse(line, ctx);
-        console.log('result: ', operation, JSON.stringify(result, null, 2));
+        const resultWithLine = { ...result, line: ctx.index + 1 };
+
+        console.log(
+          'result: ',
+          operation,
+          JSON.stringify(resultWithLine, null, 2),
+        );
         console.groupEnd();
         return operation === 'add'
-          ? [...acc, result]
-          : [...acc.slice(0, -1), result];
+          ? [...acc, resultWithLine]
+          : [...acc.slice(0, -1), resultWithLine];
       }
     }
   }
-
-  // DEV
-  static async toOriginal() {}
 
   static async isFileValid() {
     return { isValid: true };
