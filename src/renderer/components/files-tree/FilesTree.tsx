@@ -7,10 +7,15 @@ interface FilesTreeProps {
   onNodeClick?: (node: ConfigNode) => void;
   width?: number;
   filterText?: string;
+  invalidNodes?: ConfigNode[];
+  selectedNode?: ConfigNode;
 }
 
 const FilesTree = forwardRef<HTMLDivElement, FilesTreeProps>(
-  ({ nodes, onNodeClick, width, filterText }, ref) => {
+  (
+    { nodes, onNodeClick, width, filterText, invalidNodes, selectedNode },
+    ref,
+  ) => {
     const filterNodes = () => {
       return nodes.map((n) => n.cloneWithFilter(filterText!)!);
     };
@@ -29,6 +34,8 @@ const FilesTree = forwardRef<HTMLDivElement, FilesTreeProps>(
           <FileNode
             node={n}
             key={n.getPath()}
+            invalidNodes={invalidNodes}
+            isSelected={(n) => n === selectedNode}
             nestLevel={0}
             onNodeClick={onNodeClick}
           />

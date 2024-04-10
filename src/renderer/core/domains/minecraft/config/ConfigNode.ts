@@ -41,6 +41,10 @@ export class ConfigNode {
     return ParserFactory.ALLOWED_EXTENSIONS.includes(extension);
   }
 
+  isFile() {
+    return !this.config.isDirectory;
+  }
+
   isDirectory() {
     return this.config.isDirectory ?? false;
   }
@@ -49,9 +53,26 @@ export class ConfigNode {
     return this.path;
   }
 
+  cloneFlat() {
+    const clonedNode = new ConfigNode(this.path, this.config).setParser(
+      this.parser,
+    );
+    const flatted: ConfigNode[] = clonedNode.isDirectory() ? [] : [clonedNode];
+
+    if (this.isDirectory()) {
+      this.children.forEach((child) => {
+        flatted.push(...child.cloneFlat());
+      });
+    }
+
+    return flatted.flat();
+  }
+
   cloneWithFilter(filter: string) {
     if (this.isDirectory()) {
-      const clonedNode = new ConfigNode(this.path, this.config);
+      const clonedNode = new ConfigNode(this.path, this.config).setParser(
+        this.parser,
+      );
 
       this.children.forEach((child) => {
         if (child.isDirectory()) {
@@ -89,6 +110,14 @@ export class ConfigNode {
     return this.fileType;
   }
 
+  async isValid() {
+    if (this.isDirectory()) return true;
+    if (this.parser === null) return false;
+
+    const { isValid } = await this.parser.isFileValid(this.path);
+    return isValid;
+  }
+
   getData() {
     try {
       return this.parser?.parse(this.rawData);
@@ -109,6 +138,17 @@ export class ConfigNode {
       this.parser = ParserFactory.get(this.fileType);
     }
 
+    return this;
+  }
+
+  setParser(
+    parser:
+      | typeof TomlParser
+      | typeof JsonParser
+      | typeof SNbtParser
+      | null = null,
+  ) {
+    this.parser = parser;
     return this;
   }
 }

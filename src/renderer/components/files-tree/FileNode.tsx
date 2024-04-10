@@ -1,23 +1,29 @@
-import { Folder, GearSix } from '@phosphor-icons/react';
+import { Folder, GearSix, Warning } from '@phosphor-icons/react';
 import path from 'path';
 import { Button } from '@nextui-org/react';
 import clsx from 'clsx';
 import { ConfigNode } from '../../core/domains/minecraft/config/ConfigNode';
 
 export interface FileNodeProps {
+  isSelected?: (node: ConfigNode) => boolean;
   node: ConfigNode;
   nestLevel: number;
   onNodeClick?: (node: ConfigNode) => void;
+  invalidNodes?: ConfigNode[];
 }
 
 export default function FileNode({
   node,
   nestLevel,
   onNodeClick,
+  isSelected,
+  invalidNodes,
 }: FileNodeProps) {
   const nodePath = node.getPath();
   const name = path.basename(nodePath);
   const isDirectory = node.isDirectory();
+
+  const isInvalid = invalidNodes?.find((n) => n.getPath() === node.getPath());
 
   return (
     <div
@@ -37,6 +43,8 @@ export default function FileNode({
           {node.getChildren().map((n) => (
             <FileNode
               node={n}
+              isSelected={isSelected}
+              invalidNodes={invalidNodes}
               key={n.getPath()}
               nestLevel={nestLevel + 1}
               onNodeClick={onNodeClick}
@@ -47,13 +55,22 @@ export default function FileNode({
         <Button
           variant="light"
           onPress={() => onNodeClick?.(node)}
-          className="justify-start -ml-4"
+          className={clsx(
+            isSelected?.(node) ? 'bg-zinc-700' : 'bg-zinc-800',
+            'justify-start -ml-4',
+            invalidNodes?.find((n) => n.getPath() === node.getPath()) &&
+              'border-danger-300 border-1',
+          )}
           startContent={
-            <GearSix
-              weight="fill"
-              size={20}
-              className="min-h-[20px] min-w-[20px]"
-            />
+            isInvalid ? (
+              <Warning size={18} weight="bold" className="text-danger-300" />
+            ) : (
+              <GearSix
+                weight="fill"
+                size={18}
+                className="min-h-[20px] min-w-[20px]"
+              />
+            )
           }
         >
           <span className="-mb-0.5">{name}</span>

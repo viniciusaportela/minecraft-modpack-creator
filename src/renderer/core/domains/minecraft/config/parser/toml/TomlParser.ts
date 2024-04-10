@@ -80,4 +80,6 @@ export class TomlParser {
   static async isFileValid() {
     return { isValid: true };
   }
+
+  static writeLine() {}
 }

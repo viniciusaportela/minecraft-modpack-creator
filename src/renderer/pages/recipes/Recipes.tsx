@@ -9,6 +9,7 @@ import { ProjectModel } from '../../core/models/project.model';
 import { GlobalStateModel } from '../../core/models/global-state.model';
 import { ModModel } from '../../core/models/mod.model';
 import { ModConfigProvider } from '../../store/mod-config-provider';
+import Alert from '../../components/alert/Alert';
 
 export default function Recipes() {
   const globalState = useQueryFirst(GlobalStateModel);
@@ -23,13 +24,11 @@ export default function Recipes() {
     return (
       <>
         <h1 className="text-xl font-bold">Your custom recipes</h1>
-        <div className="bg-danger-300 mt-3 p-3 rounded-md flex items-center drop-shadow-md">
-          <Warning size={20} weight="bold" />
-          <span className="ml-2">
-            You don't have KubeJS installed or enabled. You need it to create
-            custom recipes.
-          </span>
-        </div>
+        <Alert
+          className="mt-3"
+          text="You don't have KubeJS installed or enabled. You need it to create
+            custom recipes."
+        />
       </>
     );
   }

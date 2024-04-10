@@ -1,18 +1,22 @@
 import { Warning } from '@phosphor-icons/react';
+import { useMemo } from 'react';
 import { ConfigNode } from '../../../../core/domains/minecraft/config/ConfigNode';
 import { RefinedParseResult } from '../../../../core/domains/minecraft/config/interfaces/parser';
 import { FieldsRenderer } from './fields/FieldsRenderer';
 
 interface RefinedConfigEditorProps {
   config: ConfigNode;
+  forceRenderIndex: number;
 }
-
-const CHARS_TO_IGNORE = ['\t', '.', ','];
 
 export default function RefinedConfigEditor({
   config,
+  forceRenderIndex,
 }: RefinedConfigEditorProps) {
-  const data = config.getData() as RefinedParseResult;
+  const data = useMemo(
+    () => config.getData(),
+    [config, forceRenderIndex],
+  ) as RefinedParseResult;
 
   if (data === null)
     return (
@@ -25,7 +29,6 @@ export default function RefinedConfigEditor({
       </div>
     );
 
-  console.log(data);
   if (data.length === 0) {
     return (
       <div className="w-full h-full flex items-center justify-center p-5">
