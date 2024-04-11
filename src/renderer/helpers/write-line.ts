@@ -7,6 +7,6 @@ export default async function writeLine(
 ) {
   const content = await readFile(filePath, 'utf-8');
   const lines = content.split('\n');
-  lines[line] = newContent;
+  lines[line - 1] = newContent;
   await writeFile(filePath, lines.join('\n'));
 }

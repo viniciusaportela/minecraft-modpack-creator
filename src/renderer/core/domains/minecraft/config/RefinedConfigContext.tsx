@@ -43,10 +43,18 @@ export const RefinedConfigProvider: FC<StoreProviderProps> = ({
   fields,
 }) => {
   const createStoreForState = () => {
-    const debouncedWriteOnDisk = debounce(async (line: number, value: any) => {
-      console.log('write on disk', root.getPath(), line, value);
-      await writeLine(root.getPath(), line, value);
-    }, 1000);
+    const debouncedWriteOnDisk = debounce(
+      async (field: RefinedField, value: any) => {
+        console.log('write on disk', root.getPath(), field, value);
+
+        const stringifiedValue =
+          typeof value === 'string' ? `"${value}"` : value;
+        const lineContent = `${'\t'.repeat(field.indentation)}"${field.name}" = ${stringifiedValue}`;
+
+        await writeLine(root.getPath(), field.lineNumber, lineContent);
+      },
+      1000,
+    );
 
     return createStore(
       immer<RefinedConfigContextInterface>((set, get) => ({
@@ -64,8 +72,7 @@ export const RefinedConfigProvider: FC<StoreProviderProps> = ({
           const field = curriedReadByPath(get().fields)(path);
           console.log('[write] field', field);
           if (field.type !== 'group') {
-            const { lineNumber } = field;
-            await debouncedWriteOnDisk(lineNumber, value);
+            await debouncedWriteOnDisk(field, value);
           }
         },
       })),

@@ -34,10 +34,6 @@ export const FieldsRenderer = memo(({ path }: FieldsRendererProps) => {
     true,
   );
 
-  useEffect(() => {
-    console.log('pathsAndTypes changed', pathsAndTypes);
-  }, [pathsAndTypes]);
-
   return pathsAndTypes?.map((pathAndType) => {
     if (['string', 'number'].includes(pathAndType.type)) {
       return <TextField path={pathAndType.path} key={pathAndType.line} />;

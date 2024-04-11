@@ -7,14 +7,18 @@ interface SwitchFieldProps {
 }
 
 export default function SwitchField({ path }: SwitchFieldProps) {
-  const config = useRefinedConfig((st) => curriedReadByPath(st.fields)(path));
+  const config = useRefinedConfig(
+    (st) => curriedReadByPath(st.fields)(path),
+    true,
+  );
+  const write = useRefinedConfig((st) => st.write);
 
   return (
     <div className="mt-4 flex flex-col">
       {config.comment && <span>{config.comment}</span>}
       <Switch
-        isSelected={config.value === 'true'}
-        // onValueChange={(newValue) => write(newValue ? 'true' : 'false')}
+        isSelected={config.value === 'true' || config.value === true}
+        onValueChange={(newValue) => write(path, newValue)}
       >
         {config.name}
       </Switch>

@@ -10,7 +10,6 @@ interface TextFieldProps {
 }
 
 const TextField = memo(({ path }: TextFieldProps) => {
-  console.log('render TextField', path);
   const config = useRefinedConfig(
     (st) => curriedReadByPath(st.fields)(path),
     true,
