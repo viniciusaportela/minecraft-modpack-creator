@@ -1,5 +1,6 @@
 import { LineParser } from './line-parser';
 import { ParseContext, ParseResult } from '../../../interfaces/parser';
+import { countIndentation } from '../helpers/count-indentation';
 
 export class SectionParser extends LineParser {
   private PATTERN = /^\["?(.*?)"?]/;
@@ -10,11 +11,13 @@ export class SectionParser extends LineParser {
 
   parse(line: string, ctx: ParseContext): ParseResult {
     console.log('parse section', line);
-    return this.aggregateWithCommentsAndGroups(line, ctx, {
+    return this.aggregateWithComment(ctx, {
       type: 'group',
       name: this.PATTERN.exec(line.trim())![1],
       value: '',
       children: [],
+      lineNumber: ctx.lineNumber,
+      indentation: countIndentation(line),
     });
   }
 }

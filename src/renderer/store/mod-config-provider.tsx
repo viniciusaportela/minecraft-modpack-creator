@@ -47,7 +47,7 @@ export const ModConfigProvider = memo(
           });
         }
       } catch (err) {
-        await handleError(err);
+        await handleError(err as Error);
       } finally {
         setLoading(false);
       }

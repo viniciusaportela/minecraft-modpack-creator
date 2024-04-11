@@ -1,7 +1,7 @@
 import { TomlParser } from './toml/TomlParser';
-import { JsonParser } from './JsonParser';
-import { SNbtParser } from './SNbtParser';
-import { IniParser } from './IniParser';
+import { JsonParser } from './json-parser';
+import { SNbtParser } from './snbt-parser';
+import { IniParser } from './ini-parser';
 
 export class ParserFactory {
   static ALLOWED_EXTENSIONS = ['toml', 'json', 'snbt', 'ini'];

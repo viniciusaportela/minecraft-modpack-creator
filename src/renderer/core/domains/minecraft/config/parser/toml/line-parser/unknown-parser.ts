@@ -1,5 +1,6 @@
 import { LineParser } from './line-parser';
 import { ParseContext, ParseResult } from '../../../interfaces/parser';
+import { countIndentation } from '../helpers/count-indentation';
 
 export class UnknownParser extends LineParser {
   matches(): boolean {
@@ -8,10 +9,12 @@ export class UnknownParser extends LineParser {
 
   parse(line: string, ctx: ParseContext): ParseResult {
     console.log('parse unknown', line);
-    return this.aggregateWithCommentsAndGroups(line, ctx, {
+    return this.aggregateWithComment(ctx, {
       type: 'unknown',
-      name: `Line ${ctx.index}`,
+      name: `Line ${ctx.lineNumber}`,
       value: line,
+      lineNumber: ctx.lineNumber,
+      indentation: countIndentation(line),
     });
   }
 }

@@ -130,7 +130,7 @@ export default function Picker() {
           value: null,
         },
         ...textures.map((texture) => ({
-          render: ({ style }) => (
+          render: ({ style }: { style: React.CSSProperties }) => (
             <PickerListItem
               style={style}
               type={type}
@@ -179,7 +179,7 @@ export default function Picker() {
           value: null,
         },
         ...items.map((item) => ({
-          render: ({ style }) => (
+          render: ({ style }: { style: React.CSSProperties }) => (
             <PickerListItem
               style={style}
               item={item}

@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { EmptyWriter } from './empty-writer';
 
 export class JsonParser {
   static parse(rawData: any) {
@@ -18,5 +19,9 @@ export class JsonParser {
     } catch (err) {
       return { isValid: false, error: err };
     }
+  }
+
+  static getWriter(path: string) {
+    return new EmptyWriter();
   }
 }

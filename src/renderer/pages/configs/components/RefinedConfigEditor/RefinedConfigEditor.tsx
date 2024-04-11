@@ -1,24 +1,13 @@
 import { Warning } from '@phosphor-icons/react';
-import { useMemo } from 'react';
-import { ConfigNode } from '../../../../core/domains/minecraft/config/ConfigNode';
-import { RefinedParseResult } from '../../../../core/domains/minecraft/config/interfaces/parser';
+import { memo } from 'react';
 import { FieldsRenderer } from './fields/FieldsRenderer';
+import { useRefinedConfig } from '../../../../core/domains/minecraft/config/RefinedConfigContext';
 
-interface RefinedConfigEditorProps {
-  config: ConfigNode;
-  forceRenderIndex: number;
-}
+const RefinedConfigEditor = memo(() => {
+  const fieldsExists = useRefinedConfig((state) => !!state.fields);
+  const fieldsLength = useRefinedConfig((state) => state.fields.length);
 
-export default function RefinedConfigEditor({
-  config,
-  forceRenderIndex,
-}: RefinedConfigEditorProps) {
-  const data = useMemo(
-    () => config.getData(),
-    [config, forceRenderIndex],
-  ) as RefinedParseResult;
-
-  if (data === null)
+  if (!fieldsExists)
     return (
       <div className="bg-danger-300 mt-3 p-3 rounded-md flex items-center drop-shadow-md">
         <Warning size={20} weight="bold" />
@@ -29,7 +18,7 @@ export default function RefinedConfigEditor({
       </div>
     );
 
-  if (data.length === 0) {
+  if (!fieldsLength) {
     return (
       <div className="w-full h-full flex items-center justify-center p-5">
         <i className="text-zinc-500">There is nothing to edit here</i>
@@ -40,8 +29,10 @@ export default function RefinedConfigEditor({
   return (
     <div className="overflow-y-auto flex flex-col">
       <div className="-mt-4">
-        <FieldsRenderer fields={data} />
+        <FieldsRenderer path={[]} />
       </div>
     </div>
   );
-}
+});
+
+export default RefinedConfigEditor;

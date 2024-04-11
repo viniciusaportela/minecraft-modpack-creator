@@ -1,15 +1,14 @@
 import { Tooltip } from '@nextui-org/react';
 import { QuestionMark } from '@phosphor-icons/react';
-import { RefinedField } from '../../../../../core/domains/minecraft/config/interfaces/parser';
 
 interface CommentProps {
-  field: RefinedField;
+  comment: string;
 }
 
-export default function CommentTooltip({ field }: CommentProps) {
+export default function CommentTooltip({ comment }: CommentProps) {
   return (
     <Tooltip
-      content={field.comment!.split('\n').map((line) => (
+      content={comment.split('\n').map((line) => (
         <span>{line}</span>
       ))}
     >

@@ -1,5 +1,6 @@
 import { LineParser } from './line-parser';
 import { ParseContext, ParseResult } from '../../../interfaces/parser';
+import { countIndentation } from '../helpers/count-indentation';
 
 export class CommentParser extends LineParser {
   private PATTERN = /#(.*)/;
@@ -20,11 +21,13 @@ export class CommentParser extends LineParser {
       commentValue = '';
     }
 
-    return super.aggregateWithCommentsAndGroups(line, ctx, {
+    return super.aggregateWithComment(ctx, {
       type: 'aggr-comment',
       comment: commentValue,
+      indentation: countIndentation(line),
       name: '',
       value: '',
+      lineNumber: ctx.lineNumber + 1,
     });
   }
 }

@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import debounce from 'lodash.debounce';
-import {
-  curriedReadByPath,
-  useModConfigStore,
-} from '../store/mod-config.store';
+import { useModConfigStore } from '../store/mod-config.store';
 import { useModConfigCtx } from '../store/mod-config.context';
+import { curriedReadByPath } from '../helpers/read-write-by-path';
 
 export interface IUseModConfigOptions {
   listenChanges?: boolean;

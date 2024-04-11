@@ -7,6 +7,7 @@ import { usePager } from '../../../components/pager/hooks/usePager';
 import { useQueryById, useQueryFirst } from '../../../hooks/realm.hook';
 import { GlobalStateModel } from '../../../core/models/global-state.model';
 import { ProjectModel } from '../../../core/models/project.model';
+import { PickerType } from '../../../typings/picker-type.enum';
 
 export default function AddShaped() {
   const { navigate } = usePager();
@@ -30,14 +31,14 @@ export default function AddShaped() {
   };
 
   const addRecipe = () => {
-    const recipes = project.getRecipes();
-    recipes.push({
-      type: 'shaped',
-      input,
-      output: output!,
-      outputCount,
-    });
-    project.setRecipes(recipes);
+    // const recipes = project.getRecipes();
+    // recipes.push({
+    //   type: 'shaped',
+    //   input,
+    //   output: output!,
+    //   outputCount,
+    // });
+    // project.setRecipes(recipes);
 
     navigate('recipe-list');
   };
@@ -62,42 +63,51 @@ export default function AddShaped() {
           <PickerButton
             value={input[0][0]}
             onPick={(value) => onPickInput(value, 0, 0)}
+            type={PickerType.Item}
           />
           <PickerButton
             value={input[0][1]}
             onPick={(value) => onPickInput(value, 0, 1)}
+            type={PickerType.Item}
           />
           <PickerButton
             value={input[0][2]}
             onPick={(value) => onPickInput(value, 0, 2)}
+            type={PickerType.Item}
           />
         </div>
         <div className="flex gap-1">
           <PickerButton
             value={input[1][0]}
             onPick={(value) => onPickInput(value, 1, 0)}
+            type={PickerType.Item}
           />
           <PickerButton
             value={input[1][1]}
             onPick={(value) => onPickInput(value, 1, 1)}
+            type={PickerType.Item}
           />
           <PickerButton
             value={input[1][2]}
             onPick={(value) => onPickInput(value, 1, 2)}
+            type={PickerType.Item}
           />
         </div>
         <div className="flex gap-1">
           <PickerButton
             value={input[2][0]}
             onPick={(value) => onPickInput(value, 2, 0)}
+            type={PickerType.Item}
           />
           <PickerButton
             value={input[2][1]}
             onPick={(value) => onPickInput(value, 2, 1)}
+            type={PickerType.Item}
           />
           <PickerButton
             value={input[2][2]}
             onPick={(value) => onPickInput(value, 2, 2)}
+            type={PickerType.Item}
           />
         </div>
       </div>
@@ -120,6 +130,7 @@ export default function AddShaped() {
           value={output}
           onPick={(picked) => setOutput(picked)}
           className="w-[225px]"
+          type={PickerType.Item}
         />
       </div>
 

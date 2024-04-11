@@ -22,6 +22,22 @@ import { ConfigNode } from '../../core/domains/minecraft/config/ConfigNode';
 import SearchBar from '../../components/search-bar/SearchBar';
 import Alert from '../../components/alert/Alert';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
+import { RefinedConfigProvider } from '../../core/domains/minecraft/config/RefinedConfigContext';
+import { RefinedField } from '../../core/domains/minecraft/config/interfaces/parser';
+
+const getFirstFile = (nodes: ConfigNode[]) => {
+  const toRead = [...nodes];
+  while (toRead.length) {
+    const node = toRead.shift();
+    if (node) {
+      if (node.isDirectory()) {
+        toRead.push(...node.getChildren());
+      } else {
+        return node;
+      }
+    }
+  }
+};
 
 export default function Configs() {
   const configNodes = useAppStore((st) => st.configs)!;
@@ -40,9 +56,12 @@ export default function Configs() {
   const [contentSize, setContentSize] = useState(400);
   const [searchTxt, setSearchTxt] = useState('');
   const [isResetingFile, setIsResetingFile] = useState(false);
-  const [forceRenderIndex, setForceRenderIndex] = useState(0);
 
   const [invalidNodes, setInvalidNodes] = useState<ConfigNode[]>([]);
+  const [fields, setFields] = useState<RefinedField[]>([]);
+  const [selectedConfig, setSelectedConfig] = useState(
+    getFirstFile(configNodes!),
+  );
 
   useEffect(() => {
     const interval = window.setInterval(async () => {
@@ -57,7 +76,6 @@ export default function Configs() {
         const invalids = results.filter((v) => !v.isValid);
         console.log(invalids);
         setInvalidNodes(invalids.map((inv) => inv.node));
-        setForceRenderIndex((prev) => prev + 1);
       }
     }, 3000);
 
@@ -66,29 +84,16 @@ export default function Configs() {
     };
   }, []);
 
-  const getFirstFile = (nodes: ConfigNode[]) => {
-    const toRead = [...nodes];
-    while (toRead.length) {
-      const node = toRead.shift();
-      if (node) {
-        if (node.isDirectory()) {
-          toRead.push(...node.getChildren());
-        } else {
-          return node;
-        }
-      }
-    }
-  };
+  useEffect(() => {
+    setFields(selectedConfig?.getData() ?? []);
+  }, [selectedConfig]);
+  console.log('fields', fields);
 
   useEffect(() => {
     if (filesTreeRef.current) {
       setContentSize(filesTreeRef.current!.scrollWidth + 16);
     }
   }, []);
-
-  const [selectedConfig, setSelectedConfig] = useState(
-    getFirstFile(configNodes!),
-  );
 
   const isSelectedInvalid = invalidNodes?.find(
     (n) => n.getPath() === selectedConfig?.getPath(),
@@ -106,6 +111,7 @@ export default function Configs() {
         const finalPath = path.join(project!.path, relativePath);
         await cp(finalPath, virtualPath);
         await selectedConfig.setupFile();
+        setFields(selectedConfig.getData() ?? []);
       }
     } catch (err) {
       await handleError(err);
@@ -155,7 +161,6 @@ export default function Configs() {
                 <Button
                   isLoading={isResetingFile}
                   onPress={resetFromSourceSelected}
-                  size="sm"
                   isIconOnly
                   className={clsx(
                     'ml-auto',
@@ -189,15 +194,14 @@ export default function Configs() {
                 className="mb-3 -mt-1"
               />
             )}
-            {editorType === 'refined' &&
-            selectedConfig.getFileType() === 'toml' ? (
-              <RefinedConfigEditor
-                config={selectedConfig}
-                forceRenderIndex={forceRenderIndex}
-              />
-            ) : (
-              <RawConfigEditor config={selectedConfig} />
-            )}
+            <RefinedConfigProvider fields={fields} root={selectedConfig}>
+              {editorType === 'refined' &&
+              selectedConfig.getFileType() === 'toml' ? (
+                <RefinedConfigEditor />
+              ) : (
+                <RawConfigEditor config={selectedConfig} />
+              )}
+            </RefinedConfigProvider>
           </>
         )}
       </div>

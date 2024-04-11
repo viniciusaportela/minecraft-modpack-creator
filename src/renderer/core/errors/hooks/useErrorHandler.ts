@@ -7,7 +7,7 @@ import { useAppStore } from '../../../store/app.store';
 import { GlobalStateModel } from '../../models/global-state.model';
 
 export function useErrorHandler() {
-  return async (err: unknown) => {
+  return async (err: Error) => {
     console.error(err?.stack);
 
     if (err instanceof BusinessLogicError) {

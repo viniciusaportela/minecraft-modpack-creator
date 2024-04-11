@@ -1,32 +1,10 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { IUseModConfigOptions } from '../hooks/use-mod-config';
-
-export function curriedReadByPath(currentState: any) {
-  return (path: string[]) => {
-    let current = currentState;
-    for (let i = 0; i < path.length; i++) {
-      if (!current) {
-        return undefined;
-      }
-      current = current[path[i]];
-    }
-    return current;
-  };
-}
-
-export function curriedWriteByPath(currentState: any) {
-  return (path: string[], value: any) => {
-    let current = currentState;
-    for (let i = 0; i < path.length; i++) {
-      if (i === path.length - 1) {
-        current[path[i]] = value;
-      } else {
-        current = current[path[i]];
-      }
-    }
-  };
-}
+import {
+  curriedReadByPath,
+  curriedWriteByPath,
+} from '../helpers/read-write-by-path';
 
 export function doesPath(path: string[]) {
   return {

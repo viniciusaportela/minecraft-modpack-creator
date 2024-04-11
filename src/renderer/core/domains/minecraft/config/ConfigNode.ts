@@ -2,8 +2,8 @@ import debounce from 'lodash.debounce';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'path';
 import { TomlParser } from './parser/toml/TomlParser';
-import { JsonParser } from './parser/JsonParser';
-import { SNbtParser } from './parser/SNbtParser';
+import { JsonParser } from './parser/json-parser';
+import { SNbtParser } from './parser/snbt-parser';
 import { ParserFactory } from './parser/parser-factory';
 
 export class ConfigNode {
