@@ -27,9 +27,11 @@ export class ConfigNode {
       isDirectory?: boolean;
     } = {},
   ) {
-    this.debounceWrite = debounce(async (newData) => {
+    this.debounceWrite = debounce(async (newData, callback) => {
+      console.log('debounceWrite', !!callback);
       await writeFile(this.path, newData, 'utf-8');
-    }, 1000);
+      callback?.();
+    }, 500);
 
     if (!config.isDirectory) {
       this.fileType = path.split('.').pop()!;
@@ -127,15 +129,16 @@ export class ConfigNode {
     }
   }
 
-  writeRawData(data: any) {
+  writeRawData(data: any, callback?: (data: string) => void) {
     this.rawData = data;
-    this.debounceWrite(data);
+    this.debounceWrite(data, callback);
   }
 
   async setupFile() {
     if (!this.config.isDirectory) {
       this.rawData = await readFile(this.path, 'utf-8');
       this.parser = ParserFactory.get(this.fileType);
+      return this;
     }
 
     return this;

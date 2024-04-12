@@ -6,7 +6,9 @@ export interface RefinedField {
   indentation: number;
   array?: boolean;
   type: 'string' | 'group' | 'number' | 'boolean' | 'aggr-comment' | 'unknown';
-  range?: [number, number];
+  range?: [number | undefined, number | undefined];
+  allowedValues?: string[];
+  defaultValue?: string | number | boolean;
   children?: RefinedField[];
 }
 

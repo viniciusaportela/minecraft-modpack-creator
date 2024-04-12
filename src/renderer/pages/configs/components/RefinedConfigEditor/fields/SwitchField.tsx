@@ -4,9 +4,13 @@ import { curriedReadByPath } from '../../../../../helpers/read-write-by-path';
 
 interface SwitchFieldProps {
   path: string[];
+  onUpdatedRefined?: () => void;
 }
 
-export default function SwitchField({ path }: SwitchFieldProps) {
+export default function SwitchField({
+  path,
+  onUpdatedRefined,
+}: SwitchFieldProps) {
   const config = useRefinedConfig(
     (st) => curriedReadByPath(st.fields)(path),
     true,
@@ -18,7 +22,9 @@ export default function SwitchField({ path }: SwitchFieldProps) {
       {config.comment && <span>{config.comment}</span>}
       <Switch
         isSelected={config.value === 'true' || config.value === true}
-        onValueChange={(newValue) => write(path, newValue)}
+        onValueChange={(newValue) => {
+          write(path, newValue, onUpdatedRefined);
+        }}
       >
         {config.name}
       </Switch>

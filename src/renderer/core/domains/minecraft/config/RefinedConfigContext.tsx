@@ -26,7 +26,9 @@ interface StoreProviderProps extends PropsWithChildren {
   fields: RefinedField[];
 }
 
-export function useShallow<S, U>(selector: (state: S) => U): (state: S) => U {
+export function stringifiedShallow<S, U>(
+  selector: (state: S) => U,
+): (state: S) => U {
   const prev = useRef<U>();
 
   return (state) => {
@@ -44,7 +46,7 @@ export const RefinedConfigProvider: FC<StoreProviderProps> = ({
 }) => {
   const createStoreForState = () => {
     const debouncedWriteOnDisk = debounce(
-      async (field: RefinedField, value: any) => {
+      async (field: RefinedField, value: any, callback?: () => void) => {
         console.log('write on disk', root.getPath(), field, value);
 
         const stringifiedValue =
@@ -52,15 +54,16 @@ export const RefinedConfigProvider: FC<StoreProviderProps> = ({
         const lineContent = `${'\t'.repeat(field.indentation)}"${field.name}" = ${stringifiedValue}`;
 
         await writeLine(root.getPath(), field.lineNumber, lineContent);
+        callback?.();
       },
-      1000,
+      500,
     );
 
     return createStore(
       immer<RefinedConfigContextInterface>((set, get) => ({
         set,
         fields,
-        write: async (path: string[], value: any) => {
+        write: async (path: string[], value: any, callback?: () => void) => {
           console.log('write', path, value);
 
           set((state) => {
@@ -72,7 +75,7 @@ export const RefinedConfigProvider: FC<StoreProviderProps> = ({
           const field = curriedReadByPath(get().fields)(path);
           console.log('[write] field', field);
           if (field.type !== 'group') {
-            await debouncedWriteOnDisk(field, value);
+            await debouncedWriteOnDisk(field, value, callback);
           }
         },
       })),
@@ -103,5 +106,5 @@ export const useRefinedConfig = <T,>(
     throw new Error('useContextInStore must be used within a StoreProvider');
   }
 
-  return useStore(store, shallow ? useShallow(selector) : selector);
+  return useStore(store, shallow ? stringifiedShallow(selector) : selector);
 };

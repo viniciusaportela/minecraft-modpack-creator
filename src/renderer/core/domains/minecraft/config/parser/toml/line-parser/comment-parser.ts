@@ -21,6 +21,13 @@ export class CommentParser extends LineParser {
       commentValue = '';
     }
 
+    const allowedValues = this.processAllowedValues(line);
+    const range = this.processRange(line);
+
+    if (allowedValues || range) {
+      commentValue = '';
+    }
+
     return super.aggregateWithComment(ctx, {
       type: 'aggr-comment',
       comment: commentValue,
@@ -28,6 +35,42 @@ export class CommentParser extends LineParser {
       name: '',
       value: '',
       lineNumber: ctx.lineNumber + 1,
+      allowedValues,
+      range,
     });
+  }
+
+  private processAllowedValues(line: string) {
+    const isAllowedValues = line.includes('Allowed Values:');
+
+    if (isAllowedValues) {
+      const allowedValues = line.split('Allowed Values:')[1];
+      return allowedValues.split(',').map((v) => v.trim());
+    }
+
+    return undefined;
+  }
+
+  private processRange(
+    line: string,
+  ): [number | undefined, number | undefined] | undefined {
+    const isRange = line.includes('Range:');
+
+    if (isRange) {
+      const range = line.split('Range:')[1];
+
+      if (range.includes('>')) {
+        return [undefined, Number(range.split('>')[1])];
+      }
+
+      if (range.includes('<')) {
+        return [Number(range.split('<')[1]), undefined];
+      }
+
+      const [min, max] = range.split('~');
+      return [Number(min), Number(max)];
+    }
+
+    return undefined;
   }
 }

@@ -26,6 +26,8 @@ export abstract class LineParser {
         result: {
           ...result,
           comment: `${ctx.last.comment}${result.comment ? `\n${result.comment}` : ''}`,
+          allowedValues: result.allowedValues ?? ctx.last.allowedValues,
+          range: result.range ?? ctx.last.range,
         },
       };
     }

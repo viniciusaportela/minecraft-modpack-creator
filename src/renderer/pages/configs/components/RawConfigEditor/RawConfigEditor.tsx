@@ -3,9 +3,13 @@ import { ConfigNode } from '../../../../core/domains/minecraft/config/ConfigNode
 
 interface RawConfigEditorProps {
   config: ConfigNode;
+  onUpdatedRaw?: (data: string) => void;
 }
 
-export default function RawConfigEditor({ config }: RawConfigEditorProps) {
+export default function RawConfigEditor({
+  config,
+  onUpdatedRaw,
+}: RawConfigEditorProps) {
   const data = config.getRawData();
   const fileType = config.getFileType();
 
@@ -18,7 +22,9 @@ export default function RawConfigEditor({ config }: RawConfigEditorProps) {
       <CodeEditor
         value={data}
         language={fileType === 'snbt' ? 'js' : fileType}
-        onChange={(ev) => config.writeRawData(ev.target.value)}
+        onChange={(ev) => {
+          config.writeRawData(ev.target.value, onUpdatedRaw);
+        }}
         style={{
           fontFamily: 'IBM Plex Mono',
           height: 'fit-content',

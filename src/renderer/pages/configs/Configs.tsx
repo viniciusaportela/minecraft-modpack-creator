@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Tab, Tabs, Tooltip } from '@nextui-org/react';
 import {
   File,
@@ -37,6 +37,8 @@ const getFirstFile = (nodes: ConfigNode[]) => {
       }
     }
   }
+
+  return undefined;
 };
 
 export default function Configs() {
@@ -74,7 +76,6 @@ export default function Configs() {
         );
 
         const invalids = results.filter((v) => !v.isValid);
-        console.log(invalids);
         setInvalidNodes(invalids.map((inv) => inv.node));
       }
     }, 3000);
@@ -120,6 +121,17 @@ export default function Configs() {
     }
   };
 
+  const onUpdatedRaw = useCallback(async () => {
+    console.log('onUpdatedRaw');
+    await selectedConfig!.setupFile();
+    setFields(selectedConfig!.getData() ?? []);
+  }, []);
+
+  const onUpdatedRefined = useCallback(async () => {
+    console.log('onUpdatedRefined');
+    await selectedConfig?.setupFile();
+  }, []);
+
   return (
     <div className="flex h-full">
       <Resizable
@@ -163,7 +175,7 @@ export default function Configs() {
                   onPress={resetFromSourceSelected}
                   isIconOnly
                   className={clsx(
-                    'ml-auto',
+                    'ml-auto h-[36px] w-[36px]',
                     selectedConfig.getFileType() === 'toml' && 'mr-1',
                   )}
                 >
@@ -197,9 +209,12 @@ export default function Configs() {
             <RefinedConfigProvider fields={fields} root={selectedConfig}>
               {editorType === 'refined' &&
               selectedConfig.getFileType() === 'toml' ? (
-                <RefinedConfigEditor />
+                <RefinedConfigEditor onUpdatedRefined={onUpdatedRefined} />
               ) : (
-                <RawConfigEditor config={selectedConfig} />
+                <RawConfigEditor
+                  config={selectedConfig}
+                  onUpdatedRaw={onUpdatedRaw}
+                />
               )}
             </RefinedConfigProvider>
           </>

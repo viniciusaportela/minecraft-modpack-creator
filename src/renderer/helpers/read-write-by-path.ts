@@ -1,4 +1,6 @@
-export function curriedReadByPath(currentState: any) {
+export function curriedReadByPath<T = any>(
+  currentState: any,
+): (path: string[]) => T {
   return (path: string[]) => {
     let current = currentState;
     for (let i = 0; i < path.length; i++) {
