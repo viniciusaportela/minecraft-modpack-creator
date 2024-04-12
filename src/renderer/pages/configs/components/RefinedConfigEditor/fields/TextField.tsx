@@ -24,8 +24,6 @@ const TextField = memo(({ path, onUpdatedRefined }: TextFieldProps) => {
     return `${min ?? '-∞'} to ${max ?? '∞'}`;
   };
 
-  console.log('TextField', config);
-
   return (
     <div className="mt-4 flex flex-col">
       <span>

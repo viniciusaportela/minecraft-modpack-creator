@@ -49,8 +49,10 @@ export const RefinedConfigProvider: FC<StoreProviderProps> = ({
       async (field: RefinedField, value: any, callback?: () => void) => {
         console.log('write on disk', root.getPath(), field, value);
 
+        const isArray = field.array;
+
         const stringifiedValue =
-          typeof value === 'string' ? `"${value}"` : value;
+          field.type === 'string' && !isArray ? `"${value}"` : value;
         const lineContent = `${'\t'.repeat(field.indentation)}"${field.name}" = ${stringifiedValue}`;
 
         await writeLine(root.getPath(), field.lineNumber, lineContent);

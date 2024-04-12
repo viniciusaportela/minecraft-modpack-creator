@@ -5,6 +5,7 @@ import { useRefinedConfig } from '../../../../../core/domains/minecraft/config/R
 import GroupTitle from './GroupTitle';
 import { curriedReadByPath } from '../../../../../helpers/read-write-by-path';
 import { RefinedField } from '../../../../../core/domains/minecraft/config/interfaces/parser';
+import ListField from './ListField';
 
 interface FieldsRendererProps {
   path: string[];
@@ -17,6 +18,7 @@ export const FieldsRenderer = memo(
       path: string[];
       type: RefinedField['type'];
       line: number;
+      array?: boolean;
     }[] = useRefinedConfig(
       (state) =>
         curriedReadByPath(state.fields)(path)?.map(
@@ -25,6 +27,7 @@ export const FieldsRenderer = memo(
               path: [...path, String(index)],
               type: field.type,
               line: field.lineNumber,
+              array: field.array,
             };
           },
         ),
@@ -32,6 +35,16 @@ export const FieldsRenderer = memo(
     );
 
     return pathsAndTypes?.map((pathAndType) => {
+      if (pathAndType.array) {
+        return (
+          <ListField
+            path={pathAndType.path}
+            key={pathAndType.line}
+            onUpdatedRefined={onUpdatedRefined}
+          />
+        );
+      }
+
       if (['string', 'number'].includes(pathAndType.type)) {
         return (
           <TextField
