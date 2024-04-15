@@ -1,14 +1,18 @@
 import CodeEditor from '@uiw/react-textarea-code-editor';
+import rehypePrism from 'rehype-prism-plus';
+import rehypeRewrite from 'rehype-rewrite';
 import { ConfigNode } from '../../../../core/domains/minecraft/config/ConfigNode';
 
 interface RawConfigEditorProps {
   config: ConfigNode;
   onUpdatedRaw?: (data: string) => void;
+  filter?: string;
 }
 
 export default function RawConfigEditor({
   config,
   onUpdatedRaw,
+  filter,
 }: RawConfigEditorProps) {
   const data = config.getRawData();
   const fileType = config.getFileType();
@@ -25,6 +29,24 @@ export default function RawConfigEditor({
         onChange={(ev) => {
           config.writeRawData(ev.target.value, onUpdatedRaw);
         }}
+        rehypePlugins={[
+          [rehypePrism, { ignoreMissing: true }],
+          [
+            rehypeRewrite,
+            {
+              rewrite: (node, index, parent) => {
+                if (
+                  filter &&
+                  node.type === 'text' &&
+                  node.value.includes(filter) &&
+                  parent.children.length === 1
+                ) {
+                  parent.properties.className.push('highlight-filter');
+                }
+              },
+            },
+          ],
+        ]}
         style={{
           fontFamily: 'IBM Plex Mono',
           height: 'fit-content',

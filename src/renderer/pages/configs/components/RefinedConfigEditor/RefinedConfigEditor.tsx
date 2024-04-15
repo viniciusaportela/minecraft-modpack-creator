@@ -5,10 +5,11 @@ import { useRefinedConfig } from '../../../../core/domains/minecraft/config/Refi
 
 interface RefinedConfigEditorProps {
   onUpdatedRefined?: () => void;
+  filter?: string;
 }
 
 const RefinedConfigEditor: React.FC<RefinedConfigEditorProps> = memo(
-  ({ onUpdatedRefined }) => {
+  ({ onUpdatedRefined, filter }) => {
     const fieldsExists = useRefinedConfig((state) => !!state.fields);
     const fieldsLength = useRefinedConfig((state) => state.fields.length);
 
@@ -34,7 +35,11 @@ const RefinedConfigEditor: React.FC<RefinedConfigEditorProps> = memo(
     return (
       <div className="overflow-y-auto flex flex-col">
         <div className="-mt-4">
-          <FieldsRenderer path={[]} onUpdatedRefined={onUpdatedRefined} />
+          <FieldsRenderer
+            path={[]}
+            onUpdatedRefined={onUpdatedRefined}
+            filter={filter}
+          />
         </div>
       </div>
     );

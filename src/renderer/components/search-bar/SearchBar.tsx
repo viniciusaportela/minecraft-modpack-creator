@@ -18,9 +18,11 @@ export default function SearchBar({
 }: SearchBarProps) {
   return (
     <Input
+      isClearable
+      onClear={() => onChange('')}
       size="sm"
       value={text}
-      endContent={<MagnifyingGlass size={16} className="text-zinc-500" />}
+      startContent={<MagnifyingGlass size={16} className="text-zinc-500" />}
       className={className}
       classNames={{
         inputWrapper: 'h-5',

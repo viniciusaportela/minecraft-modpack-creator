@@ -6,13 +6,15 @@ import capitalize from '../../../../../helpers/capitalize';
 import { useRefinedConfig } from '../../../../../core/domains/minecraft/config/RefinedConfigContext';
 import { curriedReadByPath } from '../../../../../helpers/read-write-by-path';
 import { RefinedField } from '../../../../../core/domains/minecraft/config/interfaces/parser';
+import ColorPicker from '../../../../../components/color-picker/ColorPicker';
 
 interface TextFieldProps {
   path: string[];
   onUpdatedRefined?: () => void;
+  filter?: string;
 }
 
-const TextField = memo(({ path, onUpdatedRefined }: TextFieldProps) => {
+const TextField = memo(({ path, onUpdatedRefined, filter }: TextFieldProps) => {
   const config = useRefinedConfig(
     (st) => curriedReadByPath<RefinedField>(st.fields)(path),
     true,
@@ -23,6 +25,15 @@ const TextField = memo(({ path, onUpdatedRefined }: TextFieldProps) => {
     const [min, max] = range ?? [];
     return `${min ?? '-∞'} to ${max ?? '∞'}`;
   };
+
+  const isColor = (txt: string) => {
+    return /^#[0-9A-F]{3}([0-9A-F]{3})?$/i.test(txt);
+  };
+
+  console.log('TextField', filter, config.name);
+  if (filter && !config.name?.toLowerCase().includes(filter.toLowerCase())) {
+    return null;
+  }
 
   return (
     <div className="mt-4 flex flex-col">
@@ -37,6 +48,16 @@ const TextField = memo(({ path, onUpdatedRefined }: TextFieldProps) => {
           allowsCustomValue
           label={config.name}
           inputValue={config.value as string}
+          endContent={
+            isColor(config.value as string) ? (
+              <ColorPicker
+                value={config.value as string}
+                onChange={(color) => {
+                  write(path, color, onUpdatedRefined);
+                }}
+              />
+            ) : undefined
+          }
           onInputChange={async (txt) => {
             write(path, txt, onUpdatedRefined);
           }}
@@ -51,6 +72,16 @@ const TextField = memo(({ path, onUpdatedRefined }: TextFieldProps) => {
         <Input
           value={config.value as string}
           size="sm"
+          endContent={
+            isColor(config.value as string) ? (
+              <ColorPicker
+                value={config.value as string}
+                onChange={(color) => {
+                  write(path, color, onUpdatedRefined);
+                }}
+              />
+            ) : undefined
+          }
           onValueChange={(txt) => write(path, txt, onUpdatedRefined)}
           type={config.type === 'number' ? 'number' : 'text'}
         />

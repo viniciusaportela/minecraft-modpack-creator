@@ -1,3 +1,5 @@
+import { parse } from 'toml';
+import { readFile } from 'node:fs/promises';
 import { ParseContext, RefinedField, Writer } from '../../interfaces/parser';
 import { CommentParser } from './line-parser/comment-parser';
 import { SectionParser } from './line-parser/section-parser';
@@ -5,16 +7,18 @@ import { UnknownParser } from './line-parser/unknown-parser';
 import { PropertyParser } from './line-parser/property-parser';
 import { TomlWriter } from './TomlWriter';
 import { countIndentation } from './helpers/count-indentation';
+import { BaseParser } from '../base/base-parser';
 
-export class TomlParser {
-  private static LINE_PARSERS = [
+export class TomlParser extends BaseParser {
+  private LINE_PARSERS = [
     SectionParser,
     CommentParser,
     PropertyParser,
     UnknownParser,
   ];
 
-  static parse(rawData: string): RefinedField[] {
+  parseFields(rawData: string): RefinedField[] {
+    console.log('parseFields', rawData);
     const lines = rawData.split('\n');
 
     const parsed = lines.reduce<RefinedField[]>((acc, line, index) => {
@@ -34,7 +38,7 @@ export class TomlParser {
     );
   }
 
-  private static getLast(
+  private getLast(
     currentLine: string,
     acc: RefinedField[],
   ): { last: RefinedField | undefined; lastGroup: RefinedField | undefined } {
@@ -57,7 +61,7 @@ export class TomlParser {
     return { last: lastRoot, lastGroup: undefined };
   }
 
-  private static getLastRoot(
+  private getLastRoot(
     currentLine: string,
     acc: RefinedField[],
   ): RefinedField | undefined {
@@ -70,7 +74,7 @@ export class TomlParser {
       : this.getLastRoot(currentLine, acc.slice(0, -1));
   }
 
-  private static getLastMatchingIndentationFromGroup(
+  private getLastMatchingIndentationFromGroup(
     group: RefinedField | undefined,
     path: string,
     currentIndentation: number,
@@ -114,7 +118,7 @@ export class TomlParser {
   }
 
   // eslint-disable-next-line consistent-return
-  private static parseLine(
+  private parseLine(
     line: string,
     acc: RefinedField[],
     ctx: ParseContext,
@@ -160,11 +164,22 @@ export class TomlParser {
     }
   }
 
-  static async isFileValid() {
-    return { isValid: true };
+  async isFileValid(path: string) {
+    try {
+      const file = await readFile(path, 'utf-8');
+      await parse(file);
+      return { isValid: true };
+    } catch (err) {
+      console.error(err);
+      return { isValid: false };
+    }
   }
 
-  static getWriter(path: string): Writer {
+  getFieldWriter(path: string): Writer {
     return new TomlWriter(path);
+  }
+
+  canParseFields(): boolean {
+    return true;
   }
 }

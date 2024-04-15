@@ -10,10 +10,11 @@ import ListField from './ListField';
 interface FieldsRendererProps {
   path: string[];
   onUpdatedRefined?: () => void;
+  filter?: string;
 }
 
 export const FieldsRenderer = memo(
-  ({ path, onUpdatedRefined }: FieldsRendererProps) => {
+  ({ path, onUpdatedRefined, filter }: FieldsRendererProps) => {
     const pathsAndTypes: {
       path: string[];
       type: RefinedField['type'];
@@ -34,6 +35,8 @@ export const FieldsRenderer = memo(
       true,
     );
 
+    console.log('FieldsRenderer', filter);
+
     return pathsAndTypes?.map((pathAndType) => {
       if (pathAndType.array) {
         return (
@@ -41,6 +44,7 @@ export const FieldsRenderer = memo(
             path={pathAndType.path}
             key={pathAndType.line}
             onUpdatedRefined={onUpdatedRefined}
+            filter={filter}
           />
         );
       }
@@ -51,6 +55,7 @@ export const FieldsRenderer = memo(
             path={pathAndType.path}
             key={pathAndType.line}
             onUpdatedRefined={onUpdatedRefined}
+            filter={filter}
           />
         );
       }
@@ -61,6 +66,7 @@ export const FieldsRenderer = memo(
             path={pathAndType.path}
             key={pathAndType.line}
             onUpdatedRefined={onUpdatedRefined}
+            filter={filter}
           />
         );
       }
@@ -73,6 +79,7 @@ export const FieldsRenderer = memo(
           >
             <GroupTitle path={pathAndType.path} />
             <FieldsRenderer
+              filter={filter}
               path={[...pathAndType.path, 'children']}
               key={pathAndType.line}
               onUpdatedRefined={onUpdatedRefined}

@@ -1,17 +1,9 @@
 import { readFile } from 'node:fs/promises';
-import { EmptyWriter } from './empty-writer';
+import { EmptyWriter } from './base/empty-writer';
+import { BaseParser } from './base/base-parser';
 
-export class JsonParser {
-  static parse(rawData: any) {
-    try {
-      return JSON.parse(rawData);
-    } catch (err) {
-      console.error('[JsonParser.parse]', err);
-      return {};
-    }
-  }
-
-  static async isFileValid(path: string) {
+export class JsonParser extends BaseParser {
+  async isFileValid(path: string) {
     try {
       const file = await readFile(path, 'utf-8');
       JSON.parse(file);
@@ -21,7 +13,7 @@ export class JsonParser {
     }
   }
 
-  static getWriter(path: string) {
+  getFieldWriter(path: string) {
     return new EmptyWriter();
   }
 }

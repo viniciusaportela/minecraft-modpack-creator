@@ -1,4 +1,4 @@
-import { Writer } from '../interfaces/parser';
+import { Writer } from '../../interfaces/parser';
 
 export class EmptyWriter implements Writer {
   async write(): Promise<void> {}

@@ -5,17 +5,15 @@ import { TomlParser } from './parser/toml/TomlParser';
 import { JsonParser } from './parser/json-parser';
 import { SNbtParser } from './parser/snbt-parser';
 import { ParserFactory } from './parser/parser-factory';
+import { IniParser } from './parser/ini-parser';
 
 export class ConfigNode {
   private children: ConfigNode[] = [];
 
   private rawData: any = null;
 
-  private parser:
-    | typeof TomlParser
-    | typeof JsonParser
-    | typeof SNbtParser
-    | null = null;
+  private parser: TomlParser | JsonParser | SNbtParser | IniParser | null =
+    null;
 
   private fileType: string = '';
 
@@ -120,9 +118,9 @@ export class ConfigNode {
     return isValid;
   }
 
-  getData() {
+  getFields() {
     try {
-      return this.parser?.parse(this.rawData);
+      return this.parser?.parseFields(this.rawData);
     } catch (error) {
       console.warn(`Couldn't parse ${this.path}:`, error);
       return null;
@@ -132,6 +130,10 @@ export class ConfigNode {
   writeRawData(data: any, callback?: (data: string) => void) {
     this.rawData = data;
     this.debounceWrite(data, callback);
+  }
+
+  hasRefineEditor(): boolean {
+    return this.parser?.canParseFields() ?? false;
   }
 
   async setupFile() {
@@ -145,11 +147,7 @@ export class ConfigNode {
   }
 
   setParser(
-    parser:
-      | typeof TomlParser
-      | typeof JsonParser
-      | typeof SNbtParser
-      | null = null,
+    parser: TomlParser | JsonParser | SNbtParser | IniParser | null = null,
   ) {
     this.parser = parser;
     return this;

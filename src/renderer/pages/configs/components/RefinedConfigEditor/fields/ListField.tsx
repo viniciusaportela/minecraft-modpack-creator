@@ -1,5 +1,5 @@
 import { memo, useState } from 'react';
-import { Button, Card, CardBody, Input } from '@nextui-org/react';
+import { Button, Input } from '@nextui-org/react';
 import { Plus, X } from '@phosphor-icons/react';
 import { useRefinedConfig } from '../../../../../core/domains/minecraft/config/RefinedConfigContext';
 import { curriedReadByPath } from '../../../../../helpers/read-write-by-path';
@@ -10,9 +10,10 @@ import CommentTooltip from './CommentTooltip';
 interface ListFieldProps {
   path: string[];
   onUpdatedRefined?: () => void;
+  filter?: string;
 }
 
-const ListField = memo(({ path, onUpdatedRefined }: ListFieldProps) => {
+const ListField = memo(({ path, onUpdatedRefined, filter }: ListFieldProps) => {
   const [input, setInput] = useState('');
   const config = useRefinedConfig(
     (st) => curriedReadByPath<RefinedField>(st.fields)(path),
@@ -62,6 +63,10 @@ const ListField = memo(({ path, onUpdatedRefined }: ListFieldProps) => {
   };
 
   console.log('list', values);
+
+  if (filter && !config.name?.toLowerCase().includes(filter.toLowerCase())) {
+    return null;
+  }
 
   return (
     <div className="mt-4 flex flex-col">

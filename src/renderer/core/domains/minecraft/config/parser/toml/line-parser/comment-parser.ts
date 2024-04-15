@@ -3,12 +3,12 @@ import { ParseContext, ParseResult } from '../../../interfaces/parser';
 import { countIndentation } from '../helpers/count-indentation';
 
 export class CommentParser extends LineParser {
-  private PATTERN = /#(.*)/;
+  private PATTERN = /^#(.*)/;
 
   private CHARS_TO_IGNORE = ['.', ',', ';'];
 
   matches(line: string): boolean {
-    return this.PATTERN.test(line);
+    return this.PATTERN.test(line.trim().replaceAll(/\t/g, ''));
   }
 
   parse(line: string, ctx: ParseContext): ParseResult {

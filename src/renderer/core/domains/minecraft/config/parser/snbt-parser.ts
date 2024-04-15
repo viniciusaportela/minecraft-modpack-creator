@@ -1,16 +1,20 @@
-import { EmptyWriter } from './empty-writer';
+import { readFile } from 'node:fs/promises';
+import { EmptyWriter } from './base/empty-writer';
+import { BaseParser } from './base/base-parser';
 
-export class SNbtParser {
-  static parse(rawData: string) {
-    return {};
+export class SNbtParser extends BaseParser {
+  async isFileValid(path: string) {
+    try {
+      const file = await readFile(path, 'utf-8');
+
+      return { isValid: true };
+    } catch (err) {
+      console.error(err);
+      return { isValid: false };
+    }
   }
 
-  // DEV
-  static async isFileValid(path: string) {
-    return { isValid: true };
-  }
-
-  static getWriter(path: string) {
+  getFieldWriter(path: string) {
     return new EmptyWriter();
   }
 }

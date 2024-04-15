@@ -66,27 +66,29 @@ export default function Configs() {
   );
 
   useEffect(() => {
-    const interval = window.setInterval(async () => {
-      if (configNodes) {
-        const results = await Promise.all(
-          flattedNodes.map(async (node) => ({
-            isValid: await node.isValid(),
-            node,
-          })),
-        );
+    const promises = flattedNodes.map(async (node) => ({
+      isValid: await node.isValid(),
+      node,
+    }));
 
-        const invalids = results.filter((v) => !v.isValid);
-        setInvalidNodes(invalids.map((inv) => inv.node));
-      }
-    }, 3000);
+    Promise.all(promises).then(async (results) => {
+      const invalids = results.filter((v) => !v.isValid);
+      setInvalidNodes(invalids.map((inv) => inv.node));
+    });
 
-    return () => {
-      window.clearInterval(interval);
-    };
+    // DEV
+    // const interval = window.setInterval(async () => {
+    //   if (configNodes) {
+    //   }
+    // }, 3000);
+    //
+    // return () => {
+    //   window.clearInterval(interval);
+    // };
   }, []);
 
   useEffect(() => {
-    setFields(selectedConfig?.getData() ?? []);
+    setFields(selectedConfig?.getFields() ?? []);
   }, [selectedConfig]);
   console.log('fields', fields);
 
@@ -100,6 +102,26 @@ export default function Configs() {
     (n) => n.getPath() === selectedConfig?.getPath(),
   );
 
+  const revalidateSelected = async () => {
+    console.log('revalidateSelected', await selectedConfig!.isValid());
+    const isValid = await selectedConfig!.isValid();
+
+    if (isValid) {
+      setInvalidNodes((prev) =>
+        prev.filter((n) => n.getPath() !== selectedConfig?.getPath()),
+      );
+    } else {
+      const alreadyExists = invalidNodes.find(
+        (node) => node.getPath() === selectedConfig?.getPath(),
+      );
+      console.log('alreadyExists', alreadyExists);
+
+      if (!alreadyExists) {
+        setInvalidNodes((prev) => [...prev, selectedConfig!]);
+      }
+    }
+  };
+
   const resetFromSourceSelected = async () => {
     setIsResetingFile(true);
     try {
@@ -112,7 +134,7 @@ export default function Configs() {
         const finalPath = path.join(project!.path, relativePath);
         await cp(finalPath, virtualPath);
         await selectedConfig.setupFile();
-        setFields(selectedConfig.getData() ?? []);
+        setFields(selectedConfig.getFields() ?? []);
       }
     } catch (err) {
       await handleError(err);
@@ -124,13 +146,15 @@ export default function Configs() {
   const onUpdatedRaw = useCallback(async () => {
     console.log('onUpdatedRaw');
     await selectedConfig!.setupFile();
-    setFields(selectedConfig!.getData() ?? []);
-  }, []);
+    setFields(selectedConfig?.getFields() ?? []);
+    await revalidateSelected();
+  }, [selectedConfig]);
 
   const onUpdatedRefined = useCallback(async () => {
     console.log('onUpdatedRefined');
     await selectedConfig?.setupFile();
-  }, []);
+    await revalidateSelected();
+  }, [selectedConfig]);
 
   return (
     <div className="flex h-full">
@@ -176,7 +200,7 @@ export default function Configs() {
                   isIconOnly
                   className={clsx(
                     'ml-auto h-[36px] w-[36px]',
-                    selectedConfig.getFileType() === 'toml' && 'mr-1',
+                    selectedConfig.hasRefineEditor() && 'mr-1',
                   )}
                 >
                   <div>
@@ -193,7 +217,7 @@ export default function Configs() {
                   </div>
                 </Button>
               </Tooltip>
-              {selectedConfig.getFileType() === 'toml' && (
+              {selectedConfig.hasRefineEditor() && (
                 <Tabs onSelectionChange={(key) => setEditorType(key as string)}>
                   <Tab title={<PenNib />} key="refined" />
                   <Tab title={<PencilSimple />} key="raw" />
@@ -207,13 +231,16 @@ export default function Configs() {
               />
             )}
             <RefinedConfigProvider fields={fields} root={selectedConfig}>
-              {editorType === 'refined' &&
-              selectedConfig.getFileType() === 'toml' ? (
-                <RefinedConfigEditor onUpdatedRefined={onUpdatedRefined} />
+              {editorType === 'refined' && selectedConfig.hasRefineEditor() ? (
+                <RefinedConfigEditor
+                  onUpdatedRefined={onUpdatedRefined}
+                  filter={searchTxt}
+                />
               ) : (
                 <RawConfigEditor
                   config={selectedConfig}
                   onUpdatedRaw={onUpdatedRaw}
+                  filter={searchTxt}
                 />
               )}
             </RefinedConfigProvider>

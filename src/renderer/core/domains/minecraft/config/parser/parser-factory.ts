@@ -9,13 +9,13 @@ export class ParserFactory {
   static get(extension: string) {
     switch (extension) {
       case 'toml':
-        return TomlParser;
+        return new TomlParser();
       case 'json':
-        return JsonParser;
+        return new JsonParser();
       case 'snbt':
-        return SNbtParser;
+        return new SNbtParser();
       case 'ini':
-        return IniParser;
+        return new IniParser();
       default:
         console.warn(`Unknown config file type: ${extension}`);
         return null;

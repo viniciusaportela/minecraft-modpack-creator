@@ -33,6 +33,7 @@ import { useAppStore } from '../../store/app.store';
 import Configs from '../configs/Configs';
 import PageHider from './components/PageHider';
 import BuildErrorReport from '../../components/build-error-modal/BuildErrorReport';
+import SearchBar from '../../components/search-bar/SearchBar';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -52,6 +53,8 @@ export default function Project() {
   const mods = useQuery(ModModel, (obj) =>
     obj.filtered('modId != $0 AND project = $1', ModId.Minecraft, project._id),
   );
+
+  const [modsFilter, setModsFilter] = useState('');
 
   const {
     isOpen: isReportOpen,
@@ -154,6 +157,12 @@ export default function Project() {
     return current === selectedTab;
   }
 
+  const filteredMods = modsFilter
+    ? mods.filter((mod) =>
+        mod.name.toLowerCase().includes(modsFilter.toLowerCase()),
+      )
+    : mods;
+
   return (
     <div className="flex flex-1 min-h-0">
       <BuildingModal
@@ -190,9 +199,15 @@ export default function Project() {
       <div className="w-80 border-[0.5px] border-solid border-zinc-800 border-t-0 flex flex-col">
         <span className="text-lg p-5 pb-3">{mods.length} mods</span>
 
+        <SearchBar
+          text={modsFilter}
+          onChange={setModsFilter}
+          className="px-5 mb-2 pr-8"
+        />
+
         <div className="flex-1 min-h-0">
           <ScrollShadow className="flex flex-col gap-2 h-full max-h-full pb-5 px-5">
-            {mods.map((mod) => (
+            {filteredMods.map((mod) => (
               <div>
                 <Card
                   className="w-full"
