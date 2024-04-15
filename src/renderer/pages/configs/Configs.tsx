@@ -59,32 +59,37 @@ export default function Configs() {
   const [searchTxt, setSearchTxt] = useState('');
   const [isResetingFile, setIsResetingFile] = useState(false);
 
-  const [invalidNodes, setInvalidNodes] = useState<ConfigNode[]>([]);
+  const [invalidNodes, setInvalidNodes] = useState<
+    { node: ConfigNode; severity: string }[]
+  >([]);
   const [fields, setFields] = useState<RefinedField[]>([]);
   const [selectedConfig, setSelectedConfig] = useState(
     getFirstFile(configNodes!),
   );
 
   useEffect(() => {
-    const promises = flattedNodes.map(async (node) => ({
-      isValid: await node.isValid(),
-      node,
-    }));
+    const promises = flattedNodes.map(async (node) => {
+      const { isValid, severity } = await node.isValid();
+
+      return {
+        isValid,
+        severity,
+        node,
+      };
+    });
 
     Promise.all(promises).then(async (results) => {
       const invalids = results.filter((v) => !v.isValid);
-      setInvalidNodes(invalids.map((inv) => inv.node));
-    });
 
-    // DEV
-    // const interval = window.setInterval(async () => {
-    //   if (configNodes) {
-    //   }
-    // }, 3000);
-    //
-    // return () => {
-    //   window.clearInterval(interval);
-    // };
+      console.log('results', results);
+
+      setInvalidNodes(
+        invalids.map((inv) => ({
+          node: inv.node,
+          severity: inv.severity as string,
+        })),
+      );
+    });
   }, []);
 
   useEffect(() => {
@@ -99,28 +104,35 @@ export default function Configs() {
   }, []);
 
   const isSelectedInvalid = invalidNodes?.find(
-    (n) => n.getPath() === selectedConfig?.getPath(),
+    (n) => n.node.getPath() === selectedConfig?.getPath(),
   );
 
   const revalidateSelected = async () => {
     console.log('revalidateSelected', await selectedConfig!.isValid());
-    const isValid = await selectedConfig!.isValid();
+    const { isValid, severity } = await selectedConfig!.isValid();
 
     if (isValid) {
       setInvalidNodes((prev) =>
-        prev.filter((n) => n.getPath() !== selectedConfig?.getPath()),
+        prev.filter(
+          (invalid) => invalid.node.getPath() !== selectedConfig?.getPath(),
+        ),
       );
     } else {
       const alreadyExists = invalidNodes.find(
-        (node) => node.getPath() === selectedConfig?.getPath(),
+        (invalid) => invalid.node.getPath() === selectedConfig?.getPath(),
       );
       console.log('alreadyExists', alreadyExists);
 
       if (!alreadyExists) {
-        setInvalidNodes((prev) => [...prev, selectedConfig!]);
+        setInvalidNodes((prev) => [
+          ...prev,
+          { node: selectedConfig!, severity: severity as string },
+        ]);
       }
     }
   };
+
+  console.log('invalid', invalidNodes);
 
   const resetFromSourceSelected = async () => {
     setIsResetingFile(true);
@@ -224,7 +236,7 @@ export default function Configs() {
                 </Tabs>
               )}
             </div>
-            {isSelectedInvalid && (
+            {isSelectedInvalid?.severity === 'error' && (
               <Alert
                 text="The parser can't read this file. This will block the build process. Try finding what is making this file invalid"
                 className="mb-3 -mt-1"

@@ -30,6 +30,26 @@ const TextField = memo(({ path, onUpdatedRefined, filter }: TextFieldProps) => {
     return /^#[0-9A-F]{3}([0-9A-F]{3})?$/i.test(txt);
   };
 
+  const isNotInRange = () => {
+    if (!config.range) return false;
+
+    if (
+      config.range[0] !== undefined &&
+      Number(config.value) < config.range[0]!
+    ) {
+      return true;
+    }
+
+    if (
+      config.range[1] !== undefined &&
+      Number(config.value) > config.range[1]!
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
   console.log('TextField', filter, config.name);
   if (filter && !config.name?.toLowerCase().includes(filter.toLowerCase())) {
     return null;
@@ -46,6 +66,11 @@ const TextField = memo(({ path, onUpdatedRefined, filter }: TextFieldProps) => {
         <Autocomplete
           size="sm"
           allowsCustomValue
+          className={
+            !config.allowedValues!.includes(config.value as string)
+              ? 'border-1 rounded-lg border-warning-300'
+              : undefined
+          }
           label={config.name}
           inputValue={config.value as string}
           endContent={
@@ -72,6 +97,11 @@ const TextField = memo(({ path, onUpdatedRefined, filter }: TextFieldProps) => {
         <Input
           value={config.value as string}
           size="sm"
+          className={
+            isNotInRange()
+              ? 'border-1 rounded-lg border-warning-300'
+              : undefined
+          }
           endContent={
             isColor(config.value as string) ? (
               <ColorPicker

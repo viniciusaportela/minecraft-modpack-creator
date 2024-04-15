@@ -6,6 +6,7 @@ import { JsonParser } from './parser/json-parser';
 import { SNbtParser } from './parser/snbt-parser';
 import { ParserFactory } from './parser/parser-factory';
 import { IniParser } from './parser/ini-parser';
+import { RefinedField } from './interfaces/parser';
 
 export class ConfigNode {
   private children: ConfigNode[] = [];
@@ -54,9 +55,9 @@ export class ConfigNode {
   }
 
   cloneFlat() {
-    const clonedNode = new ConfigNode(this.path, this.config).setParser(
-      this.parser,
-    );
+    const clonedNode = new ConfigNode(this.path, this.config)
+      .setParser(this.parser)
+      .setRawData(this.rawData);
     const flatted: ConfigNode[] = clonedNode.isDirectory() ? [] : [clonedNode];
 
     if (this.isDirectory()) {
@@ -70,9 +71,9 @@ export class ConfigNode {
 
   cloneWithFilter(filter: string) {
     if (this.isDirectory()) {
-      const clonedNode = new ConfigNode(this.path, this.config).setParser(
-        this.parser,
-      );
+      const clonedNode = new ConfigNode(this.path, this.config)
+        .setParser(this.parser)
+        .setRawData(this.rawData);
 
       this.children.forEach((child) => {
         if (child.isDirectory()) {
@@ -106,16 +107,75 @@ export class ConfigNode {
     return this.rawData;
   }
 
+  setRawData(rawData: string) {
+    this.rawData = rawData;
+    return this;
+  }
+
   getFileType() {
     return this.fileType;
   }
 
-  async isValid() {
-    if (this.isDirectory()) return true;
-    if (this.parser === null) return false;
+  async isValid(): Promise<{
+    isValid: boolean;
+    severity?: 'error' | 'warning';
+  }> {
+    if (this.isDirectory()) return { isValid: true };
+    if (this.parser === null) return { isValid: false, severity: 'error' };
 
     const { isValid } = await this.parser.isFileValid(this.path);
-    return isValid;
+    if (!isValid) return { isValid: false, severity: 'error' };
+
+    const toRead = this.getFields() ?? [];
+    console.log('toRead', this.path, toRead);
+
+    while (toRead.length) {
+      const field = toRead.shift();
+      if (field) {
+        if (field.type === 'group') toRead.push(...field.children!);
+
+        if (field.type === 'number') {
+          const isValid = this.validateNumber(field);
+          if (!isValid) return { isValid: false, severity: 'warning' };
+        }
+
+        if (field.type === 'string') {
+          const isValid = this.validateString(field);
+          if (!isValid) return { isValid: false, severity: 'warning' };
+        }
+      }
+    }
+
+    return { isValid: true };
+  }
+
+  private validateNumber(field: RefinedField) {
+    if (field.value === null) return false;
+
+    if (field.range) {
+      if (
+        Number(field.value) < field.range[0]! ||
+        Number(field.value) > field.range[1]!
+      ) {
+        console.log('validateNumber', field.value, field.range);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private validateString(field: RefinedField) {
+    if (field.value === null) return false;
+
+    if (field.allowedValues) {
+      if (!field.allowedValues.includes(field.value as string)) {
+        console.log('validateString', field.value, field.allowedValues);
+        return false;
+      }
+    }
+
+    return true;
   }
 
   getFields() {

@@ -7,7 +7,7 @@ interface FilesTreeProps {
   onNodeClick?: (node: ConfigNode) => void;
   width?: number;
   filterText?: string;
-  invalidNodes?: ConfigNode[];
+  invalidNodes?: { node: ConfigNode; severity?: string }[];
   selectedNode?: ConfigNode;
 }
 

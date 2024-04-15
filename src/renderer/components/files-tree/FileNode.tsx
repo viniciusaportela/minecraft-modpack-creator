@@ -9,7 +9,7 @@ export interface FileNodeProps {
   node: ConfigNode;
   nestLevel: number;
   onNodeClick?: (node: ConfigNode) => void;
-  invalidNodes?: ConfigNode[];
+  invalidNodes?: { node: ConfigNode; severity?: string }[];
 }
 
 export default function FileNode({
@@ -23,7 +23,9 @@ export default function FileNode({
   const name = path.basename(nodePath);
   const isDirectory = node.isDirectory();
 
-  const isInvalid = invalidNodes?.find((n) => n.getPath() === node.getPath());
+  const isInvalid = invalidNodes?.find(
+    (invalid) => invalid.node.getPath() === node.getPath(),
+  );
 
   return (
     <div
@@ -58,12 +60,24 @@ export default function FileNode({
           className={clsx(
             isSelected?.(node) ? 'bg-zinc-700' : 'bg-zinc-800',
             'justify-start -ml-4',
-            invalidNodes?.find((n) => n.getPath() === node.getPath()) &&
-              'border-danger-300 border-1',
+            isInvalid &&
+              `border-1 ${
+                isInvalid.severity === 'error'
+                  ? 'border-danger-300'
+                  : 'border-warning-300'
+              }`,
           )}
           startContent={
             isInvalid ? (
-              <Warning size={18} weight="bold" className="text-danger-300" />
+              <Warning
+                size={18}
+                weight="bold"
+                className={
+                  isInvalid.severity === 'error'
+                    ? 'text-danger-300'
+                    : 'text-warning-300'
+                }
+              />
             ) : (
               <GearSix
                 weight="fill"
