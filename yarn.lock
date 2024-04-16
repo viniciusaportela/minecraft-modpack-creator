@@ -6377,7 +6377,12 @@ destroy@1.2.0:
   resolved "https://registry.yarnpkg.com/destroy/-/destroy-1.2.0.tgz#4803735509ad8be552934c67df614f94e66fa015"
   integrity sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==
 
-detect-libc@^2.0.0, detect-libc@^2.0.1:
+detect-libc@^2.0.0:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-2.0.3.tgz#f0cd503b40f9939b894697d19ad50895e30cf700"
+  integrity sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw==
+
+detect-libc@^2.0.1:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/detect-libc/-/detect-libc-2.0.2.tgz#8ccf2ba9315350e1241b88d0ac3b0e1fbd99605d"
   integrity sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==
@@ -10153,7 +10158,14 @@ no-case@^3.0.4:
     lower-case "^2.0.2"
     tslib "^2.0.3"
 
-node-abi@^3.3.0, node-abi@^3.45.0:
+node-abi@^3.3.0:
+  version "3.58.0"
+  resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-3.58.0.tgz#3df24fb742e27c3d2a56375ade5dcc68e9aa9710"
+  integrity sha512-pXY1jnGf5T7b8UNzWzIqf0EkX4bx/w8N2AvwlGnk2SYYA/kzDVPaH0Dh0UG4EwxBB5eKOIZKPr8VAHSHL1DPGg==
+  dependencies:
+    semver "^7.3.5"
+
+node-abi@^3.45.0:
   version "3.56.0"
   resolved "https://registry.yarnpkg.com/node-abi/-/node-abi-3.56.0.tgz#ca807d5ff735ac6bbbd684ae3ff2debc1c2a40a7"
   integrity sha512-fZjdhDOeRcaS+rcpve7XuwHBmktS1nS1gzgghwKUQQ8nTy2FdSDr6ZT8k6YhvlJeHmmQMYiT/IH9hfco5zeW2Q==
@@ -10568,6 +10580,11 @@ pascal-case@^3.1.2:
     no-case "^3.0.4"
     tslib "^2.0.3"
 
+path-browserify@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/path-browserify/-/path-browserify-1.0.1.tgz#d98454a9c3753d5790860f16f68867b9e46be1fd"
+  integrity sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==
+
 path-exists@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/path-exists/-/path-exists-4.0.0.tgz#513bdbe2d3b95d7762e8c1137efa195c6c61b5b3"
@@ -10935,9 +10952,9 @@ postcss@^8.4.23, postcss@^8.4.24, postcss@^8.4.33, postcss@^8.4.35:
     source-map-js "^1.0.2"
 
 prebuild-install@^7.1.1:
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-7.1.1.tgz#de97d5b34a70a0c81334fd24641f2a1702352e45"
-  integrity sha512-jAXscXWMcCK8GgCoHOfIr0ODh5ai8mj63L2nWrjuAgXE6tDyYGnx4/8o/rCgU+B4JSyZBKbeZqzhtwtC3ovxjw==
+  version "7.1.2"
+  resolved "https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-7.1.2.tgz#a5fd9986f5a6251fbc47e1e5c65de71e68c0a056"
+  integrity sha512-UnNke3IQb6sgarcZIDU3gbMeTp/9SSU1DAIkil7PrqG1vZlBtY5msYccSKSHDqa3hNg436IXK+SNImReuA1wEQ==
   dependencies:
     detect-libc "^2.0.0"
     expand-template "^2.0.3"
@@ -11340,15 +11357,16 @@ readdirp@~3.6.0:
   dependencies:
     picomatch "^2.2.1"
 
-realm@^12.6.1:
-  version "12.6.1"
-  resolved "https://registry.yarnpkg.com/realm/-/realm-12.6.1.tgz#20098eed7d5314a9dbb1fa5f2c4743aa02ad3007"
-  integrity sha512-LOwDU01qDPH57TLLb9jtAgdmRI1kz98tQVptvOYPAGogFLHAQtXcSzUCQtr0ga2YznJwm9YHEepqXHa5EOrKNQ==
+realm@^12.6.2:
+  version "12.6.2"
+  resolved "https://registry.yarnpkg.com/realm/-/realm-12.6.2.tgz#01736e056b9346c3ac928bda1422e25360c94526"
+  integrity sha512-6ICUaKHNeiEAwVIKC3AkCDTCVEtpkFAVeWvmUVdmVIUjcY/+2cMLe/tgFpLcY7pEB/n1EUg3pVyUBcVuMvwdqg==
   dependencies:
     "@realm/fetch" "^0.1.1"
     bson "^4.7.2"
     debug "^4.3.4"
     node-machine-id "^1.1.12"
+    path-browserify "^1.0.1"
     prebuild-install "^7.1.1"
 
 rechoir@^0.8.0:
