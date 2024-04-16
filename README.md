@@ -4,7 +4,7 @@ A tool for easing the creation of minecraft modpacks.
 
 ## Features:
 - Config Editor
-- SkilTree Tree Editor
+- SkillTree Tree Editor
 
 ## Roadmap
 - Recipes Editor
