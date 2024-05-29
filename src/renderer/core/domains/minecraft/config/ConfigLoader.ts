@@ -1,12 +1,5 @@
 import path from 'path';
-import {
-  cp,
-  mkdir,
-  readdir,
-  readFile,
-  stat,
-  writeFile,
-} from 'node:fs/promises';
+import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import recursive from 'recursive-readdir';
 import fsExtra from 'fs-extra';
 import { ConfigNode } from './ConfigNode';
@@ -30,10 +23,12 @@ export class ConfigLoader {
     while (toReadStack.length > 0) {
       const current = toReadStack.pop()!;
       const currentPath = current.getPath();
+      // eslint-disable-next-line no-await-in-loop
       const allFilesInThisPath = await readdir(currentPath, {
         withFileTypes: true,
       });
 
+      // eslint-disable-next-line no-await-in-loop, no-restricted-syntax
       for await (const filePath of allFilesInThisPath) {
         if (filePath.isDirectory()) {
           const directory = new ConfigNode(
@@ -131,8 +126,8 @@ export class ConfigLoader {
       const filesOnly = pathWithMetadata.filter(async (path) =>
         path.stats.isFile(),
       );
-      const configFilesRelativeToSaveConfigsFolder = filesOnly.map((pathMeta) =>
-        pathMeta.fullPath.replace(`${baseConfigsPath}/`, ''),
+      const configFilesRelativeToSaveConfigsFolder = filesOnly.map((fileMeta) =>
+        path.relative(baseConfigsPath, fileMeta.fullPath),
       );
 
       for await (const relativeConfigPath of configFilesRelativeToSaveConfigsFolder) {

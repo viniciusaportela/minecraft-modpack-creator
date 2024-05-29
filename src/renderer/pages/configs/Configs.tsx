@@ -139,10 +139,7 @@ export default function Configs() {
     try {
       if (selectedConfig) {
         const virtualPath = selectedConfig.getPath();
-        const relativePath = virtualPath.replace(
-          `${project?.path}/minecraft_toolkit/configs/`,
-          '',
-        );
+        const relativePath = path.relative(project?.path ?? '', virtualPath);
         const finalPath = path.join(project!.path, relativePath);
         await cp(finalPath, virtualPath);
         await selectedConfig.setupFile();
@@ -201,9 +198,14 @@ export default function Configs() {
             />
             <div className="flex items-center min-h-[40px] mb-2">
               <span className="text-lg font-bold mb-1">
-                {selectedConfig
-                  .getPath()
-                  .replace(`${project?.path}/minecraft_toolkit/configs/`, '')}
+                {path.relative(
+                  path.join(
+                    project?.path ?? '',
+                    'minecraft_toolkit',
+                    'configs',
+                  ),
+                  selectedConfig.getPath(),
+                )}
               </span>
               <Tooltip content="Reload from disk">
                 <Button

@@ -47,8 +47,6 @@ export default function ProjectCard({
     }
   }, [project]);
 
-  console.log('ProjectCard', title, project);
-
   if (!project) {
     return null;
   }

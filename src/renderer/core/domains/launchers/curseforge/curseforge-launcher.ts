@@ -51,6 +51,11 @@ export class CurseforgeLauncher extends BaseLauncher {
       );
     }
 
+    if (process.platform === 'win32') {
+      const home = os.homedir();
+      return path.join(home, 'curseforge', 'minecraft', 'Instances');
+    }
+
     return null;
   }
 

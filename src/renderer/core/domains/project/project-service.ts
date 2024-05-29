@@ -23,7 +23,7 @@ export default class ProjectService {
     realm.write(() => {
       const exists = realm
         .objects<ProjectModel>(ProjectModel.schema.name)
-        .filtered(`path = "${folder}"`);
+        .filtered(`path = $0`, folder);
 
       if (exists[0]) {
         exists[0].cachedAmountInstalledMods = data.cachedAmountInstalledMods;
@@ -53,7 +53,6 @@ export default class ProjectService {
     const { realm } = useAppStore.getState();
 
     const modpackFolders = await this.launchers.findModpackFolders();
-    console.log(modpackFolders);
 
     const promises = modpackFolders.map(async (folder) => {
       await this.createFromFolder(folder);
