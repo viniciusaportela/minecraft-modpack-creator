@@ -101,8 +101,9 @@ const configuration: webpack.Configuration = {
   },
 
   optimization: {
-    minimize: true,
-    minimizer: [new TerserPlugin(), new CssMinimizerPlugin()],
+    // Minimize was causing an error on production build
+    minimize: false,
+    // minimizer: [new TerserPlugin(), new CssMinimizerPlugin()],
   },
 
   plugins: [
