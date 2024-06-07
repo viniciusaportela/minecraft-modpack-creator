@@ -1,33 +1,51 @@
 import { readdir, stat } from 'node:fs/promises';
 import path from 'path';
 import os from 'os';
-import { BaseLauncher, IProjectData } from '../base/base-launcher';
+import { BaseLauncher } from '../base/base-launcher';
 import { CurseforgeDirectory } from './curseforge-directory';
+import { IProject } from '../../../../store/interfaces/project.interface';
 
 export class CurseforgeLauncher extends BaseLauncher {
   constructor() {
     super();
   }
 
-  async getProjectData(folder: string): Promise<IProjectData> {
-    const directory = this.getDirectory(folder);
+  private static instance: CurseforgeLauncher;
 
-    const curseInstance = await directory
-      .readMetadata()
-      .then((m) => m.getRaw());
+  static getInstance() {
+    if (!this.instance) {
+      this.instance = new CurseforgeLauncher();
+    }
+
+    return this.instance;
+  }
+
+  async genProjectFromFolder(folder: string): Promise<IProject | null> {
+    const directory = this.toDirectory(folder);
+
+    const metadata = await directory.getMetadata();
+
+    if (!metadata) {
+      return null;
+    }
 
     return {
-      name: curseInstance.name,
+      name: metadata.path.split(path.sep).pop()!,
       path: folder,
-      minecraftVersion: curseInstance.gameVersion,
-      loaderVersion: curseInstance.baseModLoader.name,
-      loader: curseInstance.baseModLoader.name,
+      minecraftVersion: metadata.minecraftVersion,
+      loaderVersion: metadata.loaderVersion,
+      loader: metadata.modLoader,
       launcher: 'curseforge',
-      cachedAmountInstalledMods: curseInstance.installedAddons.length,
+      modCount: metadata.modCount,
+      isLoaded: false,
+      orphan: false,
+      lastOpenAt: null,
+      // TODO actual index, or update this later
+      index: -1,
     };
   }
 
-  async findModpackFolders(): Promise<string[]> {
+  async getModpacksFolders(): Promise<string[]> {
     const basePath = this.getModpacksBaseFolder();
 
     if (!basePath) {
@@ -59,7 +77,7 @@ export class CurseforgeLauncher extends BaseLauncher {
     return null;
   }
 
-  getDirectory(folder: string): CurseforgeDirectory {
+  toDirectory(folder: string): CurseforgeDirectory {
     return new CurseforgeDirectory(folder);
   }
 

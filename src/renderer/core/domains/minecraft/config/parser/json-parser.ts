@@ -7,7 +7,7 @@ export class JsonParser extends BaseParser {
     try {
       const file = await readFile(path, 'utf-8');
       JSON.parse(file);
-      return { isValid: true };
+      return { isValid: true, error: null };
     } catch (err) {
       return { isValid: false, error: err };
     }

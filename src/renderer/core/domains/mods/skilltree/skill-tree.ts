@@ -2,15 +2,17 @@ import path from 'path';
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { Edge, Node } from 'reactflow';
 import { DefaultMod } from '../default-mod';
+import { ISkillTreeConfig } from './interfaces/skill-tree-config.interface';
 
 export class SkillTree extends DefaultMod {
   async build() {
-    const config = this.config.parseConfig();
-    console.log('parsedConfig', config);
+    // TODO check if has KubeJS installed, if so, use their path for datapacks
+    const config = this.modConfig;
 
     const basePath = path.join(
       this.project.path,
-      'generated_datapacks',
+      'minecraft-toolkit',
+      'generated',
       'skilltree',
     );
 
@@ -86,7 +88,7 @@ export class SkillTree extends DefaultMod {
         data: {
           ...cfg,
           modpackFolder: this.project.path,
-          projectId: this.project._id,
+          projectId: this.project.index,
         },
         type: 'skill_node',
       };
@@ -123,10 +125,8 @@ export class SkillTree extends DefaultMod {
     return updatedTree;
   }
 
-  async initializeConfig(config: any) {
+  async makeConfig(): Promise<ISkillTreeConfig> {
     return {
-      ...config,
-      initialized: true,
       tree: await this.initializeTree(),
     };
   }

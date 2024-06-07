@@ -1,6 +1,5 @@
 import { Handle, Position, useStore } from 'reactflow';
 import { memo, useLayoutEffect, useState } from 'react';
-import { BSON } from 'realm';
 import LazyTexture from '../../../../../components/lazy-texture/LazyTexture';
 import { TextureLoader } from '../../../../../core/domains/minecraft/texture/texture-loader';
 
@@ -16,13 +15,7 @@ export default memo(({ data, id }: { data: any; id: string }) => {
       .replace('textures/', '')
       .replace('.png', '');
 
-    new TextureLoader()
-      .load(new BSON.ObjectId(data.projectId), textureId)
-      .then(() => {
-        setBackgroundImg(
-          new TextureLoader().getTextureSource(textureId) as string,
-        );
-      });
+    setBackgroundImg(new TextureLoader().getTextureSource(textureId) as string);
   }, [data.backgroundTexture]);
 
   return (
@@ -40,9 +33,7 @@ export default memo(({ data, id }: { data: any; id: string }) => {
       }}
     >
       <LazyTexture
-        textureId={data.iconTexture
-          .replace('textures/', '')
-          .replace('.png', '')}
+        path={data.iconTexture.replace('textures/', '').replace('.png', '')}
         className="pixelated h-3 w-3 object-contain rounded-none"
       />
 

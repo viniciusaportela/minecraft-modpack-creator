@@ -57,7 +57,7 @@ export function Pager({
     const pageToRender = childrenArray.find(
       (child) =>
         (child as any).props?.name === contextValue.page &&
-        child.type?.displayName === 'Page',
+        (child as any).type?.displayName === 'Page',
     );
 
     return pageToRender ?? childrenArray[0];

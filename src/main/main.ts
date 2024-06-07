@@ -18,7 +18,6 @@ import {
   net,
   dialog,
 } from 'electron';
-import { readdir, readFile } from 'node:fs/promises';
 import * as crypto from 'crypto';
 import { mkdirSync } from 'node:fs';
 import { resolveHtmlPath } from './util';
@@ -69,7 +68,7 @@ const createWindow = async () => {
     width: 800,
     height: 600,
     resizable: true,
-    image: getAssetPath('icon.png'),
+    icon: getAssetPath('icon.png'),
     frame: false,
     webPreferences: {
       nodeIntegration: true,

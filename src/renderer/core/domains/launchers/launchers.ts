@@ -1,28 +1,31 @@
 import { existsSync } from 'node:fs';
 import { CurseforgeLauncher } from './curseforge/curseforge-launcher';
-import { BaseLauncher } from './base/base-launcher';
 import BusinessLogicError from '../../errors/business-logic-error';
 import { BusinessError } from '../../errors/business-error.enum';
 import { MinecraftLauncher } from './minecraft/minecraft-launcher';
 import { SKLauncher } from './sklauncher/sk-launcher';
 
 export class Launchers {
-  private launchers: BaseLauncher[];
+  private static instance: Launchers;
 
-  constructor() {
-    this.launchers = Launchers.initializeLaunchers();
+  static getInstance() {
+    if (!this.instance) {
+      this.instance = new Launchers();
+    }
+
+    return this.instance;
   }
 
-  static initializeLaunchers() {
+  listLaunchers() {
     return [
-      new MinecraftLauncher(),
-      new CurseforgeLauncher(),
-      new SKLauncher(),
+      MinecraftLauncher.getInstance(),
+      CurseforgeLauncher.getInstance(),
+      SKLauncher.getInstance(),
     ];
   }
 
-  static async getByFolder(folder: string) {
-    const launchers = this.initializeLaunchers();
+  async getLauncherByFolder(folder: string) {
+    const launchers = this.listLaunchers();
 
     for await (const launcher of launchers) {
       if (await launcher.isFolderOfThisLauncher(folder)) {
@@ -33,19 +36,7 @@ export class Launchers {
     return null;
   }
 
-  static getByName(name: string) {
-    const launcherByName = {
-      minecraft: MinecraftLauncher,
-      curseforge: CurseforgeLauncher,
-      sklauncher: SKLauncher,
-    };
-
-    return name in launcherByName
-      ? new launcherByName[name as keyof typeof launcherByName]()
-      : null;
-  }
-
-  async getProjectData(folder: string) {
+  async genProjectFromFolder(folder: string) {
     const exists = existsSync(folder);
 
     if (!exists) {
@@ -55,7 +46,7 @@ export class Launchers {
       });
     }
 
-    const launcher = await Launchers.getByFolder(folder);
+    const launcher = await this.getLauncherByFolder(folder);
 
     if (!launcher) {
       throw new BusinessLogicError({
@@ -67,14 +58,14 @@ export class Launchers {
       });
     }
 
-    return launcher.getProjectData(folder);
+    return launcher.genProjectFromFolder(folder);
   }
 
   async findModpackFolders() {
     const folders: string[] = [];
 
-    for await (const launcher of this.launchers) {
-      const launcherFolders = await launcher.findModpackFolders();
+    for await (const launcher of this.listLaunchers()) {
+      const launcherFolders = await launcher.getModpacksFolders();
       folders.push(...launcherFolders);
     }
 

@@ -1,32 +1,27 @@
 import os from 'os';
 import path from 'path';
-import { readdir } from 'node:fs/promises';
-import { BaseDirectory } from './base-directory';
-import { ProjectModel } from '../../../models/project.model';
-
-export interface IProjectData {
-  name: string;
-  path: string;
-  minecraftVersion: string;
-  loaderVersion: string;
-  loader: string;
-  launcher: string;
-  cachedAmountInstalledMods?: number;
-}
+import { ipcRenderer } from 'electron';
+import { LauncherDirectory } from './launcher-directory';
+import { IProject } from '../../../../store/interfaces/project.interface';
 
 export abstract class BaseLauncher {
-  abstract getDirectory(folder: string): BaseDirectory;
+  abstract toDirectory(folder: string): LauncherDirectory;
 
   abstract isFolderOfThisLauncher(folder: string): Promise<boolean>;
 
-  abstract getProjectData(folder: string): Promise<IProjectData>;
+  abstract genProjectFromFolder(folder: string): Promise<IProject | null>;
 
-  abstract findModpackFolders(): Promise<string[]>;
+  abstract getModpacksFolders(): Promise<string[]>;
 
-  protected getMinecraftPath() {
+  protected getMinecraftRoot() {
     if (process.platform === 'linux') {
       const home = os.homedir();
       return path.join(home, '.minecraft');
+    }
+
+    if (process.platform === 'win32') {
+      const appData = ipcRenderer.sendSync('getPath', 'appData');
+      return path.join(appData, '.minecraft');
     }
 
     return null;

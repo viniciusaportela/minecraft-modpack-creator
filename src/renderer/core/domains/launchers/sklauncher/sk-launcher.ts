@@ -1,12 +1,23 @@
 import { readdir } from 'node:fs/promises';
 import path from 'path';
-import { BaseLauncher, IProjectData } from '../base/base-launcher';
+import { BaseLauncher } from '../base/base-launcher';
 import { SKLauncherDirectory } from './sk-launcher-directory';
 import { isUUIDValid } from '../../../../helpers/is-uuid-valid';
+import { IProject } from '../../../../store/interfaces/project.interface';
 
 export class SKLauncher extends BaseLauncher {
-  async findModpackFolders(): Promise<string[]> {
-    const minecraftPath = this.getMinecraftPath();
+  private static instance: SKLauncher;
+
+  static getInstance() {
+    if (!this.instance) {
+      this.instance = new SKLauncher();
+    }
+
+    return this.instance;
+  }
+
+  async getModpacksFolders(): Promise<string[]> {
+    const minecraftPath = this.getMinecraftRoot();
 
     if (!minecraftPath) {
       return [];
@@ -17,22 +28,30 @@ export class SKLauncher extends BaseLauncher {
     );
   }
 
-  getDirectory(folder: string): SKLauncherDirectory {
+  toDirectory(folder: string): SKLauncherDirectory {
     return new SKLauncherDirectory(folder);
   }
 
-  async getProjectData(folder: string): Promise<IProjectData> {
-    const dir = this.getDirectory(folder);
-    const metadata = await dir.readMetadata().then((m) => m.getRaw());
+  async genProjectFromFolder(folder: string): Promise<IProject | null> {
+    const dir = this.toDirectory(folder);
+    const metadata = await dir.getMetadata();
+
+    if (!metadata) {
+      return null;
+    }
 
     return {
-      name: metadata.name,
+      name: metadata.path.split(path.sep).pop() as string,
       path: folder,
-      minecraftVersion: metadata.minecraft.version,
-      loaderVersion: metadata.minecraft.modLoaders[0].id,
-      loader: metadata.minecraft.modLoaders[0].id,
-      cachedAmountInstalledMods: metadata.files.length,
+      minecraftVersion: metadata.minecraftVersion,
+      loaderVersion: metadata.loaderVersion,
+      loader: metadata.modLoader,
+      modCount: metadata.modCount,
       launcher: 'sklauncher',
+      isLoaded: false,
+      index: -1,
+      lastOpenAt: null,
+      orphan: false,
     };
   }
 

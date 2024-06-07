@@ -32,21 +32,15 @@ import TreeNode from '../components/react-flow/TreeNode';
 import Title from '../../../../components/title/Title';
 import SkillEdge from '../components/react-flow/SkillEdge';
 import { usePager } from '../../../../components/pager/hooks/usePager';
-import { GlobalStateModel } from '../../../../core/models/global-state.model';
-import {
-  useQuery,
-  useQueryById,
-  useQueryFirst,
-} from '../../../../hooks/realm.hook';
-import { ModModel } from '../../../../core/models/mod.model';
 import ModId from '../../../../typings/mod-id.enum';
 import { SkillTree } from '../../../../core/domains/mods/skilltree/skill-tree';
-import { ProjectModel } from '../../../../core/models/project.model';
 import EditSkillPanel from '../components/edit-skill-panel/EditSkillPanel';
 import ScreenToFlowPositionGetter from '../components/react-flow/ScreenToFlowPositionGetter';
 import FitViewGetter from '../components/react-flow/FitViewGetter';
 import { useModConfig } from '../../../../hooks/use-mod-config';
 import { useModConfigStore } from '../../../../store/mod-config.store';
+import { useAppStore } from '../../../../store/app.store';
+import { useModById } from '../../../../store/hooks/use-mod-by-id';
 
 const edgeTypes = {
   skill_edge: SkillEdge,
@@ -56,15 +50,8 @@ const nodeTypes = { skill_node: TreeNode };
 
 export default function EditTree() {
   const { navigate } = usePager();
-  const globalState = useQueryFirst(GlobalStateModel);
-  const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
-  const skillTreeMod = useQuery(ModModel, (obj) =>
-    obj.filtered(
-      'modId = $0 AND project = $1',
-      ModId.PassiveSkillTree,
-      globalState.selectedProjectId!,
-    ),
-  )[0];
+  const project = useAppStore((st) => st.selectedProject);
+  const skillTreeMod = useModById(ModId.PassiveSkillTree);
 
   const screenToFlowPosition = useRef();
   const fitView = useRef();

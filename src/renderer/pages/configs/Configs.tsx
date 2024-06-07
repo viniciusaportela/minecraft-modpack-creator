@@ -14,9 +14,6 @@ import { cp } from 'node:fs/promises';
 import { useAppStore } from '../../store/app.store';
 import FilesTree from '../../components/files-tree/FilesTree';
 import RawConfigEditor from './components/RawConfigEditor/RawConfigEditor';
-import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
-import { GlobalStateModel } from '../../core/models/global-state.model';
-import { ProjectModel } from '../../core/models/project.model';
 import RefinedConfigEditor from './components/RefinedConfigEditor/RefinedConfigEditor';
 import { ConfigNode } from '../../core/domains/minecraft/config/ConfigNode';
 import SearchBar from '../../components/search-bar/SearchBar';
@@ -50,8 +47,7 @@ export default function Configs() {
   const filesTreeRef = useRef<HTMLDivElement>();
   const handleError = useErrorHandler();
 
-  const globalState = useQueryFirst(GlobalStateModel);
-  const project = useQueryById(ProjectModel, globalState.selectedProjectId!);
+  const project = useAppStore((st) => st.selectedProject);
 
   const [treeWidth, setTreeWidth] = useState(260);
   const [editorType, setEditorType] = useState('refined');
@@ -146,7 +142,9 @@ export default function Configs() {
         setFields(selectedConfig.getFields() ?? []);
       }
     } catch (err) {
-      await handleError(err);
+      if (err instanceof Error) {
+        await handleError(err);
+      }
     } finally {
       setIsResetingFile(false);
     }

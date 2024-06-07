@@ -8,9 +8,14 @@ import {
 import { useModConfig } from '../../../../../../hooks/use-mod-config';
 import Label from './Label';
 
+interface IFullOption {
+  label: string;
+  value: string | number;
+}
+
 interface ChoiceProps {
   path: string[];
-  options: (number | string)[] | { label: string; value: string | number }[];
+  options: (number | string)[] | IFullOption[];
   label: string;
 }
 
@@ -23,7 +28,7 @@ export default function ChoiceField({ options, path, label }: ChoiceProps) {
     }
 
     const found = options.find(
-      (option) => option === value || option?.value === value,
+      (option) => option === value || (option as IFullOption)?.value === value,
     );
 
     if (typeof found === 'object') {
@@ -46,15 +51,18 @@ export default function ChoiceField({ options, path, label }: ChoiceProps) {
             setValue(() => {
               return (
                 // eslint-disable-next-line eqeqeq
-                options.find((opt) => opt == key || opt?.value == key)?.value ??
-                key
+                (
+                  options.find(
+                    (opt) => opt === key || (opt as IFullOption)?.value === key,
+                  ) as IFullOption
+                )?.value ?? key
               );
             });
           }}
         >
           {options.map((option) => (
-            <DropdownItem key={option?.value ?? option}>
-              {getLabel(option?.value ?? option)}
+            <DropdownItem key={(option as IFullOption)?.value ?? option}>
+              {getLabel((option as IFullOption)?.value ?? option)}
             </DropdownItem>
           ))}
         </DropdownMenu>

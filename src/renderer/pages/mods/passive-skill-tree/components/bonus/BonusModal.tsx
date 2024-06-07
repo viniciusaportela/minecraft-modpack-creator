@@ -10,15 +10,20 @@ import {
   ScrollShadow,
   Selection,
 } from '@nextui-org/react';
+import get from 'lodash.get';
 import React, { Key, useState } from 'react';
 import { Plus, X } from '@phosphor-icons/react';
 import { v4 } from 'uuid';
 import { Page, Pager } from '../../../../../components/pager/Pager';
 import { useErrorHandler } from '../../../../../core/errors/hooks/useErrorHandler';
-import { useModConfig } from '../../../../../hooks/use-mod-config';
 import { AllAttributes } from './bonuses/AllAttributes';
 import EditBonus from './EditBonus';
-import { COMPONENTS_BY_BONUS } from '../../../../../core/domains/mods/skilltree/enums/skill-bonus.enum';
+import {
+  COMPONENTS_BY_BONUS,
+  EBonus,
+} from '../../../../../core/domains/mods/skilltree/enums/skill-bonus.enum';
+import { useModConfigStore } from '../../../../../store/hooks/use-mod-config-store';
+import { ISkillTreeConfig } from '../../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
 
 interface BonusModalProps {
   isOpen: boolean;
@@ -33,18 +38,15 @@ export default function BonusModal({
 }: BonusModalProps) {
   const handleError = useErrorHandler();
 
-  const [bonuses, setBonuses] = useModConfig(
-    [...focusedNodePath, 'data', 'bonuses'],
-    {
-      listenMeAndExternalChanges: true,
-    },
+  const bonuses = useModConfigStore((state: ISkillTreeConfig) =>
+    get(state, [...focusedNodePath, 'data', 'bonuses']),
   );
 
   const [page, setPage] = useState(bonuses?.length ? 'bonus-0' : 'empty');
 
   const onSelectKey = (index: number, key: Key) => {
     const defaultConfig =
-      COMPONENTS_BY_BONUS()[key as string].getDefaultConfig() ??
+      COMPONENTS_BY_BONUS()[key as EBonus].getDefaultConfig() ??
       AllAttributes.getDefaultConfig();
 
     setBonuses((bonuses) => {
@@ -85,7 +87,9 @@ export default function BonusModal({
         setPage('bonus-0');
       }
     } catch (err) {
-      await handleError(err);
+      if (err instanceof Error) {
+        await handleError(err);
+      }
     }
   };
 

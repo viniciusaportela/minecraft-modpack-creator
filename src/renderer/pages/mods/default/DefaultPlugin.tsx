@@ -1,6 +1,7 @@
 import { TreePalm } from '@phosphor-icons/react';
 import { IModPageProps } from '../../../typings/plugin.interface';
 
+// eslint-disable-next-line no-empty-pattern
 export default function DefaultPlugin({}: IModPageProps) {
   return (
     <div className="flex flex-col flex-1 items-center justify-center">

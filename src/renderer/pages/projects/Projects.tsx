@@ -1,14 +1,11 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ipcRenderer } from 'electron';
-import { Button, Divider, Input, useDisclosure } from '@nextui-org/react';
-import { ArrowClockwise, MagnifyingGlass } from '@phosphor-icons/react';
+import { Button, Divider, useDisclosure } from '@nextui-org/react';
+import { ArrowClockwise } from '@phosphor-icons/react';
 import { Types } from 'realm';
 import ProjectCard from './components/ProjectCard';
 import AddProject from './components/AddProject';
 import { usePager } from '../../components/pager/hooks/usePager';
-import { useQuery, useQueryFirst } from '../../hooks/realm.hook';
-import { ProjectModel } from '../../core/models/project.model';
-import { GlobalStateModel } from '../../core/models/global-state.model';
 import AppBarHeader, {
   AppBarHeaderContainer,
 } from '../../components/app-bar/AppBarHeader';
@@ -16,25 +13,22 @@ import LoadProjectModal from './components/LoadProjectModal';
 import { useAppStore } from '../../store/app.store';
 import ProjectService from '../../core/domains/project/project-service';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
-import { useModConfigStore } from '../../store/mod-config.store';
 import { MinecraftVersionPickerModal } from './components/MinecraftVersionPickerModal';
-import { TextureModel } from '../../core/models/texture.model';
-import { ModModel } from '../../core/models/mod.model';
-import { ItemModel } from '../../core/models/item.model';
 import SearchBar from '../../components/search-bar/SearchBar';
+import { IProject } from '../../store/interfaces/project.interface';
+import { ModConfigStore } from '../../store/mod-config.store';
 
 export default function Projects() {
   const handleError = useErrorHandler();
 
   const realm = useAppStore((st) => st.realm)!;
   const { navigate } = usePager();
-  const globalState = useQueryFirst(GlobalStateModel);
   const [initialVersion, setInitialVersion] = useState('');
 
   const projectService = useRef(new ProjectService()).current;
 
   const versionPickerParams = useRef<{
-    projectId: Types.ObjectId;
+    projectIndex: number;
     redirect: boolean;
   } | null>(null);
 
@@ -52,13 +46,14 @@ export default function Projects() {
     onClose: onMinecraftVersionPickerClose,
   } = useDisclosure();
 
-  const projects = useQuery(ProjectModel);
+  const projects = useAppStore((st) => st.projects);
+  const selectedProject = useAppStore((st) => st.selectedProject);
+  const selectedProjectIndex = useAppStore((st) => st.selectedProjectIndex);
 
   const [filterText, setFilterText] = useState('');
 
   useLayoutEffect(() => {
-    console.log(globalState.selectedProjectId);
-    if (globalState.selectedProjectId) {
+    if (selectedProject) {
       navigate('project-preload');
     }
   }, []);
@@ -78,14 +73,16 @@ export default function Projects() {
       await projectService.createFromFolder(modpackFolder);
       onModalClose();
     } catch (err) {
-      await handleError(err);
+      if (err instanceof Error) {
+        await handleError(err);
+      }
     }
   };
 
-  const validateMinecraftProject = (project: ProjectModel) => {
+  const validateMinecraftProject = (project: IProject) => {
     if (project.minecraftVersion === 'unknown') {
       versionPickerParams.current = {
-        projectId: project._id,
+        projectIndex: project.index,
         redirect: true,
       };
       onMinecraftVersionPickerOpen();
@@ -95,29 +92,15 @@ export default function Projects() {
     return true;
   };
 
-  const open = async (projectId: Types.ObjectId) => {
+  const open = async (projectIdx: number) => {
     try {
-      console.log('open', useModConfigStore.getState());
-      useModConfigStore.setState(
-        (st: any) => ({
-          hooks: {},
-          updateConfig: st.updateConfig,
-          registerHook: st.registerHook,
-          unregisterHook: st.unregisterHook,
-        }),
-        true,
-      );
-      realm.write(() => {
-        globalState.selectedProjectId = projectId;
-      });
+      ModConfigStore.getInstance().clear();
+
       useAppStore.setState({
-        selectedProjectId: projectId,
+        selectedProjectIndex: projectIdx,
       });
 
-      const project = projects.find(
-        (p) => p._id.toString() === globalState.selectedProjectId!.toString(),
-      )!;
-      console.log('project', project);
+      const project = projects[selectedProjectIndex];
       if (project.launcher === 'minecraft') {
         if (!validateMinecraftProject(project)) {
           return;
@@ -125,73 +108,45 @@ export default function Projects() {
       }
 
       realm.write(() => {
-        project.lastOpenAt = new Date();
+        project.lastOpenAt = new Date().getTime();
       });
       navigate('project-preload');
     } catch (e) {
-      await handleError(e);
+      if (e instanceof Error) {
+        await handleError(e);
+      }
     }
   };
 
   const onPickMinecraftVersion = async (chosenVersion: string) => {
     try {
       const project = projects.find(
-        (p) =>
-          p._id.toString() ===
-          versionPickerParams.current?.projectId.toString(),
+        (p) => p.index === versionPickerParams.current?.projectIndex,
       )!;
 
-      console.log('picked', chosenVersion);
-      realm.write(() => {
-        project.minecraftVersion = chosenVersion;
-        project.loaded = false;
-
-        const minecraftMod = realm
-          .objects<ModModel>(ModModel.schema.name)
-          .filtered('modId = $0 AND project = $1', 'minecraft', project._id)[0];
-
-        if (minecraftMod) {
-          minecraftMod.loadedTextures = false;
-          minecraftMod.loadedItems = false;
-          minecraftMod.loadedBlocks = false;
-
-          const textures = realm
-            .objects(TextureModel.schema.name)
-            .filtered('mod = $0', minecraftMod._id);
-          realm.delete(textures);
-
-          const items = realm
-            .objects(ItemModel.schema.name)
-            .filtered('mod = $0', minecraftMod._id);
-          realm.delete(items);
-
-          const blocks = realm
-            .objects(ItemModel.schema.name)
-            .filtered('mod = $0', minecraftMod._id);
-          realm.delete(blocks);
-        }
-      });
+      project.isLoaded = false;
 
       onMinecraftVersionPickerClose();
 
       if (versionPickerParams.current?.redirect) {
-        realm.write(() => {
-          project.lastOpenAt = new Date();
-        });
+        project.lastOpenAt = new Date().getTime();
+
         navigate('project-preload');
       }
     } catch (e) {
-      await handleError(e);
+      if (e instanceof Error) {
+        await handleError(e);
+      }
     }
   };
 
-  const deleteProject = async (projectId: Types.ObjectId) => {
-    projectService.deleteProject(projectId).catch(handleError);
+  const deleteProject = async (projectIdx: number) => {
+    projectService.deleteProject(projectIdx).catch(handleError);
   };
 
-  const onOpenVersionPicker = (projectId: Types.ObjectId, version: string) => {
+  const onOpenVersionPicker = (projectIdx: number, version: string) => {
     versionPickerParams.current = {
-      projectId,
+      projectIndex: projectIdx,
       redirect: false,
     };
     setInitialVersion(version);
@@ -214,7 +169,7 @@ export default function Projects() {
     }
 
     if (a.lastOpenAt && b.lastOpenAt) {
-      return b.lastOpenAt.getTime() - a.lastOpenAt.getTime();
+      return b.lastOpenAt - a.lastOpenAt;
     }
 
     return 0;
@@ -246,7 +201,7 @@ export default function Projects() {
         {orderedProjects.map((p) => (
           <ProjectCard
             title={p.name}
-            projectId={p._id}
+            projectIdx={p.index}
             key={p.path}
             launcher={p.launcher}
             onOpen={open}

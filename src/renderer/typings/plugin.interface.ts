@@ -1,6 +1,6 @@
-import { ModModel } from '../core/models/mod.model';
+import { IMod } from '../store/interfaces/mods-store.interface';
 
 export interface IModPageProps {
-  mod: ModModel;
+  mod: IMod;
   isVisible: boolean;
 }

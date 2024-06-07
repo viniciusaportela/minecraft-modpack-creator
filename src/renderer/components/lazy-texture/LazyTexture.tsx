@@ -1,38 +1,21 @@
 import { Image } from '@nextui-org/react';
-import { useLayoutEffect, useState } from 'react';
 import { Placeholder } from '@phosphor-icons/react';
 import clsx from 'clsx';
 import { TextureLoader } from '../../core/domains/minecraft/texture/texture-loader';
-import { useQueryFirst } from '../../hooks/realm.hook';
-import { GlobalStateModel } from '../../core/models/global-state.model';
 
 interface ILazyTextureProps {
-  textureId: string | null;
+  path: string | null | undefined;
   className?: string;
 }
 
-export default function LazyTexture({
-  textureId,
-  className,
-}: ILazyTextureProps) {
-  const globalState = useQueryFirst(GlobalStateModel);
+export default function LazyTexture({ path, className }: ILazyTextureProps) {
+  const texturePath = TextureLoader.getInstance().getTextureSource(path);
 
-  const [src, setSrc] = useState<string | undefined>(undefined);
-
-  const texture = new TextureLoader().getTextureSource(textureId);
-
-  useLayoutEffect(() => {
-    if (textureId && texture) {
-      new TextureLoader()
-        .load(globalState.selectedProjectId!, textureId)
-        .then(() => setSrc(texture))
-        .catch(console.warn);
-    }
-  }, [textureId]);
-
-  if (!src) {
+  if (!texturePath) {
     return <Placeholder className={className} />;
   }
 
-  return <Image src={src} className={clsx(className, 'rounded-none')} />;
+  return (
+    <Image src={texturePath} className={clsx(className, 'rounded-none')} />
+  );
 }

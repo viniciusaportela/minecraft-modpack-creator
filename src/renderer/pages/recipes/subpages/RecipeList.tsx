@@ -3,25 +3,12 @@ import { Plus } from '@phosphor-icons/react';
 import RecipeCard from '../components/RecipeCard';
 import { usePager } from '../../../components/pager/hooks/usePager';
 import Title from '../../../components/title/Title';
-import { useQuery, useQueryFirst } from '../../../hooks/realm.hook';
-import { GlobalStateModel } from '../../../core/models/global-state.model';
 import { useModConfig } from '../../../hooks/use-mod-config';
-import { ModModel } from '../../../core/models/mod.model';
 
 export default function RecipeList() {
   const { navigate } = usePager();
 
-  const globalState = useQueryFirst(GlobalStateModel);
-  const kubeJS = useQuery(ModModel, (obj) =>
-    obj.filtered(
-      'modId = $0 AND project = $1',
-      'kubejs',
-      globalState.selectedProjectId!,
-    ),
-  )[0];
-
   const [config] = useModConfig([]);
-  console.log(kubeJS, config);
 
   return (
     <>
@@ -55,9 +42,9 @@ export default function RecipeList() {
               <span className="font-bold">New recipe</span>
             </div>
           </Button>
-          {config.recipes.map((r, index) => (
-            <RecipeCard />
-          ))}
+          {/* {config.recipes.map((r, index) => ( */}
+          {/*  <RecipeCard /> */}
+          {/* ))} */}
         </div>
       )}
     </>

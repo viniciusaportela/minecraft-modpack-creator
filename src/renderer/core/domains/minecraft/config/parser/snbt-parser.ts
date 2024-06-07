@@ -5,12 +5,11 @@ import { BaseParser } from './base/base-parser';
 export class SNbtParser extends BaseParser {
   async isFileValid(path: string) {
     try {
-      const file = await readFile(path, 'utf-8');
-
-      return { isValid: true };
+      await readFile(path, 'utf-8');
+      return { isValid: true, error: null };
     } catch (err) {
       console.error(err);
-      return { isValid: false };
+      return { isValid: false, error: err };
     }
   }
 

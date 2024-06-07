@@ -5,12 +5,13 @@ import { useModConfig } from '../../../../../../../hooks/use-mod-config';
 import { AllAttributes } from '../../bonuses/AllAttributes';
 import {
   COMPONENTS_BY_BONUS,
+  EBonus,
   ReadableByBonus,
 } from '../../../../../../../core/domains/mods/skilltree/enums/skill-bonus.enum';
 
 const OPTIONS = () =>
   Object.entries(COMPONENTS_BY_BONUS()).map(([bonus, component]) => ({
-    label: ReadableByBonus[bonus],
+    label: ReadableByBonus[bonus as EBonus],
     value: bonus,
     component,
   }));

@@ -1,13 +1,13 @@
 import { Button } from '@nextui-org/react';
 import { CSSProperties } from 'react';
-import { ItemModel } from '../../../core/models/item.model';
-import { BlockModel } from '../../../core/models/block.model';
-import { TextureModel } from '../../../core/models/texture.model';
 import getImageComponentFromPickerType from '../../../core/domains/minecraft/helpers/get-image-component-from-picker-type';
 import { PickerType } from '../../../typings/picker-type.enum';
+import { IItem } from '../../../store/interfaces/items-store.interface';
+import { IBlock } from '../../../store/interfaces/blocks-store.interface';
+import { ITexture } from '../../../store/interfaces/textures-store.interface';
 
 interface PickerItemProps {
-  item: ItemModel | BlockModel | TextureModel;
+  item: IItem | IBlock | ITexture;
   type: PickerType;
   onPress: () => void;
   style: CSSProperties;
@@ -20,9 +20,7 @@ export default function PickerItem({
   type,
 }: PickerItemProps) {
   const getNameFromType = () => {
-    if (item instanceof ItemModel) return item.itemId;
-    if (item instanceof BlockModel) return item.blockId;
-    return item.textureId;
+    return (item as IItem | IBlock).id || (item as ITexture).internalPath;
   };
 
   return (

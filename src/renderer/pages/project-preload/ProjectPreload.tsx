@@ -4,10 +4,7 @@ import { ipcRenderer } from 'electron';
 import { mkdir, stat } from 'node:fs/promises';
 import path from 'path';
 import { usePager } from '../../components/pager/hooks/usePager';
-import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
-import { ProjectModel } from '../../core/models/project.model';
 import AppBarHeader from '../../components/app-bar/AppBarHeader';
-import { GlobalStateModel } from '../../core/models/global-state.model';
 import { useAppStore } from '../../store/app.store';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { ProjectPreloader } from '../../core/domains/project/project-preloader';
@@ -15,11 +12,9 @@ import { ConfigLoader } from '../../core/domains/minecraft/config/ConfigLoader';
 
 export default function ProjectPreload() {
   const handleError = useErrorHandler();
-  const realm = useAppStore((st) => st.realm);
   const { navigate } = usePager();
 
-  const globalState = useQueryFirst(GlobalStateModel);
-  const project = useQueryById(ProjectModel, globalState.selectedProjectId!);
+  const project = useAppStore((st) => st.selectedProject);
 
   const progressTextRef = useRef<HTMLSpanElement>(null);
   const [isInderterminate, setIsInderterminate] = useState(true);
@@ -54,7 +49,7 @@ export default function ProjectPreload() {
         const configs = await configLoader.load();
         useAppStore.setState({ configs });
 
-        if (project.loaded) {
+        if (project.isLoaded) {
           navigate('project');
         } else {
           const preloader = new ProjectPreloader(project);
@@ -78,11 +73,11 @@ export default function ProjectPreload() {
         throw new Error('Project is undefined on ProjectPreload');
       }
     } catch (err) {
-      await handleError(err);
-      if (realm.isInTransaction) realm.cancelTransaction();
-      realm.write(() => {
-        globalState.selectedProjectId = undefined;
-      });
+      if (err instanceof Error) {
+        await handleError(err);
+      }
+
+      useAppStore.setState({ selectedProject: null });
       navigate('projects');
     }
   }

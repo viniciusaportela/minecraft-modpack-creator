@@ -1,207 +1,57 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { IUseModConfigOptions } from '../hooks/use-mod-config';
-import {
-  curriedReadByPath,
-  curriedWriteByPath,
-} from '../helpers/read-write-by-path';
+import { StoreApi } from 'zustand/vanilla';
+import { persist } from 'zustand/middleware';
+import path from 'path';
+import { IBaseModConfig } from './interfaces/mod-config.interface';
+import { JsonStorage } from './storages/json-storage';
+import { useAppStore } from './app.store';
+import { IMod } from './interfaces/mods-store.interface';
 
-export function doesPath(path: string[]) {
-  return {
-    is: (otherPath: string[]) => {
-      if (path.length !== otherPath.length) {
-        return false;
-      }
+export class ModConfigStore {
+  constructor() {}
 
-      for (let i = 0; i < otherPath.length; i++) {
-        if (
-          path[i] !== otherPath[i] &&
-          path[i] !== '*' &&
-          otherPath[i] !== '*'
-        ) {
-          return false;
-        }
-      }
+  private static instance: ModConfigStore;
 
-      return true;
-    },
-    isChildOf: (otherPath: string[]) => {
-      if (path.length < otherPath.length) {
-        return false;
-      }
+  private stores: Map<string, StoreApi<any>> = new Map();
 
-      for (let i = 0; i < otherPath.length; i++) {
-        if (
-          otherPath[i] !== path[i] &&
-          otherPath[i] !== '*' &&
-          path[i] !== '*'
-        ) {
-          return false;
-        }
-      }
+  static getInstance() {
+    if (!this.instance) {
+      this.instance = new ModConfigStore();
+    }
 
-      return true;
-    },
-  };
-}
-
-function addListenerTo(
-  listener: { onChange: (...args: any[]) => void; hookId: string },
-  obj: any,
-) {
-  const alreadyHasListener = obj.listeners.find(
-    (l) => l.hookId === listener.hookId,
-  );
-
-  if (alreadyHasListener) {
-    return;
+    return this.instance;
   }
 
-  obj.listeners.push(listener);
+  clear() {
+    this.stores.clear();
+  }
+
+  get<T extends IBaseModConfig>(mod: IMod): StoreApi<T> {
+    const modId = mod.id;
+    if (!this.stores.has(modId)) {
+      this.stores.set(
+        modId,
+        create(
+          persist(
+            immer(() => ({
+              isLoaded: false,
+            })),
+            {
+              name: modId,
+              storage: new JsonStorage(
+                path.join(
+                  useAppStore.getState().selectedProject!.path,
+                  'minecraft-toolkit',
+                  'mods',
+                ),
+              ),
+            },
+          ),
+        ),
+      );
+    }
+
+    return this.stores.get(modId)!;
+  }
 }
-
-export const useModConfigStore = create(
-  immer((immerSet) => ({
-    hooks: {},
-    updateConfig: (
-      sourceId: string,
-      path: string[],
-      modifierCb: (currentState: any) => any,
-    ) => {
-      immerSet((currentState: any) => {
-        const stateInPath = curriedReadByPath(currentState)(path);
-        const modified = modifierCb(stateInPath);
-        curriedWriteByPath(currentState)(path, modified);
-      });
-
-      const updatedStateInPath = curriedReadByPath(
-        useModConfigStore.getState(),
-      )(path);
-
-      const hook = useModConfigStore.getState().hooks[sourceId];
-      if (hook) {
-        hook.listeners.forEach((listener) => {
-          listener.onChange(updatedStateInPath);
-        });
-      }
-
-      return updatedStateInPath;
-    },
-    registerHook: (
-      id: string,
-      path: string[],
-      options: IUseModConfigOptions,
-      onChange: (newValue: any) => void,
-    ) => {
-      immerSet((state) => {
-        state.hooks[id] = { path, options, onChange, listeners: [] };
-
-        for (const hookId in state.hooks) {
-          const hook = state.hooks[hookId];
-
-          if (hookId === id) {
-            continue;
-          }
-
-          if (options.listenMeAndExternalChanges) {
-            if (doesPath(hook.path).isChildOf(path)) {
-              addListenerTo({ hookId: id, onChange }, hook);
-            }
-
-            if (doesPath(path).isChildOf(hook.path)) {
-              addListenerTo({ hookId: id, onChange }, hook);
-            }
-          }
-
-          if (options.listenChanges) {
-            if (doesPath(hook.path).is(path)) {
-              addListenerTo({ hookId: id, onChange }, hook);
-            }
-          }
-
-          if (options.listenForeignChanges) {
-            for (let i = 0; i < options.listenForeignChanges.length; i++) {
-              if (
-                doesPath(hook.path).isChildOf(options.listenForeignChanges[i])
-              ) {
-                addListenerTo({ hookId: id, onChange }, hook);
-              }
-
-              if (
-                doesPath(options.listenForeignChanges[i]).isChildOf(hook.path)
-              ) {
-                addListenerTo({ hookId: id, onChange }, hook);
-              }
-            }
-          }
-
-          if (hook.options.listenMeAndChildrenChanges) {
-            if (doesPath(path).isChildOf(hook.path)) {
-              addListenerTo(
-                { hookId, onChange: hook.onChange },
-                state.hooks[id],
-              );
-            }
-
-            if (doesPath(hook.path).isChildOf(path)) {
-              addListenerTo(
-                { hookId, onChange: hook.onChange },
-                state.hooks[id],
-              );
-            }
-          }
-
-          if (hook.options.listenChanges) {
-            if (doesPath(path).is(hook.path)) {
-              addListenerTo(
-                { hookId, onChange: hook.onChange },
-                state.hooks[id],
-              );
-            }
-          }
-
-          if (hook.options.listenForeignChanges) {
-            for (let i = 0; i < hook.options.listenForeignChanges.length; i++) {
-              if (
-                doesPath(path).isChildOf(hook.options.listenForeignChanges[i])
-              ) {
-                addListenerTo(
-                  { hookId, onChange: hook.onChange },
-                  state.hooks[id],
-                );
-              }
-
-              if (
-                doesPath(hook.options.listenForeignChanges[i]).isChildOf(path)
-              ) {
-                addListenerTo(
-                  { hookId, onChange: hook.onChange },
-                  state.hooks[id],
-                );
-              }
-            }
-          }
-        }
-      });
-
-      console.log('after hook register', useModConfigStore.getState());
-    },
-    unregisterHook: (hookToDelete: string) => {
-      immerSet((state) => {
-        for (const hookId in state.hooks) {
-          const hook = state.hooks[hookId];
-          const listenerIndex = hook.listeners.findIndex(
-            (listener) => listener.hookId === hookToDelete,
-          );
-
-          if (listenerIndex !== -1) {
-            hook.listeners.splice(listenerIndex, 1);
-          }
-        }
-
-        delete state.hooks[hookToDelete];
-      });
-      console.log('after hook unregister', useModConfigStore.getState());
-    },
-  })),
-);
