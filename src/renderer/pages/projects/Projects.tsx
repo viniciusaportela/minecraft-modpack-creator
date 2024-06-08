@@ -2,7 +2,6 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ipcRenderer } from 'electron';
 import { Button, Divider, useDisclosure } from '@nextui-org/react';
 import { ArrowClockwise } from '@phosphor-icons/react';
-import { Types } from 'realm';
 import ProjectCard from './components/ProjectCard';
 import AddProject from './components/AddProject';
 import { usePager } from '../../components/pager/hooks/usePager';
@@ -21,11 +20,10 @@ import { ModConfigStore } from '../../store/mod-config.store';
 export default function Projects() {
   const handleError = useErrorHandler();
 
-  const realm = useAppStore((st) => st.realm)!;
   const { navigate } = usePager();
   const [initialVersion, setInitialVersion] = useState('');
 
-  const projectService = useRef(new ProjectService()).current;
+  const projectService = ProjectService.getInstance();
 
   const versionPickerParams = useRef<{
     projectIndex: number;
@@ -96,20 +94,19 @@ export default function Projects() {
     try {
       ModConfigStore.getInstance().clear();
 
-      useAppStore.setState({
-        selectedProjectIndex: projectIdx,
-      });
+      useAppStore.getState().selectProject(projectIdx);
 
-      const project = projects[selectedProjectIndex];
+      const project = projects[projectIdx];
       if (project.launcher === 'minecraft') {
         if (!validateMinecraftProject(project)) {
           return;
         }
       }
 
-      realm.write(() => {
-        project.lastOpenAt = new Date().getTime();
-      });
+      project.lastOpenAt = new Date().getTime();
+
+      useAppStore.getState().setProject(project);
+
       navigate('project-preload');
     } catch (e) {
       if (e instanceof Error) {

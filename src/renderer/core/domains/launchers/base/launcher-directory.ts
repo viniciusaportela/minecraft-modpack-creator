@@ -18,6 +18,10 @@ export abstract class LauncherDirectory {
     return this.getAllFilesFromFolder(this.getModsPath());
   }
 
+  getName() {
+    return this.modpackFolder.split(path.sep).pop()!;
+  }
+
   async getMetadata(): Promise<IMetadata | null> {
     const metadataPath = path.join(this.getDataRootPath(), 'metadata.json');
 

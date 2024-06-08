@@ -3,15 +3,15 @@ import { BaseLauncher } from '../base/base-launcher';
 import { MinecraftDirectory } from './minecraft-directory';
 import { IProject } from '../../../../store/interfaces/project.interface';
 
-export class MinecraftLauncher extends BaseLauncher {
-  private static instance: MinecraftLauncher;
+let instance: MinecraftLauncher;
 
+export class MinecraftLauncher extends BaseLauncher {
   static getInstance() {
-    if (!this.instance) {
-      this.instance = new MinecraftLauncher();
+    if (!instance) {
+      instance = new MinecraftLauncher();
     }
 
-    return this.instance;
+    return instance;
   }
 
   async getModpacksFolders(): Promise<string[]> {
@@ -36,7 +36,9 @@ export class MinecraftLauncher extends BaseLauncher {
     return new MinecraftDirectory(folderPath);
   }
 
-  async genProjectFromFolder(folderPath: string): Promise<IProject> {
+  async genProjectFromFolder(
+    folderPath: string,
+  ): Promise<Omit<IProject, 'index'> | null> {
     const modPaths = await this.toDirectory(folderPath).getAllModsPaths();
 
     return {
@@ -48,7 +50,6 @@ export class MinecraftLauncher extends BaseLauncher {
       launcher: 'minecraft',
       modCount: modPaths.length,
       isLoaded: false,
-      index: -1,
       lastOpenAt: null,
       orphan: false,
     };

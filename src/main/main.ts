@@ -19,7 +19,8 @@ import {
   dialog,
 } from 'electron';
 import * as crypto from 'crypto';
-import { mkdirSync } from 'node:fs';
+import chokidar from 'chokidar';
+import { existsSync, mkdirSync } from 'node:fs';
 import { resolveHtmlPath } from './util';
 import WindowManager from './core/window-manager';
 
@@ -104,6 +105,68 @@ const createWindow = async () => {
   ipcMain.on('make-resizable', (_) => {
     mainWindow!.setResizable(true);
   });
+
+  ipcMain.on(
+    'watchMetadata',
+    async (event, baseFolder: string, callBackChannel: string) => {
+      console.log('watch metadata');
+      const folderExists = existsSync(
+        path.join(baseFolder, 'minecraft-toolkit'),
+      );
+      console.log('watch metadata 2', baseFolder, folderExists);
+
+      if (!folderExists) {
+        console.log('minecraft-toolkit doesnt exists');
+        await new Promise((resolve) => {
+          const watcher = chokidar.watch(baseFolder, {
+            ignored: /(^|[/\\])\../, // ignore dotfiles
+            persistent: true,
+            depth: 0, // Only watch direct children of the parent directory
+          });
+
+          watcher.on('addDir', (dirPath) => {
+            // Check if the added directory is the specific folder
+            if (path.basename(dirPath) === 'minecraft-toolkit') {
+              console.log(`folder has been created.`);
+              watcher.close();
+              watcher.removeAllListeners();
+              resolve(undefined);
+            }
+          });
+        });
+      }
+
+      const metadataExists = existsSync(
+        path.join(baseFolder, 'minecraft-toolkit', 'metadata.json'),
+      );
+
+      if (!metadataExists) {
+        console.log("metadata doesn't exists. Waiting...");
+        await new Promise((resolve) => {
+          const watcher = chokidar.watch(
+            path.join(baseFolder, 'minecraft-toolkit'),
+            {
+              ignored: /(^|[/\\])\../, // ignore dotfiles
+              persistent: true,
+            },
+          );
+
+          watcher.on('add', (filePath) => {
+            console.log('add', filePath);
+            // Check if the added file is the specific file
+            if (path.basename(filePath) === 'metadata.json') {
+              console.log(`file has been created.`);
+              watcher.close();
+              watcher.removeAllListeners();
+              resolve(undefined);
+            }
+          });
+        });
+      }
+
+      mainWindow!.webContents.send(callBackChannel);
+    },
+  );
 
   ipcMain.handle('close', () => {
     mainWindow!.close();

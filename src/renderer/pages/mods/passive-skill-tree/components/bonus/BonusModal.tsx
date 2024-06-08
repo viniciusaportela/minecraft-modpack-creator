@@ -11,6 +11,7 @@ import {
   Selection,
 } from '@nextui-org/react';
 import get from 'lodash.get';
+import set from 'lodash.set';
 import React, { Key, useState } from 'react';
 import { Plus, X } from '@phosphor-icons/react';
 import { v4 } from 'uuid';
@@ -22,8 +23,9 @@ import {
   COMPONENTS_BY_BONUS,
   EBonus,
 } from '../../../../../core/domains/mods/skilltree/enums/skill-bonus.enum';
-import { useModConfigStore } from '../../../../../store/hooks/use-mod-config-store';
+import { useModConfigSelector } from '../../../../../store/hooks/use-mod-config-selector';
 import { ISkillTreeConfig } from '../../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
+import { useModConfigStore } from '../../../../../store/hooks/use-mod-config-store';
 
 interface BonusModalProps {
   isOpen: boolean;
@@ -38,7 +40,8 @@ export default function BonusModal({
 }: BonusModalProps) {
   const handleError = useErrorHandler();
 
-  const bonuses = useModConfigStore((state: ISkillTreeConfig) =>
+  const store = useModConfigStore<ISkillTreeConfig>();
+  const bonuses = useModConfigSelector((state: ISkillTreeConfig) =>
     get(state, [...focusedNodePath, 'data', 'bonuses']),
   );
 
@@ -49,13 +52,12 @@ export default function BonusModal({
       COMPONENTS_BY_BONUS()[key as EBonus].getDefaultConfig() ??
       AllAttributes.getDefaultConfig();
 
-    setBonuses((bonuses) => {
-      bonuses[index] = {
+    store.setState((state) => {
+      set(state, [...focusedNodePath, 'data', 'bonuses', index], {
         ...defaultConfig,
         name: 'Skill',
         id: v4(),
-      };
-      return bonuses;
+      });
     });
   };
 
@@ -73,15 +75,21 @@ export default function BonusModal({
   const addBonus = async () => {
     try {
       const defaultConfig = AllAttributes.getDefaultConfig();
-      console.log('defaultConfig', defaultConfig);
-      setBonuses((bonuses) => [
-        ...bonuses,
-        {
-          ...defaultConfig,
-          name: 'Skill',
-          id: v4(),
-        },
-      ]);
+
+      store.setState((state) => {
+        set(
+          state,
+          [...focusedNodePath, 'data', 'bonuses'],
+          [
+            ...bonuses,
+            {
+              ...defaultConfig,
+              name: 'Skill',
+              id: v4(),
+            },
+          ],
+        );
+      });
 
       if (page === 'empty') {
         setPage('bonus-0');
@@ -94,9 +102,9 @@ export default function BonusModal({
   };
 
   const deleteBonus = (index: number) => {
-    setBonuses((bonuses) => {
-      bonuses.splice(index, 1);
-      return bonuses;
+    store.setState((state) => {
+      const curBonuses = get(state, [...focusedNodePath, 'data', 'bonuses']);
+      curBonuses.splice(index, 1);
     });
   };
 

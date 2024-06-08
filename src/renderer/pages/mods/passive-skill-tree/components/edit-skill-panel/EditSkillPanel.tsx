@@ -6,14 +6,15 @@ import {
   Switch,
   useDisclosure,
 } from '@nextui-org/react';
+import get from 'lodash.get';
 import React from 'react';
 import { X } from '@phosphor-icons/react';
 import PickerButton from '../../../../../components/ItemPickerButton/PickerButton';
 import { PickerType } from '../../../../../typings/picker-type.enum';
 import BonusModal from '../bonus/BonusModal';
-import { useModConfig } from '../../../../../hooks/use-mod-config';
 import { formatTextureInput } from './utils/format-texture-input';
 import { formatTextureOutput } from './utils/format-texture-output';
+import { useModConfigSelector } from '../../../../../store/hooks/use-mod-config-selector';
 
 interface EditSkillPanelProps {
   focusedNodePath: string[];
@@ -25,51 +26,37 @@ export default function EditSkillPanel({
   onClose,
 }: EditSkillPanelProps) {
   const { isOpen, onOpenChange, onOpen } = useDisclosure();
-  const [focusedNodeData] = useModConfig([...(focusedNodePath ?? []), 'data']);
+  const [focusedNodeData] = useModConfigSelector((st) =>
+    get(st, [...(focusedNodePath ?? []), 'data']),
+  );
 
-  console.log('focusedNodeData', focusedNodeData, focusedNodePath);
+  const title = useModConfigSelector((st) =>
+    get(st, [...(focusedNodePath ?? []), 'data', 'title']),
+  );
 
-  const [title, setTitle] = useModConfig([
-    ...(focusedNodePath ?? []),
-    'data',
-    'title',
-  ]);
+  const titleColor = useModConfigSelector((st) =>
+    get(st, [...(focusedNodePath ?? []), 'data', 'titleColor']),
+  );
 
-  const [titleColor, setTitleColor] = useModConfig([
-    ...(focusedNodePath ?? []),
-    'data',
-    'titleColor',
-  ]);
+  const iconTexture = useModConfigSelector((st) =>
+    get(st, [...(focusedNodePath ?? []), 'data', 'iconTexture']),
+  );
 
-  const [iconTexture, setIconTexture] = useModConfig([
-    ...(focusedNodePath ?? []),
-    'data',
-    'iconTexture',
-  ]);
+  const backgroundTexture = useModConfigSelector((st) =>
+    get(st, [...(focusedNodePath ?? []), 'data', 'backgroundTexture']),
+  );
 
-  const [backgroundTexture, setBackgroundTexture] = useModConfig([
-    ...(focusedNodePath ?? []),
-    'data',
-    'backgroundTexture',
-  ]);
+  const borderTexture = useModConfigSelector((st) =>
+    get(st, [...(focusedNodePath ?? []), 'data', 'borderTexture']),
+  );
 
-  const [borderTexture, setBorderTexture] = useModConfig([
-    ...(focusedNodePath ?? []),
-    'data',
-    'borderTexture',
-  ]);
+  const buttonSize = useModConfigSelector((st) =>
+    get(st, [...(focusedNodePath ?? []), 'data', 'buttonSize']),
+  );
 
-  const [buttonSize, setButtonSize] = useModConfig([
-    ...(focusedNodePath ?? []),
-    'data',
-    'buttonSize',
-  ]);
-
-  const [isStartingPoint, setIsStartingPoint] = useModConfig([
-    ...(focusedNodePath ?? []),
-    'data',
-    'isStartingPoint',
-  ]);
+  const isStartingPoint = useModConfigSelector((st) =>
+    get(st, [...(focusedNodePath ?? []), 'data', 'isStartingPoint']),
+  );
 
   if (!focusedNodeData) return null;
 

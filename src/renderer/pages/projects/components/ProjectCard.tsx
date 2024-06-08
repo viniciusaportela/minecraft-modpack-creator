@@ -9,7 +9,6 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  Skeleton,
 } from '@nextui-org/react';
 import { CaretDown, TrashSimple, Warning } from '@phosphor-icons/react';
 import CurseForgeLogo from '../../../assets/curse-forge-logo.svg';
@@ -82,41 +81,39 @@ export default function ProjectCard({
   return (
     <Card className="h-44 w-80">
       <CardBody className="pb-0 pt-5 px-4 flex-col items-start">
-        <Skeleton>
-          <h4 className="font-bold text-large">{title}</h4>
-          {project.orphan ? (
-            <Chip
-              variant="flat"
-              size="sm"
-              color="danger"
-              className="mb-2"
-              startContent={<Warning className="text-danger" />}
-            >
-              This folder doesn't exists anymore
-            </Chip>
-          ) : (
-            <Chip
-              variant="flat"
-              size="sm"
-              color={getColorByLauncher()}
-              className="mb-2"
-              startContent={
-                <Image src={getLauncherLogo()} width={20} height={20} />
-              }
-            >
-              {getNameByLauncher()}
-            </Chip>
-          )}
-        </Skeleton>
-        <Skeleton>
+        <h4 className="font-bold text-large">{title}</h4>
+        {project.orphan ? (
+          <Chip
+            variant="flat"
+            size="sm"
+            color="danger"
+            className="mb-2"
+            startContent={<Warning className="text-danger" />}
+          >
+            This folder doesn't exists anymore
+          </Chip>
+        ) : (
+          <Chip
+            variant="flat"
+            size="sm"
+            color={getColorByLauncher()}
+            className="mb-2"
+            startContent={
+              <Image src={getLauncherLogo()} width={20} height={20} />
+            }
+          >
+            {getNameByLauncher()}
+          </Chip>
+        )}
+        {project.loader !== 'unknown' && (
           <small className="text-sm">
             {capitalize(project?.loader) ?? 'Unknown'} |{' '}
             {project?.minecraftVersion ?? 'Unknown'}
           </small>
-        </Skeleton>
-        <Skeleton>
-          <small className="text-sm">{project?.modCount ?? '-'} Mods</small>
-        </Skeleton>
+        )}
+        {project?.modCount !== -1 && (
+          <small className="text-sm">{project?.modCount} Mods</small>
+        )}
       </CardBody>
 
       <CardFooter className="flex justify-end">
@@ -171,7 +168,7 @@ export default function ProjectCard({
           isDisabled={project.orphan}
           onPress={() => onOpen?.(projectIdx)}
         >
-          {project.isLoaded ? 'Open' : 'Create'}
+          {project.isLoaded ? 'Open' : 'Start Project'}
         </Button>
       </CardFooter>
     </Card>

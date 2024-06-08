@@ -5,10 +5,14 @@ import {
   DropdownMenu,
   DropdownTrigger,
 } from '@nextui-org/react';
+import get from 'lodash.get';
+import set from 'lodash.set';
 import { Key } from 'react';
 import Label from './Label';
-import { useModConfig } from '../../../../../../hooks/use-mod-config';
 import { FunctionWithDefaultConfig } from '../../../interfaces/function-with-default-config';
+import { useModConfigStore } from '../../../../../../store/hooks/use-mod-config-store';
+import { ISkillTreeConfig } from '../../../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
+import { useModConfigSelector } from '../../../../../../store/hooks/use-mod-config-selector';
 
 interface ComponentChoiceProps {
   path: string[];
@@ -25,7 +29,8 @@ export const ComponentChoice = ({
   label,
   options,
 }: ComponentChoiceProps) => {
-  const [value, setValue] = useModConfig(path);
+  const store = useModConfigStore<ISkillTreeConfig>();
+  const value = useModConfigSelector((st: ISkillTreeConfig) => get(st, path));
 
   const getSelectedLabel = () => {
     const found = options.find((option) => option.value === value.type);
@@ -40,7 +45,9 @@ export const ComponentChoice = ({
     const Component = getComponent(key);
     const newDefault = Component.getDefaultConfig();
     console.log('newDefault for path', path, newDefault);
-    setValue(() => newDefault);
+    store.setState((state) => {
+      set(state, path, newDefault);
+    });
   };
 
   const getSelectedKeys = () => {

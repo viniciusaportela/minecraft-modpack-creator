@@ -3,12 +3,12 @@ import { Plus } from '@phosphor-icons/react';
 import RecipeCard from '../components/RecipeCard';
 import { usePager } from '../../../components/pager/hooks/usePager';
 import Title from '../../../components/title/Title';
-import { useModConfig } from '../../../hooks/use-mod-config';
+import { useModConfigSelector } from '../../../store/hooks/use-mod-config-selector';
 
 export default function RecipeList() {
   const { navigate } = usePager();
 
-  const [config] = useModConfig([]);
+  const config = useModConfigSelector((state) => state);
 
   return (
     <>

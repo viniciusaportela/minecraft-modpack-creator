@@ -3,6 +3,8 @@ import { Launchers } from '../launchers/launchers';
 import BusinessLogicError from '../../errors/business-logic-error';
 import { BusinessError } from '../../errors/business-error.enum';
 
+let instance: ProjectService;
+
 export default class ProjectService {
   private launchers: Launchers;
 
@@ -10,16 +12,16 @@ export default class ProjectService {
     this.launchers = Launchers.getInstance();
   }
 
-  private static instance: ProjectService;
-
-  getInstance() {
-    if (!ProjectService.instance) {
-      ProjectService.instance = new ProjectService();
+  static getInstance() {
+    if (!instance) {
+      instance = new ProjectService();
     }
-    return ProjectService.instance;
+
+    return instance;
   }
 
   async createFromFolder(folder: string) {
+    console.log('create from folder', folder);
     const project = await this.launchers.genProjectFromFolder(folder);
 
     if (!project) {
@@ -43,23 +45,11 @@ export default class ProjectService {
           : project.minecraftVersion) ?? 'unknown';
       exists.orphan = false;
 
-      const updatedProjects = useAppStore.getState().projects.map((p) => {
-        if (p.path === folder) {
-          return exists;
-        }
-
-        return p;
-      });
-
-      useAppStore.setState(() => ({
-        projects: updatedProjects,
-      }));
+      useAppStore.getState().setProject(exists);
       return;
     }
 
-    useAppStore.setState((state) => ({
-      projects: [...state.projects, project],
-    }));
+    useAppStore.getState().addProject(project);
   }
 
   async populateProjects() {

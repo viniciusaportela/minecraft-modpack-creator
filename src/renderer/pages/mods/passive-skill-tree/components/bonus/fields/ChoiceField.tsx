@@ -5,8 +5,11 @@ import {
   DropdownMenu,
   DropdownTrigger,
 } from '@nextui-org/react';
-import { useModConfig } from '../../../../../../hooks/use-mod-config';
+import get from 'lodash.get';
 import Label from './Label';
+import { useModConfigStore } from '../../../../../../store/hooks/use-mod-config-store';
+import { ISkillTreeConfig } from '../../../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
+import { useModConfigSelector } from '../../../../../../store/hooks/use-mod-config-selector';
 
 interface IFullOption {
   label: string;
@@ -20,7 +23,8 @@ interface ChoiceProps {
 }
 
 export default function ChoiceField({ options, path, label }: ChoiceProps) {
-  const [value, setValue] = useModConfig(path);
+  const store = useModConfigStore<ISkillTreeConfig>();
+  const value = useModConfigSelector((st: ISkillTreeConfig) => get(st, path));
 
   const getLabel = (value: string | number) => {
     if (options.length === 0) {
@@ -48,6 +52,10 @@ export default function ChoiceField({ options, path, label }: ChoiceProps) {
         <DropdownMenu
           selectedKeys={[value]}
           onAction={(key) => {
+            store.setState((state) => {
+              get(state, path) === key;
+            });
+
             setValue(() => {
               return (
                 // eslint-disable-next-line eqeqeq

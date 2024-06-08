@@ -1,4 +1,3 @@
-import Realm from 'realm';
 import React from 'react';
 import { ConfigNode } from '../../core/domains/minecraft/config/ConfigNode';
 import { IProject } from './project.interface';
@@ -9,7 +8,6 @@ export interface IAppStore extends IAppStored {
   setHeaderMiddleComponent: (middleComponent: React.ReactNode) => void;
   setTitle: (title: string) => void;
   goBack: null | (() => void);
-  realm: Realm;
   userDataPath: string;
   setUserDataPath: (userDataPath: string) => void;
   title: string;
@@ -19,6 +17,7 @@ export interface IAppStore extends IAppStored {
   selectProject: (index: number) => void;
   selectedProject: IProject | null;
   setProject: (project: IProject) => void;
+  addProject: (project: Omit<IProject, 'index'>) => void;
 }
 
 export interface IAppStored {

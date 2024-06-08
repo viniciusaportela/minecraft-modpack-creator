@@ -197,11 +197,7 @@ export default function Configs() {
             <div className="flex items-center min-h-[40px] mb-2">
               <span className="text-lg font-bold mb-1">
                 {path.relative(
-                  path.join(
-                    project?.path ?? '',
-                    'minecraft_toolkit',
-                    'configs',
-                  ),
+                  path.join(project?.path ?? '', 'minecraft-toolkit', 'config'),
                   selectedConfig.getPath(),
                 )}
               </span>

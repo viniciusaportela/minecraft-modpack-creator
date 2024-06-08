@@ -7,13 +7,14 @@ import {
   ScrollShadow,
 } from '@nextui-org/react';
 import { Key, useEffect } from 'react';
-import { useModConfig } from '../../../../../hooks/use-mod-config';
+import get from 'lodash.get';
 import {
   ALL_BONUSES,
   COMPONENTS_BY_BONUS,
   EBonus,
   ReadableByBonus,
 } from '../../../../../core/domains/mods/skilltree/enums/skill-bonus.enum';
+import { useModConfigSelector } from '../../../../../store/hooks/use-mod-config-selector';
 
 interface BonusPageProps {
   onSelect: (key: Key) => void;
@@ -24,9 +25,7 @@ export default function EditBonus({
   selectedBonusPath,
   onSelect,
 }: BonusPageProps) {
-  const [bonus] = useModConfig(selectedBonusPath, {
-    listenMeAndExternalChanges: true,
-  });
+  const bonus = useModConfigSelector((st) => get(st, selectedBonusPath));
 
   useEffect(() => {
     console.log('EditBonus first render');

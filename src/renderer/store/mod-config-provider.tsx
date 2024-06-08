@@ -1,6 +1,6 @@
 import { memo, PropsWithChildren, useMemo } from 'react';
 import { Spinner } from '@nextui-org/react';
-import { ModConfigContext } from './hooks/use-mod-config-store';
+import { ModConfigContext } from './hooks/use-mod-config-selector';
 import { ModConfigStore } from './mod-config.store';
 import { IMod } from './interfaces/mods-store.interface';
 

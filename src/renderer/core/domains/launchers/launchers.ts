@@ -2,26 +2,39 @@ import { existsSync } from 'node:fs';
 import { CurseforgeLauncher } from './curseforge/curseforge-launcher';
 import BusinessLogicError from '../../errors/business-logic-error';
 import { BusinessError } from '../../errors/business-error.enum';
-import { MinecraftLauncher } from './minecraft/minecraft-launcher';
 import { SKLauncher } from './sklauncher/sk-launcher';
 
-export class Launchers {
-  private static instance: Launchers;
+let instance: Launchers;
 
+export class Launchers {
   static getInstance() {
-    if (!this.instance) {
-      this.instance = new Launchers();
+    if (!instance) {
+      instance = new Launchers();
     }
 
-    return this.instance;
+    return instance;
   }
 
   listLaunchers() {
     return [
-      MinecraftLauncher.getInstance(),
-      CurseforgeLauncher.getInstance(),
-      SKLauncher.getInstance(),
+      // TODO new MinecraftLauncher(),
+      new CurseforgeLauncher(),
+      new SKLauncher(),
     ];
+  }
+
+  getLauncherByName(name: string) {
+    switch (name) {
+      case 'curseforge':
+        return CurseforgeLauncher.getInstance();
+      case 'sklauncher':
+        return SKLauncher.getInstance();
+      default:
+        throw new BusinessLogicError({
+          code: BusinessError.LauncherNotFound,
+          message: `Launcher "${name}" not found`,
+        });
+    }
   }
 
   async getLauncherByFolder(folder: string) {

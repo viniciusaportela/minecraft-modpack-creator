@@ -5,15 +5,15 @@ import { SKLauncherDirectory } from './sk-launcher-directory';
 import { isUUIDValid } from '../../../../helpers/is-uuid-valid';
 import { IProject } from '../../../../store/interfaces/project.interface';
 
-export class SKLauncher extends BaseLauncher {
-  private static instance: SKLauncher;
+let instance: SKLauncher;
 
+export class SKLauncher extends BaseLauncher {
   static getInstance() {
-    if (!this.instance) {
-      this.instance = new SKLauncher();
+    if (!instance) {
+      instance = new SKLauncher();
     }
 
-    return this.instance;
+    return instance;
   }
 
   async getModpacksFolders(): Promise<string[]> {
@@ -32,24 +32,21 @@ export class SKLauncher extends BaseLauncher {
     return new SKLauncherDirectory(folder);
   }
 
-  async genProjectFromFolder(folder: string): Promise<IProject | null> {
+  async genProjectFromFolder(
+    folder: string,
+  ): Promise<Omit<IProject, 'index'> | null> {
     const dir = this.toDirectory(folder);
     const metadata = await dir.getMetadata();
 
-    if (!metadata) {
-      return null;
-    }
-
     return {
-      name: metadata.path.split(path.sep).pop() as string,
+      name: metadata?.path.split(path.sep).pop() || dir.getName(),
       path: folder,
-      minecraftVersion: metadata.minecraftVersion,
-      loaderVersion: metadata.loaderVersion,
-      loader: metadata.modLoader,
-      modCount: metadata.modCount,
+      minecraftVersion: metadata?.minecraftVersion || 'unknown',
+      loaderVersion: metadata?.loaderVersion || 'unknown',
+      loader: metadata?.modLoader || 'unknown',
+      modCount: metadata?.modCount || -1,
       launcher: 'sklauncher',
       isLoaded: false,
-      index: -1,
       lastOpenAt: null,
       orphan: false,
     };

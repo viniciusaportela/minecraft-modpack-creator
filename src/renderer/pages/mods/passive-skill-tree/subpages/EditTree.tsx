@@ -37,10 +37,10 @@ import { SkillTree } from '../../../../core/domains/mods/skilltree/skill-tree';
 import EditSkillPanel from '../components/edit-skill-panel/EditSkillPanel';
 import ScreenToFlowPositionGetter from '../components/react-flow/ScreenToFlowPositionGetter';
 import FitViewGetter from '../components/react-flow/FitViewGetter';
-import { useModConfig } from '../../../../hooks/use-mod-config';
-import { useModConfigStore } from '../../../../store/mod-config.store';
 import { useAppStore } from '../../../../store/app.store';
 import { useModById } from '../../../../store/hooks/use-mod-by-id';
+import { useModConfigStore } from '../../../../store/hooks/use-mod-config-store';
+import { ISkillTreeConfig } from '../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
 
 const edgeTypes = {
   skill_edge: SkillEdge,
@@ -50,24 +50,31 @@ const nodeTypes = { skill_node: TreeNode };
 
 export default function EditTree() {
   const { navigate } = usePager();
-  const project = useAppStore((st) => st.selectedProject);
+  const project = useAppStore((st) => st.selectedProject)!;
   const skillTreeMod = useModById(ModId.PassiveSkillTree);
+
+  const configStore = useModConfigStore<ISkillTreeConfig>();
 
   const screenToFlowPosition = useRef();
   const fitView = useRef();
   const reactFlowRef = useRef<HTMLDivElement>();
 
-  const [nodes, setNodes] = useModConfig<Node[]>(['tree', 'nodes'], {
-    listenForeignChanges: [
-      ['tree', 'nodes', '*', 'data', 'backgroundTexture'],
-      ['tree', 'nodes', '*', 'data', 'iconTexture'],
-      ['tree', 'nodes', '*', 'data', 'buttonSize'],
-    ],
-  });
-  const [edges, setEdges] = useModConfig<Edge[]>(['tree', 'edges'], {
-    listenMeAndExternalChanges: true,
-  });
-  const [, setMainTree] = useModConfig(['tree', 'mainTree']);
+  // DEV
+  // const [nodes, setNodes] = useModConfig<Node[]>(['tree', 'nodes'], {
+  //   listenForeignChanges: [
+  //     ['tree', 'nodes', '*', 'data', 'backgroundTexture'],
+  //     ['tree', 'nodes', '*', 'data', 'iconTexture'],
+  //     ['tree', 'nodes', '*', 'data', 'buttonSize'],
+  //   ],
+  // });
+  // const [edges, setEdges] = useModConfig<Edge[]>(['tree', 'edges'], {
+  //   listenMeAndExternalChanges: true,
+  // });
+  // const [, setMainTree] = useModConfig(['tree', 'mainTree']);
+
+  const [nodes, setNodes] = useState<any[]>([]);
+  const [edges, setEdges] = useState<any[]>([]);
+  const [, setMainTree] = useState<any>({});
 
   const [focusedNode, setFocusedNode] = useState<Node | null>(null);
   const [focusedNodePath, setFocusedNodePath] = useState<string[] | null>(null);
@@ -233,6 +240,7 @@ export default function EditTree() {
     const updatedTree = await new SkillTree(
       project,
       skillTreeMod,
+      configStore.getState(),
     ).initializeTree();
 
     setFocusedNode(null);

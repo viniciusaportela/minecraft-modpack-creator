@@ -8,19 +8,27 @@ import { JsonStorage } from './storages/json-storage';
 import { useAppStore } from './app.store';
 import { IMod } from './interfaces/mods-store.interface';
 
+let instance: ModConfigStore;
+
+function ModsFolderGetter() {
+  return path.join(
+    useAppStore.getState().selectedProject!.path,
+    'minecraft-toolkit',
+    'mods',
+  );
+}
+
 export class ModConfigStore {
   constructor() {}
-
-  private static instance: ModConfigStore;
 
   private stores: Map<string, StoreApi<any>> = new Map();
 
   static getInstance() {
-    if (!this.instance) {
-      this.instance = new ModConfigStore();
+    if (!instance) {
+      instance = new ModConfigStore();
     }
 
-    return this.instance;
+    return instance;
   }
 
   clear() {
@@ -39,13 +47,7 @@ export class ModConfigStore {
             })),
             {
               name: modId,
-              storage: new JsonStorage(
-                path.join(
-                  useAppStore.getState().selectedProject!.path,
-                  'minecraft-toolkit',
-                  'mods',
-                ),
-              ),
+              storage: new JsonStorage(ModsFolderGetter),
             },
           ),
         ),

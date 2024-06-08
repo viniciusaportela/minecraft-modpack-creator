@@ -5,43 +5,39 @@ import { BaseLauncher } from '../base/base-launcher';
 import { CurseforgeDirectory } from './curseforge-directory';
 import { IProject } from '../../../../store/interfaces/project.interface';
 
+let instance: CurseforgeLauncher;
+
 export class CurseforgeLauncher extends BaseLauncher {
   constructor() {
     super();
   }
 
-  private static instance: CurseforgeLauncher;
-
   static getInstance() {
-    if (!this.instance) {
-      this.instance = new CurseforgeLauncher();
+    if (!instance) {
+      instance = new CurseforgeLauncher();
     }
 
-    return this.instance;
+    return instance;
   }
 
-  async genProjectFromFolder(folder: string): Promise<IProject | null> {
+  async genProjectFromFolder(
+    folder: string,
+  ): Promise<Omit<IProject, 'index'> | null> {
     const directory = this.toDirectory(folder);
 
     const metadata = await directory.getMetadata();
 
-    if (!metadata) {
-      return null;
-    }
-
     return {
-      name: metadata.path.split(path.sep).pop()!,
+      name: metadata?.path.split(path.sep).pop()! ?? directory.getName(),
       path: folder,
-      minecraftVersion: metadata.minecraftVersion,
-      loaderVersion: metadata.loaderVersion,
-      loader: metadata.modLoader,
+      minecraftVersion: metadata?.minecraftVersion ?? 'unknown',
+      loaderVersion: metadata?.loaderVersion ?? 'unknown',
+      loader: metadata?.modLoader ?? 'unknown',
       launcher: 'curseforge',
-      modCount: metadata.modCount,
+      modCount: metadata?.modCount ?? -1,
       isLoaded: false,
       orphan: false,
       lastOpenAt: null,
-      // TODO actual index, or update this later
-      index: -1,
     };
   }
 

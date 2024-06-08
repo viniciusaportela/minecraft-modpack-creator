@@ -4,6 +4,7 @@ import Project from './pages/project/Project';
 import 'reactflow/dist/style.css';
 import { Page, Pager } from './components/pager/Pager';
 import ProjectPreload from './pages/project-preload/ProjectPreload';
+import WaitingForData from './pages/waiting-for-data/WaitingForData';
 
 export default function MainApp() {
   return (
@@ -18,6 +19,9 @@ export default function MainApp() {
         </Page>
         <Page name="project">
           <Project />
+        </Page>
+        <Page name="waiting-for-data">
+          <WaitingForData />
         </Page>
       </Pager>
     </>

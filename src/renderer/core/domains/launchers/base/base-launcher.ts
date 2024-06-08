@@ -9,7 +9,9 @@ export abstract class BaseLauncher {
 
   abstract isFolderOfThisLauncher(folder: string): Promise<boolean>;
 
-  abstract genProjectFromFolder(folder: string): Promise<IProject | null>;
+  abstract genProjectFromFolder(
+    folder: string,
+  ): Promise<Omit<IProject, 'index'> | null>;
 
   abstract getModpacksFolders(): Promise<string[]>;
 

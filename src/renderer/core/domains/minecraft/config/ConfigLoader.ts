@@ -61,8 +61,8 @@ export class ConfigLoader {
 
     const safeEditingFolder = path.join(
       this.project.path,
-      'minecraft_toolkit',
-      'configs',
+      'minecraft-toolkit',
+      'config',
     );
 
     for await (const basePath of basePaths) {
@@ -81,8 +81,8 @@ export class ConfigLoader {
 
     const safeEditingFolder = path.join(
       this.project.path,
-      'minecraft_toolkit',
-      'configs',
+      'minecraft-toolkit',
+      'config',
     );
 
     for await (const basePath of basePaths) {

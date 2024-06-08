@@ -1,9 +1,10 @@
 import { readFile, unlink, writeFile } from 'node:fs/promises';
 import path from 'path';
 import { existsSync } from 'node:fs';
+import { CachedCallbacks } from '../CachedCallbacks';
 
 export class JsonStorage {
-  constructor(private readonly basePath: string) {}
+  constructor(private readonly basePathGetter: () => any) {}
 
   async getItem(name: string) {
     const dataFolder = await this.getBaseFolder();
@@ -36,6 +37,6 @@ export class JsonStorage {
   }
 
   async getBaseFolder() {
-    return this.basePath;
+    return CachedCallbacks.getInstance().get(this.basePathGetter);
   }
 }
