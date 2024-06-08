@@ -13,7 +13,7 @@ export class CachedCallbacks {
     return instance;
   }
 
-  public async get<T>(callback: () => T): Promise<T> {
+  public async get<T>(callback: () => Promise<T>): Promise<T> {
     if (!this.cache.has(callback)) {
       this.cache.set(callback, await callback());
     }

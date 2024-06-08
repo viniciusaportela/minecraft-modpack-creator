@@ -1,7 +1,6 @@
 import { Code, Link, Spinner } from '@nextui-org/react';
 import React, { useCallback, useLayoutEffect } from 'react';
 import { ipcRenderer, shell } from 'electron';
-import path from 'path';
 import AppBarHeader, {
   AppBarHeaderContainer,
 } from '../../components/app-bar/AppBarHeader';

@@ -102,6 +102,7 @@
     "safe-json-stringify": "^1.2.0",
     "toml": "^3.0.0",
     "uuid": "^9.0.1",
+    "valtio": "^1.13.2",
     "zustand": "^4.5.1"
   },
   "devDependencies": {

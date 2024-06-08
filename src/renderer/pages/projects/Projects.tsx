@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ipcRenderer } from 'electron';
 import { Button, Divider, useDisclosure } from '@nextui-org/react';
 import { ArrowClockwise } from '@phosphor-icons/react';
+import { useSnapshot } from 'valtio';
 import ProjectCard from './components/ProjectCard';
 import AddProject from './components/AddProject';
 import { usePager } from '../../components/pager/hooks/usePager';
@@ -9,15 +10,21 @@ import AppBarHeader, {
   AppBarHeaderContainer,
 } from '../../components/app-bar/AppBarHeader';
 import LoadProjectModal from './components/LoadProjectModal';
-import { useAppStore } from '../../store/app.store';
 import ProjectService from '../../core/domains/project/project-service';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { MinecraftVersionPickerModal } from './components/MinecraftVersionPickerModal';
 import SearchBar from '../../components/search-bar/SearchBar';
 import { IProject } from '../../store/interfaces/project.interface';
 import { ModConfigStore } from '../../store/mod-config.store';
+import { appStore } from '../../store/app-2.store';
 
 export default function Projects() {
+  const snap = useSnapshot(appStore);
+
+  const { projects, selectedProjectIndex } = snap;
+
+  console.log('projects', projects);
+
   const handleError = useErrorHandler();
 
   const { navigate } = usePager();
@@ -44,14 +51,10 @@ export default function Projects() {
     onClose: onMinecraftVersionPickerClose,
   } = useDisclosure();
 
-  const projects = useAppStore((st) => st.projects);
-  const selectedProject = useAppStore((st) => st.selectedProject);
-  const selectedProjectIndex = useAppStore((st) => st.selectedProjectIndex);
-
   const [filterText, setFilterText] = useState('');
 
   useLayoutEffect(() => {
-    if (selectedProject) {
+    if (selectedProjectIndex !== -1) {
       navigate('project-preload');
     }
   }, []);
@@ -94,7 +97,8 @@ export default function Projects() {
     try {
       ModConfigStore.getInstance().clear();
 
-      useAppStore.getState().selectProject(projectIdx);
+      console.log('update selectedProjectIndex', projectIdx);
+      ProjectService.getInstance().selectProject(projectIdx);
 
       const project = projects[projectIdx];
       if (project.launcher === 'minecraft') {
@@ -103,9 +107,7 @@ export default function Projects() {
         }
       }
 
-      project.lastOpenAt = new Date().getTime();
-
-      useAppStore.getState().setProject(project);
+      appStore.projects[projectIdx].lastOpenAt = new Date().getTime();
 
       navigate('project-preload');
     } catch (e) {
@@ -117,17 +119,17 @@ export default function Projects() {
 
   const onPickMinecraftVersion = async (chosenVersion: string) => {
     try {
-      const project = projects.find(
+      const project = appStore.projects.find(
         (p) => p.index === versionPickerParams.current?.projectIndex,
       )!;
 
+      console.log('on picl');
       project.isLoaded = false;
 
       onMinecraftVersionPickerClose();
 
       if (versionPickerParams.current?.redirect) {
         project.lastOpenAt = new Date().getTime();
-
         navigate('project-preload');
       }
     } catch (e) {

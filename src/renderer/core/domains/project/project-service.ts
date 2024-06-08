@@ -1,7 +1,7 @@
-import { useAppStore } from '../../../store/app.store';
 import { Launchers } from '../launchers/launchers';
 import BusinessLogicError from '../../errors/business-logic-error';
 import { BusinessError } from '../../errors/business-error.enum';
+import { appStore } from '../../../store/app-2.store';
 
 let instance: ProjectService;
 
@@ -31,9 +31,7 @@ export default class ProjectService {
       });
     }
 
-    const exists = useAppStore
-      .getState()
-      .projects.find((p) => p.path === folder);
+    const exists = appStore.projects.find((p) => p.path === folder);
 
     if (exists) {
       exists.modCount = project.modCount;
@@ -45,11 +43,13 @@ export default class ProjectService {
           : project.minecraftVersion) ?? 'unknown';
       exists.orphan = false;
 
-      useAppStore.getState().setProject(exists);
       return;
     }
 
-    useAppStore.getState().addProject(project);
+    appStore.projects.push({
+      ...project,
+      index: appStore.projects.length,
+    });
   }
 
   async populateProjects() {
@@ -60,7 +60,7 @@ export default class ProjectService {
     });
     await Promise.all(promises);
 
-    const { projects } = useAppStore.getState();
+    const { projects } = appStore;
     const orphanedProjects = projects.filter(
       (p) => !modpackFolders.includes(p.path),
     );
@@ -68,14 +68,20 @@ export default class ProjectService {
     orphanedProjects.forEach((p) => {
       p.orphan = true;
     });
+  }
 
-    useAppStore.setState(() => ({
-      projects,
-    }));
+  selectProject(projectIndex: number) {
+    appStore.selectedProjectIndex = projectIndex;
+    appStore.selectedProject = appStore.projects[projectIndex];
+  }
+
+  unselectProject() {
+    appStore.selectedProjectIndex = -1;
+    appStore.selectedProject = null;
   }
 
   async deleteProject(projectIndex: number) {
-    const project = useAppStore.getState().projects[projectIndex];
+    const project = appStore.projects[projectIndex];
 
     if (!project) {
       throw new BusinessLogicError({
@@ -85,21 +91,10 @@ export default class ProjectService {
     }
 
     if (project.orphan) {
-      useAppStore.setState((state) => ({
-        projects: state.projects.filter((p) => p.path !== project.path),
-      }));
+      appStore.projects.splice(projectIndex, 1);
       return;
     }
 
-    useAppStore.setState((state) => ({
-      projects: state.projects.map((p) => {
-        if (p.path === project.path) {
-          p.isLoaded = false;
-          return p;
-        }
-
-        return p;
-      }),
-    }));
+    project.isLoaded = false;
   }
 }

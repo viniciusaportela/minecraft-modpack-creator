@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { IAttributesStore } from './interfaces/attributes-store.interface';
 
-export const useBlocksStore = create<IAttributesStore>(() => ({
+export const useAttributesStore = create<IAttributesStore>(() => ({
   attributes: [],
   version: 1,
 }));

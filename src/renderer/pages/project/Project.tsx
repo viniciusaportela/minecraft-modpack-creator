@@ -24,7 +24,6 @@ import ModpackBuilder from '../../core/builder/ModpackBuilder';
 import BuildingModal from './components/BuildingModal';
 import { ModConfigProvider } from '../../store/mod-config-provider';
 import NoThumb from '../../assets/no-thumb.png';
-import { useAppStore } from '../../store/app.store';
 import Configs from '../configs/Configs';
 import PageHider from './components/PageHider';
 import BuildErrorReport from '../../components/build-error-modal/BuildErrorReport';
@@ -32,6 +31,9 @@ import SearchBar from '../../components/search-bar/SearchBar';
 import { useModsStore } from '../../store/mods.store';
 import { TextureLoader } from '../../core/domains/minecraft/texture/texture-loader';
 import { IMod } from '../../store/interfaces/mods-store.interface';
+import ProjectService from '../../core/domains/project/project-service';
+import { appStore } from '../../store/app-2.store';
+import { useReactiveProxy } from '../../store/helpers/use-reactive-proxy';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -45,7 +47,7 @@ export default function Project() {
     useState('Building mods...');
   const [buildingTotalProgress, setBuildingTotalProgress] = useState(1);
 
-  const project = useAppStore((st) => st.selectedProject);
+  const project = useReactiveProxy(appStore.selectedProject!);
   const mods = useModsStore((st) => Object.values(st.mods));
 
   const [modsFilter, setModsFilter] = useState('');
@@ -169,7 +171,7 @@ export default function Project() {
       <AppBarHeader
         title={project?.name ?? ''}
         goBack={() => {
-          useAppStore.setState({ selectedProject: null });
+          ProjectService.getInstance().unselectProject();
           navigate('projects');
         }}
       >

@@ -11,11 +11,13 @@ import {
   PopoverTrigger,
 } from '@nextui-org/react';
 import { CaretDown, TrashSimple, Warning } from '@phosphor-icons/react';
+import { useSnapshot } from 'valtio';
 import CurseForgeLogo from '../../../assets/curse-forge-logo.svg';
 import MinecraftLogo from '../../../assets/minecraft.png';
 import SKLauncherLogo from '../../../assets/sklauncher-logo.png';
 import capitalize from '../../../helpers/capitalize';
 import { useAppStore } from '../../../store/app.store';
+import { appStore } from '../../../store/app-2.store';
 
 interface ProjectCardProps {
   title: string;
@@ -34,7 +36,9 @@ export default function ProjectCard({
   onDelete,
   launcher,
 }: ProjectCardProps) {
-  const project = useAppStore((st) => st.projects[projectIdx]);
+  const project = useSnapshot(appStore).projects[projectIdx];
+
+  // const project = useAppStore((st) => st.projects[projectIdx]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const getLauncherLogo = () => {

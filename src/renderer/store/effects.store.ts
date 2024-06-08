@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { IEffect, IEffectsStore } from './interfaces/effects-store.interface';
+import { IEffectsStore } from './interfaces/effects-store.interface';
 
-export const useBlocksStore = create<IEffectsStore>(() => ({
+export const useEffectsStore = create<IEffectsStore>(() => ({
   effects: [],
   version: 1,
 }));

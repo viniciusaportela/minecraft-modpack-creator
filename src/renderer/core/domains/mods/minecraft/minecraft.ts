@@ -13,7 +13,7 @@ export class Minecraft extends DefaultMod {
     const baseFolders = ConfigLoader.getBaseFolders();
 
     const finalSourcePaths = baseFolders.map((p) =>
-      path.join(this.project.path, 'minecraft-toolkit', 'config', p),
+      path.join(this.project.path, 'minecraft-toolkit', 'configs', p),
     );
     const finalDestinationPaths = baseFolders.map((p) =>
       path.join(this.project.path, p),
