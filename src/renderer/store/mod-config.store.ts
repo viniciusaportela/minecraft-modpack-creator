@@ -42,12 +42,22 @@ export class ModConfigStore {
         modId,
         create(
           persist(
-            immer(() => ({
+            immer((set) => ({
               isLoaded: false,
+              load: () => set({ isLoaded: true }),
             })),
             {
               name: modId,
               storage: new JsonStorage(ModsFolderGetter),
+              onRehydrateStorage: () => {
+                return (st, err) => {
+                  if (err) {
+                    console.error(err);
+                  } else {
+                    st.load();
+                  }
+                };
+              },
             },
           ),
         ),

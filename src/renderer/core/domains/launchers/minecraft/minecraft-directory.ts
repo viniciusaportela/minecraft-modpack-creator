@@ -4,7 +4,7 @@ import { useAppStore } from '../../../../store/app.store';
 
 export class MinecraftDirectory extends LauncherDirectory {
   async getMinecraftJarPath(): Promise<string> {
-    const project = useAppStore.getState().selectedProject;
+    const project = useAppStore.getState().selectedProject();
 
     if (!project) {
       console.warn("Can't determine minecraft version without project");

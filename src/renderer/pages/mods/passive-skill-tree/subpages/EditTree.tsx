@@ -28,6 +28,7 @@ import {
   Plus,
 } from '@phosphor-icons/react';
 import { original } from 'immer';
+import { useSnapshot } from 'valtio';
 import TreeNode from '../components/react-flow/TreeNode';
 import Title from '../../../../components/title/Title';
 import SkillEdge from '../components/react-flow/SkillEdge';
@@ -37,7 +38,7 @@ import { SkillTree } from '../../../../core/domains/mods/skilltree/skill-tree';
 import EditSkillPanel from '../components/edit-skill-panel/EditSkillPanel';
 import ScreenToFlowPositionGetter from '../components/react-flow/ScreenToFlowPositionGetter';
 import FitViewGetter from '../components/react-flow/FitViewGetter';
-import { useAppStore } from '../../../../store/app.store';
+import { useAppStore, useSelectedProject } from '../../../../store/app.store';
 import { useModById } from '../../../../store/hooks/use-mod-by-id';
 import { useModConfigStore } from '../../../../store/hooks/use-mod-config-store';
 import { ISkillTreeConfig } from '../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
@@ -50,7 +51,7 @@ const nodeTypes = { skill_node: TreeNode };
 
 export default function EditTree() {
   const { navigate } = usePager();
-  const project = useAppStore((st) => st.selectedProject)!;
+  const project = useSelectedProject();
   const skillTreeMod = useModById(ModId.PassiveSkillTree);
 
   const configStore = useModConfigStore<ISkillTreeConfig>();

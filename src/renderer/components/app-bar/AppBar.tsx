@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
-import { Badge, Button, Chip } from '@nextui-org/react';
+import { Button, Chip } from '@nextui-org/react';
 import { CaretLeft, CornersOut, Minus, X } from '@phosphor-icons/react';
-import { useShallow } from 'zustand/react/shallow';
 import { ipcRenderer } from 'electron';
 import { useAppStore } from '../../store/app.store';
 
 export default function AppBar() {
-  const { goBack, title, customMiddleComponent } = useAppStore(
-    useShallow((st) => ({
-      goBack: st.goBack,
-      title: st.title,
-      customMiddleComponent: st.headerMiddleComponent,
-    })),
-  );
+  const { goBack, title, headerMiddleComponent } = useAppStore((st) => ({
+    goBack: st.goBack,
+    title: st.title,
+    headerMiddleComponent: st.headerMiddleComponent,
+  }));
 
   const [isMaximize, setMaximize] = useState(false);
 
@@ -47,7 +44,7 @@ export default function AppBar() {
       <Chip size="sm" className="text-xs ml-2">
         ALPHA
       </Chip>
-      {customMiddleComponent ?? <div className="flex-1 app-bar-drag h-full" />}
+      {headerMiddleComponent || <div className="flex-1 app-bar-drag h-full" />}
       <div className="flex gap-1 ml-2">
         <Button
           isIconOnly

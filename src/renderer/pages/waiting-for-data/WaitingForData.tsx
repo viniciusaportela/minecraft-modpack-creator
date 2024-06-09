@@ -4,12 +4,13 @@ import { ipcRenderer, shell } from 'electron';
 import AppBarHeader, {
   AppBarHeaderContainer,
 } from '../../components/app-bar/AppBarHeader';
-import { useAppStore } from '../../store/app.store';
+import { useSelectedProject } from '../../store/app.store';
 import { usePager } from '../../components/pager/hooks/usePager';
+import ProjectService from '../../core/domains/project/project-service';
 
 export default function WaitingForData() {
   const { navigate } = usePager();
-  const project = useAppStore((st) => st.selectedProject);
+  const project = useSelectedProject();
 
   const metadataCreatedCallback = useCallback(() => {
     ipcRenderer.removeListener('on-metadata-found', metadataCreatedCallback);
@@ -33,10 +34,7 @@ export default function WaitingForData() {
       <AppBarHeader
         title="Minecraft Toolkit"
         goBack={() => {
-          useAppStore.setState({
-            selectedProject: null,
-            selectedProjectIndex: -1,
-          });
+          ProjectService.getInstance().unselectProject();
           navigate('projects');
         }}
       >

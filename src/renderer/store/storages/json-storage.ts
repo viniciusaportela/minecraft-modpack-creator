@@ -37,6 +37,6 @@ export class JsonStorage {
   }
 
   async getBaseFolder() {
-    return CachedCallbacks.getInstance().get(this.basePathGetter);
+    return CachedCallbacks.getInstance().get<string>(this.basePathGetter);
   }
 }

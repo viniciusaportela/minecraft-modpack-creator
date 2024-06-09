@@ -36,8 +36,6 @@ export class ProjectPreloader {
     await this.loadStore('entities');
     await this.loadStore('potions');
     await this.loadStore('textures');
-
-    this.project.isLoaded = true;
   }
 
   private getStore(storeName: string) {

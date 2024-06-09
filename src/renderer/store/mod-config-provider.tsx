@@ -1,5 +1,6 @@
 import { memo, PropsWithChildren, useMemo } from 'react';
 import { Spinner } from '@nextui-org/react';
+import { useStore } from 'zustand';
 import { ModConfigContext } from './hooks/use-mod-config-selector';
 import { ModConfigStore } from './mod-config.store';
 import { IMod } from './interfaces/mods-store.interface';
@@ -12,7 +13,9 @@ export const ModConfigProvider = memo(
   ({ children, mod }: ModConfigProviderProps) => {
     const store = useMemo(() => ModConfigStore.getInstance().get(mod), [mod]);
 
-    if (!store.getState().isLoaded) {
+    const isLoaded = useStore(store, (st) => st.isLoaded);
+
+    if (!isLoaded) {
       return (
         <div className="w-full h-full flex items-center justify-center">
           <Spinner className="mb-20" />

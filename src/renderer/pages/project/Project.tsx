@@ -32,8 +32,7 @@ import { useModsStore } from '../../store/mods.store';
 import { TextureLoader } from '../../core/domains/minecraft/texture/texture-loader';
 import { IMod } from '../../store/interfaces/mods-store.interface';
 import ProjectService from '../../core/domains/project/project-service';
-import { appStore } from '../../store/app-2.store';
-import { useReactiveProxy } from '../../store/helpers/use-reactive-proxy';
+import { useAppStore, useSelectedProject } from '../../store/app.store';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -47,7 +46,7 @@ export default function Project() {
     useState('Building mods...');
   const [buildingTotalProgress, setBuildingTotalProgress] = useState(1);
 
-  const project = useReactiveProxy(appStore.selectedProject!);
+  const project = useSelectedProject();
   const mods = useModsStore((st) => Object.values(st.mods));
 
   const [modsFilter, setModsFilter] = useState('');

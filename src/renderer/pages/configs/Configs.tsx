@@ -11,7 +11,8 @@ import { Resizable } from 're-resizable';
 import clsx from 'clsx';
 import path from 'path';
 import { cp } from 'node:fs/promises';
-import { useAppStore } from '../../store/app.store';
+import { useSnapshot } from 'valtio';
+import { useAppStore, useSelectedProject } from '../../store/app.store';
 import FilesTree from '../../components/files-tree/FilesTree';
 import RawConfigEditor from './components/RawConfigEditor/RawConfigEditor';
 import RefinedConfigEditor from './components/RefinedConfigEditor/RefinedConfigEditor';
@@ -22,7 +23,7 @@ import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { RefinedConfigProvider } from '../../core/domains/minecraft/config/RefinedConfigContext';
 import { RefinedField } from '../../core/domains/minecraft/config/interfaces/parser';
 
-const getFirstFile = (nodes: ConfigNode[]) => {
+const getFirstFile = (nodes: readonly ConfigNode[]) => {
   const toRead = [...nodes];
   while (toRead.length) {
     const node = toRead.shift();
@@ -39,15 +40,16 @@ const getFirstFile = (nodes: ConfigNode[]) => {
 };
 
 export default function Configs() {
-  const configNodes = useAppStore((st) => st.configs)!;
+  const configs = useAppStore((st) => st.configs);
+
   const flattedNodes = useMemo(
-    () => configNodes.flatMap((node) => node.cloneFlat()),
+    () => configs?.flatMap((node) => node.cloneFlat()) ?? [],
     [],
   );
   const filesTreeRef = useRef<HTMLDivElement>();
   const handleError = useErrorHandler();
 
-  const project = useAppStore((st) => st.selectedProject);
+  const project = useSelectedProject();
 
   const [treeWidth, setTreeWidth] = useState(260);
   const [editorType, setEditorType] = useState('refined');
@@ -59,9 +61,7 @@ export default function Configs() {
     { node: ConfigNode; severity: string }[]
   >([]);
   const [fields, setFields] = useState<RefinedField[]>([]);
-  const [selectedConfig, setSelectedConfig] = useState(
-    getFirstFile(configNodes!),
-  );
+  const [selectedConfig, setSelectedConfig] = useState(getFirstFile(configs!));
 
   useEffect(() => {
     const promises = flattedNodes.map(async (node) => {
@@ -175,7 +175,7 @@ export default function Configs() {
         enable={{ right: true }}
       >
         <FilesTree
-          nodes={configNodes!}
+          nodes={configs!}
           onNodeClick={(node) => setSelectedConfig(node)}
           ref={filesTreeRef}
           selectedNode={selectedConfig}

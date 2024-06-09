@@ -5,7 +5,6 @@ import PickerButton from '../../../components/ItemPickerButton/PickerButton';
 import Title from '../../../components/title/Title';
 import { usePager } from '../../../components/pager/hooks/usePager';
 import { PickerType } from '../../../typings/picker-type.enum';
-import { useAppStore } from '../../../store/app.store';
 
 export default function AddShaped() {
   const { navigate } = usePager();
@@ -16,8 +15,6 @@ export default function AddShaped() {
   ]);
   const [outputCount, setOutputCount] = useState(1);
   const [output, setOutput] = useState<string | null>(null);
-
-  const selectedProject = useAppStore((st) => st.selectedProject);
 
   const onPickInput = (value: string, row: number, col: number) => {
     setInput((prev) => {

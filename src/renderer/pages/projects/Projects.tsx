@@ -2,7 +2,6 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ipcRenderer } from 'electron';
 import { Button, Divider, useDisclosure } from '@nextui-org/react';
 import { ArrowClockwise } from '@phosphor-icons/react';
-import { useSnapshot } from 'valtio';
 import ProjectCard from './components/ProjectCard';
 import AddProject from './components/AddProject';
 import { usePager } from '../../components/pager/hooks/usePager';
@@ -16,12 +15,11 @@ import { MinecraftVersionPickerModal } from './components/MinecraftVersionPicker
 import SearchBar from '../../components/search-bar/SearchBar';
 import { IProject } from '../../store/interfaces/project.interface';
 import { ModConfigStore } from '../../store/mod-config.store';
-import { appStore } from '../../store/app-2.store';
+import { useAppStore } from '../../store/app.store';
 
 export default function Projects() {
-  const snap = useSnapshot(appStore);
-
-  const { projects, selectedProjectIndex } = snap;
+  const projects = useAppStore((st) => st.projects);
+  const selectedProjectIndex = useAppStore((st) => st.selectedProjectIndex);
 
   console.log('projects', projects);
 
@@ -107,7 +105,9 @@ export default function Projects() {
         }
       }
 
-      appStore.projects[projectIdx].lastOpenAt = new Date().getTime();
+      useAppStore.setState((st) => {
+        st.projects[projectIdx].lastOpenAt = new Date().getTime();
+      });
 
       navigate('project-preload');
     } catch (e) {
@@ -119,11 +119,12 @@ export default function Projects() {
 
   const onPickMinecraftVersion = async (chosenVersion: string) => {
     try {
-      const project = appStore.projects.find(
-        (p) => p.index === versionPickerParams.current?.projectIndex,
-      )!;
+      const project = useAppStore
+        .getState()
+        .projects.find(
+          (p) => p.index === versionPickerParams.current?.projectIndex,
+        )!;
 
-      console.log('on picl');
       project.isLoaded = false;
 
       onMinecraftVersionPickerClose();

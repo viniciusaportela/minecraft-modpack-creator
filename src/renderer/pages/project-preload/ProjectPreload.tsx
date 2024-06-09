@@ -1,20 +1,22 @@
 import { useEffect } from 'react';
 import { Progress } from '@nextui-org/react';
 import { ipcRenderer } from 'electron';
-import { useProxy } from 'valtio/utils';
 import { usePager } from '../../components/pager/hooks/usePager';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { ConfigLoader } from '../../core/domains/minecraft/config/ConfigLoader';
 import { Launchers } from '../../core/domains/launchers/launchers';
-import { appStore } from '../../store/app-2.store';
+import { useAppStore, useSelectedProject } from '../../store/app.store';
 import { ProjectPreloader } from '../../core/domains/project/project-preloader';
+import ProjectService from '../../core/domains/project/project-service';
 
 export default function ProjectPreload() {
   const handleError = useErrorHandler();
   const { navigate } = usePager();
 
-  const snap = useProxy(appStore);
-  const project = appStore.selectedProject;
+  const idx = useAppStore((st) => st.selectedProjectIndex);
+  const project = useSelectedProject();
+
+  console.log('project/idx', project, idx);
 
   useEffect(() => {
     loadProject().catch((err) => console.error(err));
@@ -26,11 +28,19 @@ export default function ProjectPreload() {
     };
   }, []);
 
+  useEffect(() => {
+    console.log('idx changed', idx);
+  }, [idx]);
+
   async function loadProject() {
     try {
       if (project) {
         const configLoader = new ConfigLoader(project);
-        snap.configs = await configLoader.load();
+        const configs = await configLoader.load();
+
+        useAppStore.setState((st) => {
+          st.configs = configs;
+        });
 
         // Check if metadata is loaded, if not show instructions
         const launcher = Launchers.getInstance().getLauncherByName(
@@ -47,12 +57,17 @@ export default function ProjectPreload() {
           return;
         }
 
-        project.modCount = metadata.modCount;
-        project.loader = metadata.modLoader;
-        project.loaderVersion = metadata.loaderVersion;
-        project.minecraftVersion = metadata.minecraftVersion;
-
         await ProjectPreloader.getInstance().load(project);
+
+        useAppStore.setState((st) => {
+          const projectDraft = st.projects[st.selectedProjectIndex];
+
+          projectDraft.modCount = metadata.modCount;
+          projectDraft.loader = metadata.modLoader;
+          projectDraft.loaderVersion = metadata.loaderVersion;
+          projectDraft.minecraftVersion = metadata.minecraftVersion;
+          projectDraft.isLoaded = true;
+        });
 
         navigate('project');
       } else {
@@ -63,7 +78,7 @@ export default function ProjectPreload() {
         await handleError(err);
       }
 
-      appStore.selectedProjectIndex = -1;
+      ProjectService.getInstance().unselectProject();
       navigate('projects');
     }
   }
