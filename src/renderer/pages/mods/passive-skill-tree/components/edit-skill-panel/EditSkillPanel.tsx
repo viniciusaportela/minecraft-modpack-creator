@@ -25,38 +25,55 @@ export default function EditSkillPanel({
   focusedNodePath,
   onClose,
 }: EditSkillPanelProps) {
+  console.log('focusedNodePath', focusedNodePath);
   const { isOpen, onOpenChange, onOpen } = useDisclosure();
-  const [focusedNodeData] = useModConfigSelector((st) =>
-    get(st, [...(focusedNodePath ?? []), 'data']),
-  );
 
-  const title = useModConfigSelector((st) =>
-    get(st, [...(focusedNodePath ?? []), 'data', 'title']),
-  );
+  const [focusedNodeData] = useModConfigSelector([
+    ...(focusedNodePath ?? []),
+    'data',
+  ]);
 
-  const titleColor = useModConfigSelector((st) =>
-    get(st, [...(focusedNodePath ?? []), 'data', 'titleColor']),
-  );
+  const [title, setTitle] = useModConfigSelector([
+    ...(focusedNodePath ?? []),
+    'data',
+    'title',
+  ]);
 
-  const iconTexture = useModConfigSelector((st) =>
-    get(st, [...(focusedNodePath ?? []), 'data', 'iconTexture']),
-  );
+  const [titleColor, setTitleColor] = useModConfigSelector([
+    ...(focusedNodePath ?? []),
+    'data',
+    'titleColor',
+  ]);
 
-  const backgroundTexture = useModConfigSelector((st) =>
-    get(st, [...(focusedNodePath ?? []), 'data', 'backgroundTexture']),
-  );
+  const [iconTexture, setIconTexture] = useModConfigSelector([
+    ...(focusedNodePath ?? []),
+    'data',
+    'iconTexture',
+  ]);
 
-  const borderTexture = useModConfigSelector((st) =>
-    get(st, [...(focusedNodePath ?? []), 'data', 'borderTexture']),
-  );
+  const [backgroundTexture, setBackgroundTexture] = useModConfigSelector([
+    ...(focusedNodePath ?? []),
+    'data',
+    'backgroundTexture',
+  ]);
 
-  const buttonSize = useModConfigSelector((st) =>
-    get(st, [...(focusedNodePath ?? []), 'data', 'buttonSize']),
-  );
+  const [borderTexture, setBorderTexture] = useModConfigSelector([
+    ...(focusedNodePath ?? []),
+    'data',
+    'borderTexture',
+  ]);
 
-  const isStartingPoint = useModConfigSelector((st) =>
-    get(st, [...(focusedNodePath ?? []), 'data', 'isStartingPoint']),
-  );
+  const [buttonSize, setButtonSize] = useModConfigSelector([
+    ...(focusedNodePath ?? []),
+    'data',
+    'buttonSize',
+  ]);
+
+  const [isStartingPoint, setIsStartingPoint] = useModConfigSelector([
+    ...(focusedNodePath ?? []),
+    'data',
+    'isStartingPoint',
+  ]);
 
   if (!focusedNodeData) return null;
 

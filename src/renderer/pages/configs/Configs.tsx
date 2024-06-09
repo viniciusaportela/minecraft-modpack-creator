@@ -11,7 +11,6 @@ import { Resizable } from 're-resizable';
 import clsx from 'clsx';
 import path from 'path';
 import { cp } from 'node:fs/promises';
-import { useSnapshot } from 'valtio';
 import { useAppStore, useSelectedProject } from '../../store/app.store';
 import FilesTree from '../../components/files-tree/FilesTree';
 import RawConfigEditor from './components/RawConfigEditor/RawConfigEditor';

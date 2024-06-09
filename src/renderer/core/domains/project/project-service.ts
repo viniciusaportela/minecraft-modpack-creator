@@ -80,7 +80,6 @@ export default class ProjectService {
 
   selectProject(projectIndex: number) {
     useAppStore.setState((st) => {
-      console.log('change index', projectIndex);
       st.selectedProjectIndex = projectIndex;
     });
   }

@@ -24,7 +24,7 @@ interface ChoiceProps {
 
 export default function ChoiceField({ options, path, label }: ChoiceProps) {
   const store = useModConfigStore<ISkillTreeConfig>();
-  const value = useModConfigSelector((st: ISkillTreeConfig) => get(st, path));
+  const [value, setValue] = useModConfigSelector(path);
 
   const getLabel = (value: string | number) => {
     if (options.length === 0) {

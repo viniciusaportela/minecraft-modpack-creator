@@ -19,7 +19,10 @@ export class DefaultMod {
 
   async postBuild() {}
 
-  async makeConfig(): Promise<any> {
-    return {};
+  async makeConfig(): Promise<IBaseModConfig> {
+    return {
+      isLoaded: false,
+      isSetupDone: false,
+    };
   }
 }

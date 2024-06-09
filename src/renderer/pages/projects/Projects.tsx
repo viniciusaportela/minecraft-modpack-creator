@@ -14,7 +14,7 @@ import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { MinecraftVersionPickerModal } from './components/MinecraftVersionPickerModal';
 import SearchBar from '../../components/search-bar/SearchBar';
 import { IProject } from '../../store/interfaces/project.interface';
-import { ModConfigStore } from '../../store/mod-config.store';
+import { ContextStoreRegistry } from '../../store/context-store-registry';
 import { useAppStore } from '../../store/app.store';
 
 export default function Projects() {
@@ -93,7 +93,7 @@ export default function Projects() {
 
   const open = async (projectIdx: number) => {
     try {
-      ModConfigStore.getInstance().clear();
+      ContextStoreRegistry.getInstance().clear();
 
       console.log('update selectedProjectIndex', projectIdx);
       ProjectService.getInstance().selectProject(projectIdx);

@@ -25,13 +25,7 @@ export default function EditBonus({
   selectedBonusPath,
   onSelect,
 }: BonusPageProps) {
-  const bonus = useModConfigSelector((st) => get(st, selectedBonusPath));
-
-  useEffect(() => {
-    console.log('EditBonus first render');
-  }, []);
-
-  console.log('bonus', selectedBonusPath, bonus);
+  const [bonus] = useModConfigSelector(selectedBonusPath);
 
   return (
     <ScrollShadow className="flex flex-col no-scrollbar">

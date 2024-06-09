@@ -5,7 +5,6 @@ import {
   DropdownMenu,
   DropdownTrigger,
 } from '@nextui-org/react';
-import get from 'lodash.get';
 import set from 'lodash.set';
 import { Key } from 'react';
 import Label from './Label';
@@ -30,7 +29,7 @@ export const ComponentChoice = ({
   options,
 }: ComponentChoiceProps) => {
   const store = useModConfigStore<ISkillTreeConfig>();
-  const value = useModConfigSelector((st: ISkillTreeConfig) => get(st, path));
+  const [value, setValue] = useModConfigSelector(path);
 
   const getSelectedLabel = () => {
     const found = options.find((option) => option.value === value.type);
@@ -45,9 +44,7 @@ export const ComponentChoice = ({
     const Component = getComponent(key);
     const newDefault = Component.getDefaultConfig();
     console.log('newDefault for path', path, newDefault);
-    store.setState((state) => {
-      set(state, path, newDefault);
-    });
+    setValue(newDefault);
   };
 
   const getSelectedKeys = () => {

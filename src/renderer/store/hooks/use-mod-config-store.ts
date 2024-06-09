@@ -1,7 +1,6 @@
-import { createContext, useContext } from 'react';
+import { useContext } from 'react';
 import { StoreWithModifiers } from '../interfaces/mod-config.interface';
-
-export const ModConfigContext = createContext<any>(null!);
+import { ModConfigContext } from '../context/mod-config-context';
 
 export function useModConfigStore<T>(): StoreWithModifiers<T> {
   const storeInContext = useContext(ModConfigContext);

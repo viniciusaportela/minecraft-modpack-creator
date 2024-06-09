@@ -22,7 +22,7 @@ import AppBarHeader, {
 } from '../../components/app-bar/AppBarHeader';
 import ModpackBuilder from '../../core/builder/ModpackBuilder';
 import BuildingModal from './components/BuildingModal';
-import { ModConfigProvider } from '../../store/mod-config-provider';
+import { ModConfigProvider } from '../../store/providers/mod-config-provider';
 import NoThumb from '../../assets/no-thumb.png';
 import Configs from '../configs/Configs';
 import PageHider from './components/PageHider';
@@ -32,7 +32,7 @@ import { useModsStore } from '../../store/mods.store';
 import { TextureLoader } from '../../core/domains/minecraft/texture/texture-loader';
 import { IMod } from '../../store/interfaces/mods-store.interface';
 import ProjectService from '../../core/domains/project/project-service';
-import { useAppStore, useSelectedProject } from '../../store/app.store';
+import { useSelectedProject } from '../../store/app.store';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -120,15 +120,16 @@ export default function Project() {
   }
 
   function getModFromTab(tab: string) {
-    return mods.find((addon) => addon.name === tab)!;
+    return mods.find((addon) => addon.name === tab);
   }
 
   function getModViewFromTab(tab: string) {
     const mod = getModFromTab(tab);
-    const CustomPlugin = pageByMod[mod.id as keyof typeof pageByMod];
+    const CustomPlugin = pageByMod[mod?.id as keyof typeof pageByMod];
+    console.log('get mod view', mod);
 
     return (
-      <ModConfigProvider mod={mod} key={mod.id}>
+      <ModConfigProvider mod={mod} key={mod?.id || tab}>
         <PageHider isVisible={isVisible(tab)}>
           {CustomPlugin ? (
             <CustomPlugin

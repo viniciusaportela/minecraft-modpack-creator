@@ -19,7 +19,7 @@ const OPTIONS = () =>
   }));
 
 export const ItemBonusSkillBonus: FunctionWithDefaultConfig = ({ path }) => {
-  const value = useModConfigSelector((st: ISkillTreeConfig) => get(st, path));
+  const [value] = useModConfigSelector(path);
 
   const getLabel = (type: string) => {
     return OPTIONS().find((option) => option.value === type)?.label ?? '';

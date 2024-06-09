@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { IAppStore, IAppStored } from './interfaces/app-store.interface';
 import { JsonStorage } from './storages/json-storage';
-import { UserDataPathCallback } from './CachedCallbacks';
+import { UserDataPathCallback } from './cached-callbacks';
 
 export const useAppStore = create<
   IAppStore,

@@ -41,9 +41,11 @@ export default function BonusModal({
   const handleError = useErrorHandler();
 
   const store = useModConfigStore<ISkillTreeConfig>();
-  const bonuses = useModConfigSelector((state: ISkillTreeConfig) =>
-    get(state, [...focusedNodePath, 'data', 'bonuses']),
-  );
+  const [bonuses] = useModConfigSelector<any[]>([
+    ...focusedNodePath,
+    'data',
+    'bonuses',
+  ]);
 
   const [page, setPage] = useState(bonuses?.length ? 'bonus-0' : 'empty');
 
@@ -65,7 +67,12 @@ export default function BonusModal({
     return bonuses?.map((bonus, index) => (
       <Page name={`bonus-${index}`}>
         <EditBonus
-          selectedBonusPath={[...focusedNodePath, 'data', 'bonuses', index]}
+          selectedBonusPath={[
+            ...focusedNodePath,
+            'data',
+            'bonuses',
+            String(index),
+          ]}
           onSelect={(key) => onSelectKey(index, key)}
         />
       </Page>

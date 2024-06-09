@@ -12,8 +12,7 @@ interface TextFieldProps {
 }
 
 export const TextField = ({ path, label }: TextFieldProps) => {
-  const store = useModConfigStore<ISkillTreeConfig>();
-  const value = useModConfigSelector((st: ISkillTreeConfig) => get(st, path));
+  const [value, setValue] = useModConfigSelector(path);
 
   return (
     <>
@@ -25,9 +24,7 @@ export const TextField = ({ path, label }: TextFieldProps) => {
         }}
         value={value}
         onValueChange={(newValue) => {
-          store.setState((state) => {
-            set(state, path, newValue);
-          });
+          setValue(newValue);
         }}
       />
     </>

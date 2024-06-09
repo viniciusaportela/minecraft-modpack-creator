@@ -17,8 +17,7 @@ export default function NumberField({
   label,
   acceptMinusOne,
 }: NumberFieldProps) {
-  const store = useModConfigStore<ISkillTreeConfig>();
-  const value = useModConfigSelector((st: ISkillTreeConfig) => get(st, path));
+  const [value, setValue] = useModConfigSelector(path);
 
   return (
     <>
@@ -33,14 +32,9 @@ export default function NumberField({
         onValueChange={(newValue) => {
           const formattedValue = newValue.replace(',', '.');
           const numberValue = parseFloat(formattedValue);
-
-          store.setState((state) => {
-            set(
-              state,
-              path,
-              numberValue === -1 && !acceptMinusOne ? undefined : numberValue,
-            );
-          });
+          setValue(
+            numberValue === -1 && !acceptMinusOne ? undefined : numberValue,
+          );
         }}
       />
     </>

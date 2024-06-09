@@ -3,6 +3,7 @@ import { StoreApi } from 'zustand/vanilla';
 
 export type IBaseModConfig = {
   isLoaded: boolean;
+  isSetupDone: boolean;
 } & { [key: string]: any };
 
 export type StoreWithModifiers<T> = Mutate<
