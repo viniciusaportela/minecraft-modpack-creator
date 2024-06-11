@@ -20,7 +20,7 @@ export default function PickerItem({
   type,
 }: PickerItemProps) {
   const getNameFromType = () => {
-    return (item as IItem | IBlock).id || (item as ITexture).internalPath;
+    return (item as IItem | IBlock).name || (item as ITexture).id;
   };
 
   return (

@@ -16,6 +16,7 @@ import { useItemsStore } from '../../store/items.store';
 import { IItem } from '../../store/interfaces/items-store.interface';
 import { IBlock } from '../../store/interfaces/blocks-store.interface';
 import { ITexture } from '../../store/interfaces/textures-store.interface';
+import { useTexturesStore } from '../../store/textures.store';
 
 interface PickerListItemProps {
   item: IItem | IBlock | ITexture;
@@ -57,6 +58,8 @@ export default function Picker() {
   const inputTextRef = useRef('');
   const [inputText, setInputText] = useReducer(reflectOnRef(inputTextRef), '');
 
+  const textures = useTexturesStore((state) => state.textures);
+
   const requestId = useParams('requestId');
 
   const [type, setType] = useState(PickerType.Item);
@@ -97,7 +100,6 @@ export default function Picker() {
     if (
       [
         PickerType.SkillTreeBackground,
-        PickerType.SkillTreeBackground,
         PickerType.SkillTreeIcon,
         PickerType.Texture,
       ].includes(type)
@@ -120,18 +122,18 @@ export default function Picker() {
           showOnSearch: true,
           value: null,
         },
-        // ...textures.map((texture) => ({
-        //   render: ({ style }: { style: React.CSSProperties }) => (
-        //     <PickerListItem
-        //       style={style}
-        //       type={type}
-        //       item={texture}
-        //       select={(item) => select((item as TextureModel).textureId)}
-        //     />
-        //   ),
-        //   type: 'item',
-        //   value: texture.textureId,
-        // })),
+        ...textures.map((texture) => ({
+          render: ({ style }: { style: React.CSSProperties }) => (
+            <PickerListItem
+              style={style}
+              type={type}
+              item={texture}
+              select={(item) => select((item as ITexture).internalPath)}
+            />
+          ),
+          type: 'item',
+          value: texture.internalPath,
+        })),
       ]);
     } else if (type === PickerType.Item) {
       const { items } = useItemsStore.getState();

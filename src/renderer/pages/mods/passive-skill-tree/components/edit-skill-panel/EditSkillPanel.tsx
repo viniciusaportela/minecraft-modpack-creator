@@ -6,7 +6,6 @@ import {
   Switch,
   useDisclosure,
 } from '@nextui-org/react';
-import get from 'lodash.get';
 import React from 'react';
 import { X } from '@phosphor-icons/react';
 import PickerButton from '../../../../../components/ItemPickerButton/PickerButton';
@@ -25,13 +24,18 @@ export default function EditSkillPanel({
   focusedNodePath,
   onClose,
 }: EditSkillPanelProps) {
-  console.log('focusedNodePath', focusedNodePath);
   const { isOpen, onOpenChange, onOpen } = useDisclosure();
 
   const [focusedNodeData] = useModConfigSelector([
     ...(focusedNodePath ?? []),
     'data',
   ]);
+
+  console.log(
+    'focusedNodeData',
+    [...(focusedNodePath ?? []), 'data'],
+    focusedNodeData,
+  );
 
   const [title, setTitle] = useModConfigSelector([
     ...(focusedNodePath ?? []),
@@ -101,7 +105,7 @@ export default function EditSkillPanel({
               placeholder="Skill title"
               value={title}
               onValueChange={(value) => {
-                setTitle(() => value);
+                setTitle(value);
               }}
             />
             <div className="flex items-center">
@@ -111,9 +115,7 @@ export default function EditSkillPanel({
                 className="ml-auto"
                 value={`#${titleColor?.toLowerCase() ?? '#ffffff'}`}
                 onChange={(e) => {
-                  setTitleColor(() =>
-                    e.target.value?.toUpperCase().replace('#', ''),
-                  );
+                  setTitleColor(e.target.value?.toUpperCase().replace('#', ''));
                 }}
               />
             </div>
@@ -125,9 +127,7 @@ export default function EditSkillPanel({
                 value={
                   formatTextureInput(iconTexture) ?? 'skilltree:icons/void'
                 }
-                onPick={(value) =>
-                  setIconTexture(() => formatTextureOutput(value))
-                }
+                onPick={(value) => setIconTexture(formatTextureOutput(value))}
               />
             </div>
             <div className="flex items-center">
@@ -140,7 +140,7 @@ export default function EditSkillPanel({
                   'skilltree:icons/background/lesser'
                 }
                 onPick={(value) =>
-                  setBackgroundTexture(() => formatTextureOutput(value))
+                  setBackgroundTexture(formatTextureOutput(value))
                 }
               />
             </div>
@@ -153,9 +153,7 @@ export default function EditSkillPanel({
                   formatTextureInput(borderTexture) ??
                   'skilltree:tooltip/lesser'
                 }
-                onPick={(value) =>
-                  setBorderTexture(() => formatTextureOutput(value))
-                }
+                onPick={(value) => setBorderTexture(formatTextureOutput(value))}
               />
             </div>
             <Input
@@ -164,15 +162,13 @@ export default function EditSkillPanel({
               variant="bordered"
               placeholder="16"
               value={buttonSize ?? 16}
-              onValueChange={(text) => setButtonSize(() => parseFloat(text))}
+              onValueChange={(text) => setButtonSize(parseFloat(text))}
             />
 
             <Switch
               size="sm"
               isSelected={isStartingPoint}
-              onValueChange={(isSelected) =>
-                setIsStartingPoint(() => isSelected)
-              }
+              onValueChange={(isSelected) => setIsStartingPoint(isSelected)}
             >
               Is starting point
             </Switch>

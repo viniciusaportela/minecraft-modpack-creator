@@ -22,14 +22,11 @@ export default function BuildErrorReport({
   error,
 }: BuildErrorModalProps) {
   const getMod = () => {
-    console.log('getMod', JSON.stringify(error));
-    if (!error) {
-      return '';
-    }
-
     if (error instanceof BusinessLogicError) {
       return error.meta?.mod?.modId || '';
     }
+
+    return '';
   };
 
   const getDescriptiveError = () => {

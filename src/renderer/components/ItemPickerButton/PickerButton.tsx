@@ -2,6 +2,7 @@ import { Button, Tooltip } from '@nextui-org/react';
 import { ipcRenderer } from 'electron';
 import { PickerType } from '../../typings/picker-type.enum';
 import getImageComponentFromPickerType from '../../core/domains/minecraft/helpers/get-image-component-from-picker-type';
+import { useAppStore } from '../../store/app.store';
 
 interface ItemPickerProps {
   value: string | null;
@@ -16,8 +17,10 @@ export default function PickerButton({
   onPick,
   className,
 }: ItemPickerProps) {
+  const projectIdx = useAppStore((st) => st.selectedProjectIndex);
+
   const onPress = async () => {
-    const picked = await ipcRenderer.invoke('open', 'picker', type);
+    const picked = await ipcRenderer.invoke('open', 'picker', projectIdx, type);
     if (picked === null) return;
     onPick(picked);
   };

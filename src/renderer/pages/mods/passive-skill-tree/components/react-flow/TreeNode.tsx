@@ -15,8 +15,20 @@ export default memo(({ data, id }: { data: any; id: string }) => {
       .replace('textures/', '')
       .replace('.png', '');
 
-    setBackgroundImg(new TextureLoader().getTextureSource(textureId) as string);
+    if (textureId.includes('background')) {
+      console.log(
+        data.backgroundTexture,
+        textureId,
+        TextureLoader.getInstance().getTextureSource(textureId),
+      );
+    }
+
+    setBackgroundImg(
+      TextureLoader.getInstance().getTextureSource(textureId) as string,
+    );
   }, [data.backgroundTexture]);
+
+  console.log(data.buttonSize);
 
   return (
     <div
@@ -24,8 +36,9 @@ export default memo(({ data, id }: { data: any; id: string }) => {
       style={{
         width: data.buttonSize,
         height: data.buttonSize,
+        pointerEvents: isConnecting ? 'none' : 'all',
         ...(backgroundImg && {
-          backgroundImage: `url(${backgroundImg})`,
+          backgroundImage: `url("${backgroundImg}")`,
           backgroundSize: `${3 * data.buttonSize}px ${data.buttonSize}px`,
           backgroundRepeat: 'no-repeat',
           backgroundPosition: '0px 0px',
@@ -48,7 +61,7 @@ export default memo(({ data, id }: { data: any; id: string }) => {
           backgroundColor: 'red',
           width: '50%',
           height: '50%',
-          zIndex: 1,
+          zIndex: 99,
           right: 0,
           top: 0,
         }}

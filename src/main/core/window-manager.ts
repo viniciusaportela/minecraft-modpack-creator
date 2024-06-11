@@ -9,6 +9,7 @@ export default class WindowManager {
 
   static create({
     page,
+    projectIndex,
     parent,
     requestId,
     respondRequester,
@@ -56,7 +57,7 @@ export default class WindowManager {
     this.windows.push(ctx);
 
     window.loadURL(
-      `${resolveHtmlPath('index.html')}?${new URLSearchParams({ page, requestId }).toString()}`,
+      `${resolveHtmlPath('index.html')}?${new URLSearchParams({ page, requestId, projectIndex: projectIndex ?? '' }).toString()}`,
     );
 
     window.on('ready-to-show', () => {

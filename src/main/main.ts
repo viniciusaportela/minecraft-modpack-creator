@@ -184,7 +184,7 @@ const createWindow = async () => {
     mainWindow!.minimize();
   });
 
-  ipcMain.handle('open', (_, page: string, ...params) => {
+  ipcMain.handle('open', (_, page: string, projectIndex: number, ...params) => {
     return new Promise((resolve) => {
       const requestId = crypto.randomBytes(16).toString('hex');
 
@@ -192,6 +192,7 @@ const createWindow = async () => {
         parent: mainWindow!,
         page,
         params,
+        projectIndex: String(projectIndex),
         requestId,
         respondRequester: resolve,
       });
@@ -232,12 +233,8 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
-    const userData = app.getPath('userData');
-
     protocol.handle('textures', (request) => {
-      return net.fetch(
-        `file://${userData}/textures/${request.url.slice('textures://'.length)}`,
-      );
+      return net.fetch(`file://${request.url.slice('textures://'.length)}`);
     });
 
     mkdirSync(path.join(app.getPath('userData'), 'app_logs'), {

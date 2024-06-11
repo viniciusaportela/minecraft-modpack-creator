@@ -4,7 +4,6 @@ import { StoreApi } from 'zustand/vanilla';
 import get from 'lodash.get';
 import set from 'lodash.set';
 import { ModConfigContext } from '../context/mod-config-context';
-import { useShallow } from './use-shallow';
 
 export function useModConfigSelector<T = any>(
   selector: string[],
@@ -16,17 +15,9 @@ export function useModConfigSelector<T = any>(
   }
 
   return [
-    useStore(
-      storeInContext as StoreApi<T>,
-      (st) => get(st, selector),
-      // useShallow((st) => {
-      //   console.log(selector, '->', get(st, selector));
-      //   return get(st, selector);
-      // }),
-    ),
+    useStore(storeInContext as StoreApi<T>, (st) => get(st, selector)),
     (newValue: T) => {
       storeInContext.setState((state: any) => {
-        console.log('set node', selector, 'to', newValue);
         set(state, selector, newValue);
       });
     },

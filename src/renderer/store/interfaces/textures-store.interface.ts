@@ -4,6 +4,7 @@ export interface ITexturesStore {
 }
 
 export interface ITexture {
+  id: string;
   outPath: string;
   internalPath: string;
   modId: string;

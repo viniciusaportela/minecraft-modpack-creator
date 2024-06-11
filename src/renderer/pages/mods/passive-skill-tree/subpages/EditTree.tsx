@@ -148,17 +148,19 @@ export default function EditTree() {
   );
 
   const rebuildMainTree = () => {
-    setMainTree((mainTree) => {
-      mainTree.skillIds = configStore
-        .getState()
-        .tree.nodes.map((node) => node.id);
-      console.log('new maintree', original(mainTree));
-      return mainTree;
-    });
+    const { mainTree } = configStore.getState().tree;
+
+    const mainTreeCopy = { ...mainTree };
+    mainTreeCopy.skillIds = configStore
+      .getState()
+      .tree.nodes.map((node) => node.id);
+    console.log('new maintree', mainTreeCopy);
+
+    setMainTree(mainTreeCopy);
   };
 
   const addSkill = () => {
-    const bounding = reactFlowRef.current.getBoundingClientRect();
+    const bounding = reactFlowRef.current!.getBoundingClientRect();
 
     const mostUpdatedNodes = configStore.getState().tree.nodes;
 

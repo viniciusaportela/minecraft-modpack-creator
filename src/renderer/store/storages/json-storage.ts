@@ -6,7 +6,6 @@ import { CachedCallbacks } from '../cached-callbacks';
 
 const debounceWrite = debounce(
   async (name: string, value: any, dataFolder: string) => {
-    console.log('write', JSON.stringify(value, null, 2));
     await writeFile(
       path.join(dataFolder, `${name}.json`),
       JSON.stringify(value),
