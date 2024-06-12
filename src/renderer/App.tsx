@@ -1,60 +1,40 @@
 import './App.css';
-import { Suspense, useLayoutEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { NextUIProvider, Progress } from '@nextui-org/react';
-import { ipcRenderer } from 'electron';
-import Realm from 'realm';
 import { Toaster } from 'react-hot-toast';
-import { ProjectModel } from './core/models/project.model';
-import { TextureModel } from './core/models/texture.model';
-import { ItemModel } from './core/models/item.model';
-import { BlockModel } from './core/models/block.model';
-import { ModModel } from './core/models/mod.model';
-import { GlobalStateModel } from './core/models/global-state.model';
-import { useAppStore } from './store/app.store';
 import MainApp from './MainApp';
 import Picker from './pages/picker/Picker';
-
-import { ModConfigModel } from './core/models/mod-config.model';
+import { useAppStore } from './store/app.store';
+import { ProjectPreloader } from './core/domains/project/project-preloader';
 
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const page = urlParams.get('page');
+  const projectIndex = urlParams.get('projectIndex')
+    ? parseInt(urlParams.get('projectIndex')!, 10)
+    : null;
 
-  const [loading, setLoading] = useState(true);
+  const isLoaded = useAppStore((st) => st.isLoaded);
+  const [hasLoadedProject, setHasLoadedProject] = useState(false);
 
-  useLayoutEffect(() => {
-    (async () => {
-      const dataFolder = await ipcRenderer.invoke('getPath', 'userData');
-      const realm = await Realm.open({
-        schema: [
-          ProjectModel,
-          TextureModel,
-          ItemModel,
-          BlockModel,
-          ModModel,
-          ModConfigModel,
-          GlobalStateModel,
-        ],
-        deleteRealmIfMigrationNeeded: process.env.NODE_ENV === 'development',
-        path: `${dataFolder}/minecraft_toolkit.realm`,
-      });
-
-      useAppStore.setState({ realm });
-
-      if (!realm.objects(GlobalStateModel)[0]) {
-        realm.write(() => {
-          realm.create<GlobalStateModel>(GlobalStateModel.schema.name, {});
+  useEffect(() => {
+    if (isLoaded && projectIndex) {
+      const project = useAppStore.getState().projects[projectIndex];
+      ProjectPreloader.getInstance()
+        .load(project)
+        .then(() => {
+          return setHasLoadedProject(true);
+        })
+        .catch((error) => {
+          console.error(error);
         });
-      }
+    }
+  }, [isLoaded]);
 
-      setLoading(false);
-    })();
-  }, []);
-
-  if (loading) {
+  if (!isLoaded || (projectIndex && !hasLoadedProject)) {
     return (
-      <NextUIProvider className="h-[100vh] flex flex-col">
-        <Progress isIndeterminate />
+      <NextUIProvider className="h-[100vh] flex flex-col w-[100-vw] items-center justify-center">
+        <Progress isIndeterminate size="sm" className="p-8" />
       </NextUIProvider>
     );
   }

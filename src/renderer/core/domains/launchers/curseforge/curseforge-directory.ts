@@ -1,28 +1,23 @@
 import path from 'path';
-import { readFile } from 'node:fs/promises';
-import { BaseDirectory } from '../base/base-directory';
-import { CurseforgeMetadata } from './curseforge-metadata';
+import { LauncherDirectory } from '../base/launcher-directory';
 
-export class CurseforgeDirectory extends BaseDirectory {
+export class CurseforgeDirectory extends LauncherDirectory {
   async getMinecraftJarPath() {
     const initialPart = this.modpackFolder.split('Instances')[0];
-    const { gameVersion } = await this.readMetadata().then((m) => m.getRaw());
+    const metadata = await this.getMetadata();
+
+    if (!metadata) {
+      return null;
+    }
+
+    const { minecraftVersion } = metadata;
 
     return path.join(
       initialPart,
       'Install',
       'versions',
-      gameVersion,
-      `${gameVersion}.jar`,
+      minecraftVersion,
+      `${minecraftVersion}.jar`,
     );
-  }
-
-  async readMetadata(): Promise<CurseforgeMetadata> {
-    const instancePath = path.join(
-      this.modpackFolder,
-      'minecraftinstance.json',
-    );
-    const metadata = JSON.parse(await readFile(instancePath, 'utf-8'));
-    return new CurseforgeMetadata(metadata);
   }
 }

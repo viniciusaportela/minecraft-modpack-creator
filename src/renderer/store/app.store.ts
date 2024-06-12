@@ -1,17 +1,51 @@
 import { create } from 'zustand';
-import React from 'react';
-import { IAppStore } from './interfaces/app-store.interface';
+import { persist } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+import { IAppStore, IAppStored } from './interfaces/app-store.interface';
+import { JsonStorage } from './storages/json-storage';
+import { UserDataPathCallback } from './cached-callbacks';
 
-export const useAppStore = create<IAppStore>((set) => ({
-  projectMeta: null,
-  title: 'My Projects',
-  goBack: null,
-  realm: null as any,
-  configs: null,
-  selectedProjectId: null as any,
-  headerMiddleComponent: null,
-  setTitle: (title) => set({ title }),
-  setGoBack: (goBack) => set({ goBack }),
-  setHeaderMiddleComponent: (headerMiddleComponent: React.ReactNode) =>
-    set({ headerMiddleComponent }),
-}));
+export const useAppStore = create<
+  IAppStore,
+  [['zustand/persist', IAppStored], ['zustand/immer', never]]
+>(
+  persist(
+    immer(
+      (set, get) =>
+        ({
+          isLoaded: false,
+          projects: [],
+          configs: null,
+          selectedProjectIndex: -1,
+          userDataPath: '',
+          headerMiddleComponent: null,
+          selectedProject: () => {
+            return get().projects[get().selectedProjectIndex];
+          },
+          goBack: null,
+          title: '',
+          load: () => set({ isLoaded: true }),
+        }) as IAppStore,
+    ),
+    {
+      name: 'app',
+      onRehydrateStorage: (state) => {
+        return (st, err) => {
+          if (err) {
+            console.error(err);
+          } else {
+            state.load();
+          }
+        };
+      },
+      partialize: (st) => ({
+        projects: st.projects,
+        selectedProjectIndex: st.selectedProjectIndex,
+      }),
+      storage: new JsonStorage(UserDataPathCallback),
+    },
+  ),
+);
+
+export const useSelectedProject = () =>
+  useAppStore((st) => st.projects[st.selectedProjectIndex]);

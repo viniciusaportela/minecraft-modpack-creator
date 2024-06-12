@@ -1,12 +1,8 @@
-import { IProjectStore } from '../../../../store/interfaces/project-store.interface';
-import { ModModel } from '../../../models/mod.model';
-import { ProjectModel } from '../../../models/project.model';
 import { DefaultMod } from '../default-mod';
 
 export class KubeJS extends DefaultMod {
   // DEV add recipes
-
-  async build(project: ProjectModel, mod: ModModel) {
+  async build() {
     // console.log('Building project...');
     // console.log(recipes);
     //
@@ -30,54 +26,54 @@ export class KubeJS extends DefaultMod {
     // }
   }
 
-  async preBuild(project: ProjectModel, mod: ModModel) {}
+  async preBuild() {}
 
-  async postBuild(project: ProjectModel, mod: ModModel) {}
+  async postBuild() {}
 
-  private getMapping(recipe: IProjectStore['recipes'][0]) {
-    let differentItems = 0;
-    const charByIndex = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-    const mapping = {};
-
-    for (let row = 0; row < recipe.input.length; row++) {
-      for (let col = 0; col < recipe.input[row].length; col++) {
-        if (recipe.input[row][col] !== null) {
-          const found = Object.values(mapping).find(
-            (value) => value === recipe.input[row][col],
-          );
-
-          if (!found) {
-            mapping[charByIndex[differentItems]] = recipe.input[row][col];
-            differentItems += 1;
-          }
-        }
-      }
-    }
-
-    return mapping;
-  }
-
-  private getGrid(recipe: IProjectStore['recipes'][0]) {
-    const mapping = this.getMapping(recipe);
-
-    const grid: string[][] = [];
-    for (let row = 0; row < 3; row++) {
-      let str = '';
-      for (let col = 0; col < 3; col++) {
-        const item = recipe.input[row][col];
-        if (item === null) {
-          str += ' ';
-        } else {
-          const [alias] = Object.entries(mapping).find(
-            ([_, id]) => id === item,
-          );
-
-          str += alias;
-        }
-      }
-      grid.push(str);
-    }
-
-    return grid;
-  }
+  // private getMapping(recipe: IProjectStore['recipes'][0]) {
+  //   let differentItems = 0;
+  //   const charByIndex = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+  //   const mapping = {};
+  //
+  //   for (let row = 0; row < recipe.input.length; row++) {
+  //     for (let col = 0; col < recipe.input[row].length; col++) {
+  //       if (recipe.input[row][col] !== null) {
+  //         const found = Object.values(mapping).find(
+  //           (value) => value === recipe.input[row][col],
+  //         );
+  //
+  //         if (!found) {
+  //           mapping[charByIndex[differentItems]] = recipe.input[row][col];
+  //           differentItems += 1;
+  //         }
+  //       }
+  //     }
+  //   }
+  //
+  //   return mapping;
+  // }
+  //
+  // private getGrid(recipe: IProjectStore['recipes'][0]) {
+  //   const mapping = this.getMapping(recipe);
+  //
+  //   const grid: string[][] = [];
+  //   for (let row = 0; row < 3; row++) {
+  //     let str = '';
+  //     for (let col = 0; col < 3; col++) {
+  //       const item = recipe.input[row][col];
+  //       if (item === null) {
+  //         str += ' ';
+  //       } else {
+  //         const [alias] = Object.entries(mapping).find(
+  //           ([_, id]) => id === item,
+  //         );
+  //
+  //         str += alias;
+  //       }
+  //     }
+  //     grid.push(str);
+  //   }
+  //
+  //   return grid;
+  // }
 }

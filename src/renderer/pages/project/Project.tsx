@@ -20,27 +20,25 @@ import { usePager } from '../../components/pager/hooks/usePager';
 import AppBarHeader, {
   AppBarHeaderContainer,
 } from '../../components/app-bar/AppBarHeader';
-import { useQuery, useQueryById, useQueryFirst } from '../../hooks/realm.hook';
-import { GlobalStateModel } from '../../core/models/global-state.model';
-import { ProjectModel } from '../../core/models/project.model';
-import ModId from '../../typings/mod-id.enum';
-import { ModModel } from '../../core/models/mod.model';
 import ModpackBuilder from '../../core/builder/ModpackBuilder';
 import BuildingModal from './components/BuildingModal';
-import { ModConfigProvider } from '../../store/mod-config-provider';
+import { ModConfigProvider } from '../../store/providers/mod-config-provider';
 import NoThumb from '../../assets/no-thumb.png';
-import { useAppStore } from '../../store/app.store';
 import Configs from '../configs/Configs';
 import PageHider from './components/PageHider';
 import BuildErrorReport from '../../components/build-error-modal/BuildErrorReport';
 import SearchBar from '../../components/search-bar/SearchBar';
+import { useModsStore } from '../../store/mods.store';
+import { TextureLoader } from '../../core/domains/minecraft/texture/texture-loader';
+import { IMod } from '../../store/interfaces/mods-store.interface';
+import ProjectService from '../../core/domains/project/project-service';
+import { useSelectedProject } from '../../store/app.store';
 
 export default function Project() {
   useHorizontalScroll('tabs');
 
   const { navigate } = usePager();
 
-  const realm = useAppStore((st) => st.realm);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [isBuilding, setIsBuilding] = useState(false);
   const [buildingProgress, setBuildingProgress] = useState(0);
@@ -48,11 +46,8 @@ export default function Project() {
     useState('Building mods...');
   const [buildingTotalProgress, setBuildingTotalProgress] = useState(1);
 
-  const globalState = useQueryFirst(GlobalStateModel);
-  const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
-  const mods = useQuery(ModModel, (obj) =>
-    obj.filtered('modId != $0 AND project = $1', ModId.Minecraft, project._id),
-  );
+  const project = useSelectedProject();
+  const mods = useModsStore((st) => Object.values(st.mods));
 
   const [modsFilter, setModsFilter] = useState('');
 
@@ -80,7 +75,7 @@ export default function Project() {
           setBuildingProgressText(progressText);
           setBuildingTotalProgress(totalProgress);
         })
-        .build(project);
+        .build(project!);
 
       toast.success('Build successful!');
     } catch (error) {
@@ -98,7 +93,7 @@ export default function Project() {
     onOpenReport();
   }
 
-  function clickOnMod(addon: ModModel) {
+  function clickOnMod(addon: IMod) {
     const exists = openedModTabs.find((tab) => tab.name === addon.name);
 
     if (!exists) {
@@ -125,15 +120,16 @@ export default function Project() {
   }
 
   function getModFromTab(tab: string) {
-    return mods.find((addon) => addon.name === tab)!;
+    return mods.find((addon) => addon.name === tab);
   }
 
   function getModViewFromTab(tab: string) {
     const mod = getModFromTab(tab);
-    const CustomPlugin = pageByMod[mod.modId as keyof typeof pageByMod];
+    const CustomPlugin = pageByMod[mod?.id as keyof typeof pageByMod];
+    console.log('get mod view', mod);
 
     return (
-      <ModConfigProvider mod={mod} key={mod.modId}>
+      <ModConfigProvider mod={mod} key={mod?.id || tab}>
         <PageHider isVisible={isVisible(tab)}>
           {CustomPlugin ? (
             <CustomPlugin
@@ -175,9 +171,7 @@ export default function Project() {
       <AppBarHeader
         title={project?.name ?? ''}
         goBack={() => {
-          realm.write(() => {
-            globalState.selectedProjectId = undefined;
-          });
+          ProjectService.getInstance().unselectProject();
           navigate('projects');
         }}
       >
@@ -218,7 +212,13 @@ export default function Project() {
                 >
                   <CardBody className="min-h-fit flex flex-row">
                     <Image
-                      src={mod.thumbnail ?? NoThumb}
+                      src={
+                        mod.icon
+                          ? TextureLoader.getInstance().getTextureSource(
+                              mod.icon,
+                            )
+                          : NoThumb
+                      }
                       className="w-full h-full"
                       classNames={{
                         wrapper: 'min-w-10 min-h-10 w-10 h-10 mr-3',

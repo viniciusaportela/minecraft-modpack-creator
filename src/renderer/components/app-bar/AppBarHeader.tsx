@@ -1,5 +1,4 @@
 import React, { PropsWithChildren, useLayoutEffect } from 'react';
-import { useShallow } from 'zustand/react/shallow';
 import clsx from 'clsx';
 import { useAppStore } from '../../store/app.store';
 
@@ -14,24 +13,22 @@ export default function AppBarHeader({
   children,
   goBack,
 }: AppBarHeaderProps) {
-  const { setGoBack, setTitle, setHeaderMiddleComponent } = useAppStore(
-    useShallow((st) => ({
-      setGoBack: st.setGoBack,
-      setTitle: st.setTitle,
-      setHeaderMiddleComponent: st.setHeaderMiddleComponent,
-    })),
-  );
-
   useLayoutEffect(() => {
-    setTitle(title);
+    useAppStore.setState((st) => {
+      st.title = title;
+    });
   }, [title]);
 
   useLayoutEffect(() => {
-    setGoBack(goBack || null);
+    useAppStore.setState((st) => {
+      st.goBack = goBack || null;
+    });
   }, [goBack]);
 
   useLayoutEffect(() => {
-    setHeaderMiddleComponent(children);
+    useAppStore.setState((st) => {
+      st.headerMiddleComponent = children;
+    });
   }, [children]);
 
   return null;

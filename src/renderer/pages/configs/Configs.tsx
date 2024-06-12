@@ -11,12 +11,9 @@ import { Resizable } from 're-resizable';
 import clsx from 'clsx';
 import path from 'path';
 import { cp } from 'node:fs/promises';
-import { useAppStore } from '../../store/app.store';
+import { useAppStore, useSelectedProject } from '../../store/app.store';
 import FilesTree from '../../components/files-tree/FilesTree';
 import RawConfigEditor from './components/RawConfigEditor/RawConfigEditor';
-import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
-import { GlobalStateModel } from '../../core/models/global-state.model';
-import { ProjectModel } from '../../core/models/project.model';
 import RefinedConfigEditor from './components/RefinedConfigEditor/RefinedConfigEditor';
 import { ConfigNode } from '../../core/domains/minecraft/config/ConfigNode';
 import SearchBar from '../../components/search-bar/SearchBar';
@@ -25,7 +22,7 @@ import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { RefinedConfigProvider } from '../../core/domains/minecraft/config/RefinedConfigContext';
 import { RefinedField } from '../../core/domains/minecraft/config/interfaces/parser';
 
-const getFirstFile = (nodes: ConfigNode[]) => {
+const getFirstFile = (nodes: readonly ConfigNode[]) => {
   const toRead = [...nodes];
   while (toRead.length) {
     const node = toRead.shift();
@@ -42,16 +39,16 @@ const getFirstFile = (nodes: ConfigNode[]) => {
 };
 
 export default function Configs() {
-  const configNodes = useAppStore((st) => st.configs)!;
+  const configs = useAppStore((st) => st.configs);
+
   const flattedNodes = useMemo(
-    () => configNodes.flatMap((node) => node.cloneFlat()),
+    () => configs?.flatMap((node) => node.cloneFlat()) ?? [],
     [],
   );
   const filesTreeRef = useRef<HTMLDivElement>();
   const handleError = useErrorHandler();
 
-  const globalState = useQueryFirst(GlobalStateModel);
-  const project = useQueryById(ProjectModel, globalState.selectedProjectId!);
+  const project = useSelectedProject();
 
   const [treeWidth, setTreeWidth] = useState(260);
   const [editorType, setEditorType] = useState('refined');
@@ -63,9 +60,7 @@ export default function Configs() {
     { node: ConfigNode; severity: string }[]
   >([]);
   const [fields, setFields] = useState<RefinedField[]>([]);
-  const [selectedConfig, setSelectedConfig] = useState(
-    getFirstFile(configNodes!),
-  );
+  const [selectedConfig, setSelectedConfig] = useState(getFirstFile(configs!));
 
   useEffect(() => {
     const promises = flattedNodes.map(async (node) => {
@@ -146,7 +141,9 @@ export default function Configs() {
         setFields(selectedConfig.getFields() ?? []);
       }
     } catch (err) {
-      await handleError(err);
+      if (err instanceof Error) {
+        await handleError(err);
+      }
     } finally {
       setIsResetingFile(false);
     }
@@ -177,7 +174,7 @@ export default function Configs() {
         enable={{ right: true }}
       >
         <FilesTree
-          nodes={configNodes!}
+          nodes={configs!}
           onNodeClick={(node) => setSelectedConfig(node)}
           ref={filesTreeRef}
           selectedNode={selectedConfig}
@@ -201,7 +198,7 @@ export default function Configs() {
                 {path.relative(
                   path.join(
                     project?.path ?? '',
-                    'minecraft_toolkit',
+                    'minecraft-toolkit',
                     'configs',
                   ),
                   selectedConfig.getPath(),

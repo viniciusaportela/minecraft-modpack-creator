@@ -2,7 +2,9 @@ import { RefinedField, Writer } from '../../interfaces/parser';
 import { EmptyWriter } from './empty-writer';
 
 export abstract class BaseParser {
-  abstract isFileValid(rawData: string | Buffer): Promise<{ isValid: boolean }>;
+  abstract isFileValid(
+    rawData: string | Buffer,
+  ): Promise<{ isValid: boolean; error: any }>;
 
   canParseFields() {
     return false;

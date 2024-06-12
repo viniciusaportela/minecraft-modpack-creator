@@ -1,33 +1,47 @@
 import { readdir, stat } from 'node:fs/promises';
 import path from 'path';
 import os from 'os';
-import { BaseLauncher, IProjectData } from '../base/base-launcher';
+import { BaseLauncher } from '../base/base-launcher';
 import { CurseforgeDirectory } from './curseforge-directory';
+import { IProject } from '../../../../store/interfaces/project.interface';
+
+let instance: CurseforgeLauncher;
 
 export class CurseforgeLauncher extends BaseLauncher {
   constructor() {
     super();
   }
 
-  async getProjectData(folder: string): Promise<IProjectData> {
-    const directory = this.getDirectory(folder);
+  static getInstance() {
+    if (!instance) {
+      instance = new CurseforgeLauncher();
+    }
 
-    const curseInstance = await directory
-      .readMetadata()
-      .then((m) => m.getRaw());
+    return instance;
+  }
+
+  async genProjectFromFolder(
+    folder: string,
+  ): Promise<Omit<IProject, 'index'> | null> {
+    const directory = this.toDirectory(folder);
+
+    const metadata = await directory.getMetadata();
 
     return {
-      name: curseInstance.name,
+      name: metadata?.path.split(path.sep).pop()! ?? directory.getName(),
       path: folder,
-      minecraftVersion: curseInstance.gameVersion,
-      loaderVersion: curseInstance.baseModLoader.name,
-      loader: curseInstance.baseModLoader.name,
+      minecraftVersion: metadata?.minecraftVersion ?? 'unknown',
+      loaderVersion: metadata?.loaderVersion ?? 'unknown',
+      loader: metadata?.modLoader ?? 'unknown',
       launcher: 'curseforge',
-      cachedAmountInstalledMods: curseInstance.installedAddons.length,
+      modCount: metadata?.modCount ?? -1,
+      isLoaded: false,
+      orphan: false,
+      lastOpenAt: null,
     };
   }
 
-  async findModpackFolders(): Promise<string[]> {
+  async getModpacksFolders(): Promise<string[]> {
     const basePath = this.getModpacksBaseFolder();
 
     if (!basePath) {
@@ -59,7 +73,7 @@ export class CurseforgeLauncher extends BaseLauncher {
     return null;
   }
 
-  getDirectory(folder: string): CurseforgeDirectory {
+  toDirectory(folder: string): CurseforgeDirectory {
     return new CurseforgeDirectory(folder);
   }
 

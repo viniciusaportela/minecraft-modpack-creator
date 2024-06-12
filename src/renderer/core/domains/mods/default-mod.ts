@@ -1,24 +1,28 @@
-import { ProjectModel } from '../../models/project.model';
-import { ModModel } from '../../models/mod.model';
-import { ModConfigModel } from '../../models/mod-config.model';
+import { IProject } from '../../../store/interfaces/project.interface';
+import { IMod } from '../../../store/interfaces/mods-store.interface';
+import { IBaseModConfig } from '../../../store/interfaces/mod-config.interface';
 
 export class DefaultMod {
-  protected config: ModConfigModel;
-
   constructor(
-    protected readonly project: ProjectModel,
-    protected readonly mod: ModModel,
-  ) {
-    this.config = mod.getConfig();
+    protected readonly project: IProject,
+    protected readonly mod: IMod,
+    protected readonly modConfig: IBaseModConfig,
+  ) {}
+
+  getId() {
+    return this.mod.id;
   }
 
-  async build(project: ProjectModel, mod: ModModel) {}
+  async build() {}
 
-  async preBuild(project: ProjectModel, mod: ModModel) {}
+  async preBuild() {}
 
-  async postBuild(project: ProjectModel, mod: ModModel) {}
+  async postBuild() {}
 
-  initializeConfig(config: any) {
-    return { ...config, initialized: true };
+  async makeConfig(): Promise<IBaseModConfig> {
+    return {
+      isLoaded: false,
+      isSetupDone: false,
+    };
   }
 }

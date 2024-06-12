@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Button,
   Card,
@@ -9,47 +9,34 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  Skeleton,
 } from '@nextui-org/react';
-import { Types } from 'realm';
 import { CaretDown, TrashSimple, Warning } from '@phosphor-icons/react';
 import CurseForgeLogo from '../../../assets/curse-forge-logo.svg';
 import MinecraftLogo from '../../../assets/minecraft.png';
 import SKLauncherLogo from '../../../assets/sklauncher-logo.png';
-import { useQueryById } from '../../../hooks/realm.hook';
-import { ProjectModel } from '../../../core/models/project.model';
 import capitalize from '../../../helpers/capitalize';
+import { useAppStore, useSelectedProject } from '../../../store/app.store';
 
 interface ProjectCardProps {
   title: string;
-  projectId: Types.ObjectId;
-  onOpen?: (projectId: Types.ObjectId) => void;
-  onDelete?: (projectId: Types.ObjectId) => void;
-  onOpenVersionPicker?: (projectId: Types.ObjectId, version: string) => void;
+  projectIdx: number;
+  onOpen?: (projectIdx: number) => void;
+  onDelete?: (projectIdx: number) => void;
+  onOpenVersionPicker?: (projectIdx: number, version: string) => void;
   launcher: string;
 }
 
 export default function ProjectCard({
   title,
-  projectId,
+  projectIdx,
   onOpen,
   onOpenVersionPicker,
   onDelete,
   launcher,
 }: ProjectCardProps) {
-  const project = useQueryById(ProjectModel, projectId);
-  const [loadingProjectMetadata, setLoadingProjectMetadata] = useState(true);
+  const project = useAppStore((st) => st.projects[projectIdx]);
+
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-
-  useEffect(() => {
-    if (project) {
-      setLoadingProjectMetadata(false);
-    }
-  }, [project]);
-
-  if (!project) {
-    return null;
-  }
 
   const getLauncherLogo = () => {
     const logoByLauncher = {
@@ -89,49 +76,45 @@ export default function ProjectCard({
 
   const internalOnDelete = () => {
     setIsPopoverOpen(false);
-    onDelete?.(projectId);
+    onDelete?.(projectIdx);
   };
 
   return (
     <Card className="h-44 w-80">
       <CardBody className="pb-0 pt-5 px-4 flex-col items-start">
-        <Skeleton isLoaded={!loadingProjectMetadata}>
-          <h4 className="font-bold text-large">{title}</h4>
-          {project.orphan ? (
-            <Chip
-              variant="flat"
-              size="sm"
-              color="danger"
-              className="mb-2"
-              startContent={<Warning className="text-danger" />}
-            >
-              This folder doesn't exists anymore
-            </Chip>
-          ) : (
-            <Chip
-              variant="flat"
-              size="sm"
-              color={getColorByLauncher()}
-              className="mb-2"
-              startContent={
-                <Image src={getLauncherLogo()} width={20} height={20} />
-              }
-            >
-              {getNameByLauncher()}
-            </Chip>
-          )}
-        </Skeleton>
-        <Skeleton isLoaded={!loadingProjectMetadata}>
+        <h4 className="font-bold text-large">{title}</h4>
+        {project.orphan ? (
+          <Chip
+            variant="flat"
+            size="sm"
+            color="danger"
+            className="mb-2"
+            startContent={<Warning className="text-danger" />}
+          >
+            This folder doesn't exists anymore
+          </Chip>
+        ) : (
+          <Chip
+            variant="flat"
+            size="sm"
+            color={getColorByLauncher()}
+            className="mb-2"
+            startContent={
+              <Image src={getLauncherLogo()} width={20} height={20} />
+            }
+          >
+            {getNameByLauncher()}
+          </Chip>
+        )}
+        {project.loader !== 'unknown' && (
           <small className="text-sm">
             {capitalize(project?.loader) ?? 'Unknown'} |{' '}
             {project?.minecraftVersion ?? 'Unknown'}
           </small>
-        </Skeleton>
-        <Skeleton isLoaded={!loadingProjectMetadata}>
-          <small className="text-sm">
-            {project?.cachedAmountInstalledMods ?? '-'} Mods
-          </small>
-        </Skeleton>
+        )}
+        {project?.modCount !== -1 && (
+          <small className="text-sm">{project?.modCount} Mods</small>
+        )}
       </CardBody>
 
       <CardFooter className="flex justify-end">
@@ -142,14 +125,14 @@ export default function ProjectCard({
               className="w-16"
               isIconOnly
               onPress={() =>
-                onOpenVersionPicker?.(projectId, project?.minecraftVersion)
+                onOpenVersionPicker?.(projectIdx, project?.minecraftVersion)
               }
             >
               {project?.minecraftVersion}
               <CaretDown className="ml-1" />
             </Button>
           )}
-        {project.loaded || project.orphan ? (
+        {project.isLoaded || project.orphan ? (
           <Popover
             backdrop="opaque"
             isOpen={isPopoverOpen}
@@ -181,12 +164,12 @@ export default function ProjectCard({
 
         <Button
           size="sm"
-          color={project.loaded ? 'primary' : 'default'}
+          color={project.isLoaded ? 'primary' : 'default'}
           className="ml-2"
           isDisabled={project.orphan}
-          onPress={() => onOpen?.(projectId)}
+          onPress={() => onOpen?.(projectIdx)}
         >
-          {project.loaded ? 'Open' : 'Create'}
+          {project.isLoaded ? 'Open' : 'Start Project'}
         </Button>
       </CardFooter>
     </Card>

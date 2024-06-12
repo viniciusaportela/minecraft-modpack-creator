@@ -1,12 +1,23 @@
 import { readdir } from 'node:fs/promises';
 import path from 'path';
-import { BaseLauncher, IProjectData } from '../base/base-launcher';
+import { BaseLauncher } from '../base/base-launcher';
 import { SKLauncherDirectory } from './sk-launcher-directory';
 import { isUUIDValid } from '../../../../helpers/is-uuid-valid';
+import { IProject } from '../../../../store/interfaces/project.interface';
+
+let instance: SKLauncher;
 
 export class SKLauncher extends BaseLauncher {
-  async findModpackFolders(): Promise<string[]> {
-    const minecraftPath = this.getMinecraftPath();
+  static getInstance() {
+    if (!instance) {
+      instance = new SKLauncher();
+    }
+
+    return instance;
+  }
+
+  async getModpacksFolders(): Promise<string[]> {
+    const minecraftPath = this.getMinecraftRoot();
 
     if (!minecraftPath) {
       return [];
@@ -17,22 +28,27 @@ export class SKLauncher extends BaseLauncher {
     );
   }
 
-  getDirectory(folder: string): SKLauncherDirectory {
+  toDirectory(folder: string): SKLauncherDirectory {
     return new SKLauncherDirectory(folder);
   }
 
-  async getProjectData(folder: string): Promise<IProjectData> {
-    const dir = this.getDirectory(folder);
-    const metadata = await dir.readMetadata().then((m) => m.getRaw());
+  async genProjectFromFolder(
+    folder: string,
+  ): Promise<Omit<IProject, 'index'> | null> {
+    const dir = this.toDirectory(folder);
+    const metadata = await dir.getMetadata();
 
     return {
-      name: metadata.name,
+      name: metadata?.path.split(path.sep).pop() || dir.getName(),
       path: folder,
-      minecraftVersion: metadata.minecraft.version,
-      loaderVersion: metadata.minecraft.modLoaders[0].id,
-      loader: metadata.minecraft.modLoaders[0].id,
-      cachedAmountInstalledMods: metadata.files.length,
+      minecraftVersion: metadata?.minecraftVersion || 'unknown',
+      loaderVersion: metadata?.loaderVersion || 'unknown',
+      loader: metadata?.modLoader || 'unknown',
+      modCount: metadata?.modCount || -1,
       launcher: 'sklauncher',
+      isLoaded: false,
+      lastOpenAt: null,
+      orphan: false,
     };
   }
 

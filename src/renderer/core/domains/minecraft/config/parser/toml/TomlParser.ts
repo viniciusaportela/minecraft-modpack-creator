@@ -168,10 +168,10 @@ export class TomlParser extends BaseParser {
     try {
       const file = await readFile(path, 'utf-8');
       await parse(file);
-      return { isValid: true };
+      return { isValid: true, error: null };
     } catch (err) {
       console.error(err);
-      return { isValid: false };
+      return { isValid: false, error: err };
     }
   }
 

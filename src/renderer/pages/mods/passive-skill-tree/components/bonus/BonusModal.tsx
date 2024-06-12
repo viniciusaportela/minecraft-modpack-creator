@@ -10,15 +10,22 @@ import {
   ScrollShadow,
   Selection,
 } from '@nextui-org/react';
+import get from 'lodash.get';
+import set from 'lodash.set';
 import React, { Key, useState } from 'react';
 import { Plus, X } from '@phosphor-icons/react';
 import { v4 } from 'uuid';
 import { Page, Pager } from '../../../../../components/pager/Pager';
 import { useErrorHandler } from '../../../../../core/errors/hooks/useErrorHandler';
-import { useModConfig } from '../../../../../hooks/use-mod-config';
 import { AllAttributes } from './bonuses/AllAttributes';
 import EditBonus from './EditBonus';
-import { COMPONENTS_BY_BONUS } from '../../../../../core/domains/mods/skilltree/enums/skill-bonus.enum';
+import {
+  COMPONENTS_BY_BONUS,
+  EBonus,
+} from '../../../../../core/domains/mods/skilltree/enums/skill-bonus.enum';
+import { useModConfigSelector } from '../../../../../store/hooks/use-mod-config-selector';
+import { ISkillTreeConfig } from '../../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
+import { useModConfigStore } from '../../../../../store/hooks/use-mod-config-store';
 
 interface BonusModalProps {
   isOpen: boolean;
@@ -33,27 +40,26 @@ export default function BonusModal({
 }: BonusModalProps) {
   const handleError = useErrorHandler();
 
-  const [bonuses, setBonuses] = useModConfig(
-    [...focusedNodePath, 'data', 'bonuses'],
-    {
-      listenMeAndExternalChanges: true,
-    },
-  );
+  const store = useModConfigStore<ISkillTreeConfig>();
+  const [bonuses] = useModConfigSelector<any[]>([
+    ...focusedNodePath,
+    'data',
+    'bonuses',
+  ]);
 
   const [page, setPage] = useState(bonuses?.length ? 'bonus-0' : 'empty');
 
   const onSelectKey = (index: number, key: Key) => {
     const defaultConfig =
-      COMPONENTS_BY_BONUS()[key as string].getDefaultConfig() ??
+      COMPONENTS_BY_BONUS()[key as EBonus].getDefaultConfig() ??
       AllAttributes.getDefaultConfig();
 
-    setBonuses((bonuses) => {
-      bonuses[index] = {
+    store.setState((state) => {
+      set(state, [...focusedNodePath, 'data', 'bonuses', index], {
         ...defaultConfig,
         name: 'Skill',
         id: v4(),
-      };
-      return bonuses;
+      });
     });
   };
 
@@ -61,7 +67,12 @@ export default function BonusModal({
     return bonuses?.map((bonus, index) => (
       <Page name={`bonus-${index}`}>
         <EditBonus
-          selectedBonusPath={[...focusedNodePath, 'data', 'bonuses', index]}
+          selectedBonusPath={[
+            ...focusedNodePath,
+            'data',
+            'bonuses',
+            String(index),
+          ]}
           onSelect={(key) => onSelectKey(index, key)}
         />
       </Page>
@@ -71,28 +82,36 @@ export default function BonusModal({
   const addBonus = async () => {
     try {
       const defaultConfig = AllAttributes.getDefaultConfig();
-      console.log('defaultConfig', defaultConfig);
-      setBonuses((bonuses) => [
-        ...bonuses,
-        {
-          ...defaultConfig,
-          name: 'Skill',
-          id: v4(),
-        },
-      ]);
+
+      store.setState((state) => {
+        set(
+          state,
+          [...focusedNodePath, 'data', 'bonuses'],
+          [
+            ...bonuses,
+            {
+              ...defaultConfig,
+              name: 'Skill',
+              id: v4(),
+            },
+          ],
+        );
+      });
 
       if (page === 'empty') {
         setPage('bonus-0');
       }
     } catch (err) {
-      await handleError(err);
+      if (err instanceof Error) {
+        await handleError(err);
+      }
     }
   };
 
   const deleteBonus = (index: number) => {
-    setBonuses((bonuses) => {
-      bonuses.splice(index, 1);
-      return bonuses;
+    store.setState((state) => {
+      const curBonuses = get(state, [...focusedNodePath, 'data', 'bonuses']);
+      curBonuses.splice(index, 1);
     });
   };
 

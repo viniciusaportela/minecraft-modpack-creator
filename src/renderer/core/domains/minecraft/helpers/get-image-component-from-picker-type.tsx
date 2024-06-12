@@ -1,42 +1,25 @@
 import { PickerType } from '../../../../typings/picker-type.enum';
-import { ItemModel } from '../../../models/item.model';
-import getModelType from './get-model-type';
-import TextureBox from '../../../../components/texture-box/TextureBox';
-import getTextureFromModel from './get-texture-from-model';
+import Block3D from '../../../../components/block-3d/Block3D';
 import LazyTexture from '../../../../components/lazy-texture/LazyTexture';
-import { useAppStore } from '../../../../store/app.store';
-import { GlobalStateModel } from '../../../models/global-state.model';
+import { useItemsStore } from '../../../../store/items.store';
 
 // TODO turn this as a component instead
 export default function getImageComponentFromPickerType(
   type: PickerType,
   value: string,
 ) {
-  const { realm } = useAppStore.getState();
-  const projectId = realm.objects(GlobalStateModel.schema.name)[0]
-    .selectedProjectId;
-
   if (type === PickerType.Item) {
-    const item = realm
-      .objects<ItemModel>(ItemModel.schema.name)
-      .filtered('itemId = $0 AND project = $1', value, projectId)[0];
+    const item = useItemsStore((st) => st.items.find((i) => i.id === value));
 
-    const modelType = getModelType(item?.getModel());
+    const modId = item?.mod;
+    const withoutModId = value.split(':')[1];
 
-    return modelType === 'block' ? (
-      <TextureBox
-        textureId={getTextureFromModel(
-          item.getModel(),
-          'block',
-          item.getParent(),
-        )}
-        className="h-6 w-6"
-      />
+    const texturePath = `${modId}/textures/${item?.isBlock ? 'block' : 'item'}/${withoutModId}.png`;
+
+    return item?.isBlock ? (
+      <Block3D path={texturePath} className="h-6 w-6" />
     ) : (
-      <LazyTexture
-        textureId={getTextureFromModel(item.getModel(), 'item')}
-        className="h-6 w-6"
-      />
+      <LazyTexture path={texturePath} className="h-6 w-6" />
     );
   }
 
@@ -48,8 +31,8 @@ export default function getImageComponentFromPickerType(
       PickerType.SkillTreeIcon,
     ].includes(type)
   ) {
-    return <LazyTexture textureId={value} className="h-6 w-6" />;
+    return <LazyTexture path={value} className="h-6 w-6" />;
   }
 
-  return <LazyTexture textureId={null} className="h-6 w-6" />;
+  return <LazyTexture path={null} className="h-6 w-6" />;
 }

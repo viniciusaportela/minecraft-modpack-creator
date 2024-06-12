@@ -2,21 +2,22 @@ import ModId from '../../../typings/mod-id.enum';
 import { SkillTree } from './skilltree/skill-tree';
 import { DefaultMod } from './default-mod';
 import { KubeJS } from './kubejs/kubejs';
-import { ProjectModel } from '../../models/project.model';
-import { ModModel } from '../../models/mod.model';
 import { Minecraft } from './minecraft/minecraft';
+import { IProject } from '../../../store/interfaces/project.interface';
+import { IMod } from '../../../store/interfaces/mods-store.interface';
+import { IBaseModConfig } from '../../../store/interfaces/mod-config.interface';
 
 export class ModFactory {
-  static create(project: ProjectModel, mod: ModModel) {
-    switch (mod.modId) {
+  static create(project: IProject, mod: IMod, modConfig: IBaseModConfig) {
+    switch (mod.id) {
       case ModId.PassiveSkillTree:
-        return new SkillTree(project, mod);
+        return new SkillTree(project, mod, modConfig);
       case ModId.KubeJS:
-        return new KubeJS(project, mod);
+        return new KubeJS(project, mod, modConfig);
       case ModId.Minecraft:
-        return new Minecraft(project, mod);
+        return new Minecraft(project, mod, modConfig);
       default:
-        return new DefaultMod(project, mod);
+        return new DefaultMod(project, mod, modConfig);
     }
   }
 }

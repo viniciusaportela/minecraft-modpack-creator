@@ -4,21 +4,19 @@ import recursive from 'recursive-readdir';
 import { Stats } from 'node:fs';
 import { DefaultMod } from '../default-mod';
 import { ConfigLoader } from '../../minecraft/config/ConfigLoader';
-import { ProjectModel } from '../../../models/project.model';
 import BusinessLogicError from '../../../errors/business-logic-error';
 import { ParserFactory } from '../../minecraft/config/parser/parser-factory';
 import { BusinessError } from '../../../errors/business-error.enum';
-import { ModModel } from '../../../models/mod.model';
 
 export class Minecraft extends DefaultMod {
-  async build(project: ProjectModel, mod: ModModel) {
+  async build() {
     const baseFolders = ConfigLoader.getBaseFolders();
 
     const finalSourcePaths = baseFolders.map((p) =>
-      path.join(project.path, 'minecraft_toolkit', 'configs', p),
+      path.join(this.project.path, 'minecraft-toolkit', 'configs', p),
     );
     const finalDestinationPaths = baseFolders.map((p) =>
-      path.join(project.path, p),
+      path.join(this.project.path, p),
     );
 
     const promises = finalSourcePaths.map(async (finalPath) => {
@@ -45,7 +43,7 @@ export class Minecraft extends DefaultMod {
               message: `The following path have a malformed content: ${filePath}, error: ${error}`,
               meta: {
                 error,
-                mod,
+                mod: this.mod,
                 descriptiveError: `Config ${relativePath} is invalid`,
               },
             });

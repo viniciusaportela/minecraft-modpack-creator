@@ -1,175 +1,76 @@
-import crypto from 'crypto';
-import Realm from 'realm';
-import { stat } from 'node:fs/promises';
-import JarLoader from '../minecraft/jar-loader';
-import { JarHandler } from '../minecraft/jar-handler';
-import { ModModel } from '../../models/mod.model';
-import { ModPreloaderFactory } from '../mods/preloaders/mod-preloader-factory';
-import { ProjectModel } from '../../models/project.model';
-import { ModConfigModel } from '../../models/mod-config.model';
-import { Launchers } from '../launchers/launchers';
-import { useAppStore } from '../../../store/app.store';
-import { BaseLauncher } from '../launchers/base/base-launcher';
-import { BaseMetadata } from '../launchers/base/base-metadata';
-import BusinessLogicError from '../../errors/business-logic-error';
-import { BusinessError } from '../../errors/business-error.enum';
+import path from 'path';
+import { readFile } from 'node:fs/promises';
+import { IProject } from '../../../store/interfaces/project.interface';
+import { useModsStore } from '../../../store/mods.store';
+import { useItemsStore } from '../../../store/items.store';
+import { useBlocksStore } from '../../../store/blocks.store';
+import { useEffectsStore } from '../../../store/effects.store';
+import { useAttributesStore } from '../../../store/attributes.store';
+import { useMetadataStore } from '../../../store/metadata.store';
+import { useEntitiesStore } from '../../../store/entities.store';
+import { usePotionsStore } from '../../../store/potions.store';
+import { useTexturesStore } from '../../../store/textures.store';
+
+let instance: ProjectPreloader;
 
 export class ProjectPreloader {
-  private onProgressCb?: (progress: {
-    totalProgress?: number;
-    text?: string;
-  }) => void;
+  project!: IProject;
 
-  private readonly realm: Realm;
+  static getInstance() {
+    if (!instance) {
+      instance = new ProjectPreloader();
+    }
 
-  private launcher!: BaseLauncher;
-
-  constructor(private readonly project: ProjectModel) {
-    const { realm } = useAppStore.getState();
-    this.realm = realm;
+    return instance;
   }
 
-  onProgress(
-    cb: (progress: { totalProgress?: number; text?: string }) => void,
-  ) {
-    this.onProgressCb = cb;
-    return this;
+  async load(project: IProject) {
+    this.project = project;
+
+    await this.loadStore('mods');
+    await this.loadStore('items');
+    await this.loadStore('blocks');
+    await this.loadStore('metadata');
+    await this.loadStore('attributes');
+    await this.loadStore('effects');
+    await this.loadStore('entities');
+    await this.loadStore('potions');
+    await this.loadStore('textures');
   }
 
-  async preload() {
-    this.launcher = (await Launchers.getByFolder(
-      this.project.path,
-    )) as BaseLauncher;
-    const directory = this.launcher?.getDirectory(this.project.path);
-
-    if (!directory) {
-      throw new Error("Couldn't find the Launcher for this folder");
+  private getStore(storeName: string) {
+    switch (storeName) {
+      case 'mods':
+        return useModsStore;
+      case 'items':
+        return useItemsStore;
+      case 'blocks':
+        return useBlocksStore;
+      case 'metadata':
+        return useMetadataStore;
+      case 'attributes':
+        return useAttributesStore;
+      case 'effects':
+        return useEffectsStore;
+      case 'entities':
+        return useEntitiesStore;
+      case 'potions':
+        return usePotionsStore;
+      case 'textures':
+        return useTexturesStore;
+      default:
+        throw new Error(`Unknown store: ${storeName}`);
     }
-
-    const existsModsFolder = await stat(directory.getModsPath())
-      .then(() => true)
-      .catch(() => false);
-
-    if (!existsModsFolder) {
-      throw new BusinessLogicError({
-        code: BusinessError.PreloadError,
-        message:
-          'Mods folder not found. Try running this modpack for the first time.',
-        meta: { path: directory.getModsPath() },
-      });
-    }
-
-    const modPaths = await directory.getAllModPaths();
-    const STEPS_PER_MOD = 3;
-    this.onProgressCb?.({
-      totalProgress: (modPaths.length + 1) * STEPS_PER_MOD,
-    });
-
-    this.updateModsChecksum(modPaths);
-
-    const minecraftJarPath = await directory.getMinecraftJarPath();
-
-    const existsMinecraftJar = await stat(minecraftJarPath)
-      .then(() => true)
-      .catch(() => false);
-    if (!existsMinecraftJar) {
-      throw new BusinessLogicError({
-        code: BusinessError.PreloadError,
-        message:
-          'Minecraft jar not found. Try running this modpack for the first time.',
-        meta: { path: minecraftJarPath },
-      });
-    }
-
-    modPaths.push(minecraftJarPath);
-
-    for await (const modFile of modPaths) {
-      const jar = await JarLoader.load(modFile);
-
-      const modId = await jar.getModId();
-
-      const projectMetadata = await this.launcher
-        .getDirectory(this.project.path)
-        .readMetadata();
-      const modDb = await this.getModInDb(projectMetadata, jar);
-
-      const handler = new JarHandler(jar, this.project, this.realm, modDb);
-
-      const uppercaseModId = modId.charAt(0).toUpperCase() + modId.slice(1);
-
-      this.realm.beginTransaction();
-      this.onProgressCb?.({ text: `${uppercaseModId}: Loading textures...` });
-      await handler.handleTextures();
-      this.realm.commitTransaction();
-
-      this.realm.beginTransaction();
-      this.onProgressCb?.({ text: `${uppercaseModId}: Loading items...` });
-      await handler.handleItems();
-      this.realm.commitTransaction();
-
-      this.realm.beginTransaction();
-      this.onProgressCb?.({ text: `${uppercaseModId}: Loading blocks...` });
-      await handler.handleBlocks();
-      this.realm.commitTransaction();
-    }
-
-    this.realm.beginTransaction();
-    this.project.loaded = true;
-    this.realm.commitTransaction();
   }
 
-  private updateModsChecksum(modPaths: string[]) {
-    this.realm.beginTransaction();
-    const shaHash = crypto.createHash('sha1');
-    shaHash.update(
-      modPaths.reduce((finalStr, modFile) => finalStr + modFile, ''),
+  async loadStore(storeName: string) {
+    const basePath = path.join(this.project.path, 'minecraft-toolkit');
+    const store = this.getStore(storeName);
+
+    const json = JSON.parse(
+      await readFile(path.join(basePath, `${storeName}.json`), 'utf-8'),
     );
-    this.project.modsChecksum = shaHash.digest('hex');
-    this.realm.commitTransaction();
-  }
 
-  private async getModInDb(projectMetadata: BaseMetadata, jar: JarLoader) {
-    const modId = await jar.getModId();
-    const modPreloader = await ModPreloaderFactory.create(jar);
-    const metadata = await jar.getMetadata();
-
-    const foundMod = this.realm
-      .objects<ModModel>(ModModel.schema.name)
-      .filtered('project = $0 AND jarPath = $1', this.project._id, jar.jarPath);
-
-    if (foundMod.length > 0) {
-      return foundMod[0];
-    }
-
-    console.log('modId', modId);
-    const modMetadata = await projectMetadata.getModMetadata(jar);
-    console.log('modMetadata', modMetadata);
-
-    this.realm.beginTransaction();
-    const created = this.realm.create<ModModel>(ModModel.schema.name, {
-      jarPath: jar.jarPath,
-      modId,
-      name: metadata ? metadata.mods[0].displayName : 'Minecraft',
-      // TODO has to consider case where version is gotten from MANIFEST.MF
-      version: metadata
-        ? metadata.mods[0].version
-        : this.project.minecraftVersion,
-      project: this.project._id,
-      thumbnail: modMetadata.getThumbnail() ?? undefined,
-      website: modMetadata.getWebsite() ?? undefined,
-      dependencies: metadata?.dependencies?.[modId]
-        ? metadata.dependencies[modId]
-            .filter((d) => d.mandatory)
-            .map((d) => d.modId)
-        : [],
-    });
-
-    this.realm.create(ModConfigModel.schema.name, {
-      json: JSON.stringify(await modPreloader.generateConfig()),
-      mod: created._id,
-    });
-    this.realm.commitTransaction();
-
-    return created;
+    store.setState(json);
   }
 }

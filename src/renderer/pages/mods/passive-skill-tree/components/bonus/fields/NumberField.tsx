@@ -1,8 +1,10 @@
 import { Input } from '@nextui-org/react';
-import { useEffect } from 'react';
-import { useModConfig } from '../../../../../../hooks/use-mod-config';
+import get from 'lodash.get';
+import set from 'lodash.set';
 import Label from './Label';
-import { useModConfigStore } from '../../../../../../store/mod-config.store';
+import { useModConfigStore } from '../../../../../../store/hooks/use-mod-config-store';
+import { ISkillTreeConfig } from '../../../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
+import { useModConfigSelector } from '../../../../../../store/hooks/use-mod-config-selector';
 
 interface NumberFieldProps {
   path: string[];
@@ -15,16 +17,7 @@ export default function NumberField({
   label,
   acceptMinusOne,
 }: NumberFieldProps) {
-  const pathWithoutLastPiece = path.slice(0, -1);
-  const [value, setValue] = useModConfig(path);
-
-  console.log(useModConfigStore.getState());
-
-  useEffect(() => {
-    console.log('NumberField first render', pathWithoutLastPiece, path, value);
-  }, []);
-
-  console.log('NumberField', path, value);
+  const [value, setValue] = useModConfigSelector(path);
 
   return (
     <>
@@ -39,8 +32,7 @@ export default function NumberField({
         onValueChange={(newValue) => {
           const formattedValue = newValue.replace(',', '.');
           const numberValue = parseFloat(formattedValue);
-
-          setValue(() =>
+          setValue(
             numberValue === -1 && !acceptMinusOne ? undefined : numberValue,
           );
         }}

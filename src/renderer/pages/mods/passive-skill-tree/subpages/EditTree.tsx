@@ -32,21 +32,16 @@ import TreeNode from '../components/react-flow/TreeNode';
 import Title from '../../../../components/title/Title';
 import SkillEdge from '../components/react-flow/SkillEdge';
 import { usePager } from '../../../../components/pager/hooks/usePager';
-import { GlobalStateModel } from '../../../../core/models/global-state.model';
-import {
-  useQuery,
-  useQueryById,
-  useQueryFirst,
-} from '../../../../hooks/realm.hook';
-import { ModModel } from '../../../../core/models/mod.model';
 import ModId from '../../../../typings/mod-id.enum';
 import { SkillTree } from '../../../../core/domains/mods/skilltree/skill-tree';
-import { ProjectModel } from '../../../../core/models/project.model';
 import EditSkillPanel from '../components/edit-skill-panel/EditSkillPanel';
 import ScreenToFlowPositionGetter from '../components/react-flow/ScreenToFlowPositionGetter';
 import FitViewGetter from '../components/react-flow/FitViewGetter';
-import { useModConfig } from '../../../../hooks/use-mod-config';
-import { useModConfigStore } from '../../../../store/mod-config.store';
+import { useSelectedProject } from '../../../../store/app.store';
+import { useModById } from '../../../../store/hooks/use-mod-by-id';
+import { useModConfigStore } from '../../../../store/hooks/use-mod-config-store';
+import { ISkillTreeConfig } from '../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
+import { useModConfigSelector } from '../../../../store/hooks/use-mod-config-selector';
 
 const edgeTypes = {
   skill_edge: SkillEdge,
@@ -56,31 +51,18 @@ const nodeTypes = { skill_node: TreeNode };
 
 export default function EditTree() {
   const { navigate } = usePager();
-  const globalState = useQueryFirst(GlobalStateModel);
-  const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
-  const skillTreeMod = useQuery(ModModel, (obj) =>
-    obj.filtered(
-      'modId = $0 AND project = $1',
-      ModId.PassiveSkillTree,
-      globalState.selectedProjectId!,
-    ),
-  )[0];
+
+  const project = useSelectedProject();
+  const skillTreeMod = useModById(ModId.PassiveSkillTree);
+  const configStore = useModConfigStore<ISkillTreeConfig>();
 
   const screenToFlowPosition = useRef();
   const fitView = useRef();
   const reactFlowRef = useRef<HTMLDivElement>();
 
-  const [nodes, setNodes] = useModConfig<Node[]>(['tree', 'nodes'], {
-    listenForeignChanges: [
-      ['tree', 'nodes', '*', 'data', 'backgroundTexture'],
-      ['tree', 'nodes', '*', 'data', 'iconTexture'],
-      ['tree', 'nodes', '*', 'data', 'buttonSize'],
-    ],
-  });
-  const [edges, setEdges] = useModConfig<Edge[]>(['tree', 'edges'], {
-    listenMeAndExternalChanges: true,
-  });
-  const [, setMainTree] = useModConfig(['tree', 'mainTree']);
+  const [nodes, setNodes] = useModConfigSelector(['tree', 'nodes']);
+  const [edges, setEdges] = useModConfigSelector(['tree', 'edges']);
+  const [, setMainTree] = useModConfigSelector(['tree', 'mainTree']);
 
   const [focusedNode, setFocusedNode] = useState<Node | null>(null);
   const [focusedNodePath, setFocusedNodePath] = useState<string[] | null>(null);
@@ -103,52 +85,52 @@ export default function EditTree() {
         }
       }
 
-      setNodes((currentNodes) => {
-        return applyNodeChanges(changes, currentNodes);
-      });
+      setNodes(applyNodeChanges(changes, configStore.getState().tree.nodes));
     },
     [focusedNode],
   );
 
   const onEdgesChange = useCallback((changes) => {
-    setEdges((curEdges) => {
-      return applyEdgeChanges(changes, curEdges);
-    });
+    setEdges(applyEdgeChanges(changes, configStore.getState().tree.edges));
   }, []);
 
   const onConnect = useCallback(
     (connection: Connection) => {
-      setEdges(() => {
-        const filtered = nodes.filter((n) => n.id === connection.source);
-        return filtered.reduce((edgs, node) => {
-          return addEdge(
-            {
-              source: node.id,
-              target: connection.target as string,
-              type: 'skill_edge',
-              id: `${connection.source}_${connection.target}`,
-              data: { type: connection.targetHandle!.replace('-target', '') },
-            },
-            edgs,
-          );
-        }, edges);
-      });
+      const mostUpdatedNodes = configStore.getState().tree.nodes;
+
+      const filtered = mostUpdatedNodes.filter(
+        (n) => n.id === connection.source,
+      );
+      const final = filtered.reduce((edgs, node) => {
+        return addEdge(
+          {
+            source: node.id,
+            target: connection.target as string,
+            type: 'skill_edge',
+            id: `${connection.source}_${connection.target}`,
+            data: { type: connection.targetHandle!.replace('-target', '') },
+          },
+          edgs,
+        );
+      }, configStore.getState().tree.edges);
+
+      setEdges(final);
     },
     [nodes, edges],
   );
 
   const onEdgeDelete = useCallback((edgs: Edge[]) => {
-    setEdges((curEdges) => {
-      return curEdges.filter((e) => !edgs.includes(e.id));
-    });
+    setEdges(
+      configStore.getState().tree.edges.filter((e) => !edgs.includes(e.id)),
+    );
   }, []);
 
   const onEdgeClick = useCallback(
     (ev: React.MouseEvent<Element, MouseEvent>, edge: Edge) => {
       if (ev.altKey) {
-        setEdges((curEdges) => {
-          return curEdges.filter((e) => e.id !== edge.id);
-        });
+        setEdges(
+          configStore.getState().tree.edges.filter((e) => e.id !== edge.id),
+        );
       }
     },
     [],
@@ -157,31 +139,37 @@ export default function EditTree() {
   const onNodeClick = useCallback(
     (ev: ReactMouseEvent, node: Node) => {
       setFocusedNode(node);
-      const index = nodes.findIndex((n) => n.id === node.id);
+      const index = configStore
+        .getState()
+        .tree.nodes.findIndex((n) => n.id === node.id);
       setFocusedNodePath(['tree', 'nodes', String(index)]);
     },
     [nodes],
   );
 
   const rebuildMainTree = () => {
-    setMainTree((mainTree) => {
-      mainTree.skillIds = useModConfigStore
-        .getState()
-        [skillTreeMod._id.toString()].tree.nodes.map((node) => node.id);
-      console.log('new maintree', original(mainTree));
-      return mainTree;
-    });
+    const { mainTree } = configStore.getState().tree;
+
+    const mainTreeCopy = { ...mainTree };
+    mainTreeCopy.skillIds = configStore
+      .getState()
+      .tree.nodes.map((node) => node.id);
+    console.log('new maintree', mainTreeCopy);
+
+    setMainTree(mainTreeCopy);
   };
 
   const addSkill = () => {
-    const bounding = reactFlowRef.current.getBoundingClientRect();
+    const bounding = reactFlowRef.current!.getBoundingClientRect();
+
+    const mostUpdatedNodes = configStore.getState().tree.nodes;
 
     const reactFlowX =
-      nodes.length > 0 ? bounding.left + bounding.width / 2 - 16 : 0;
+      mostUpdatedNodes.length > 0 ? bounding.left + bounding.width / 2 - 16 : 0;
     const reactFlowY =
-      nodes.length > 0 ? bounding.top + bounding.height / 2 - 64 : 0;
+      mostUpdatedNodes.length > 0 ? bounding.top + bounding.height / 2 - 64 : 0;
 
-    const isAddingTheFirst = nodes.length === 0;
+    const isAddingTheFirst = mostUpdatedNodes.length === 0;
 
     console.log('isAddingTHeFirst', isAddingTheFirst);
 
@@ -209,7 +197,7 @@ export default function EditTree() {
         iconTexture: 'skilltree:textures/icons/void.png',
         borderTexture: 'skilltree:textures/tooltip/lesser.png',
         modpackFolder: project.path,
-        projectId: project._id.toString(),
+        projectId: project.index.toString(),
         title: 'New skill',
         positionX: position.x,
         positionY: position.y,
@@ -218,9 +206,7 @@ export default function EditTree() {
       },
     };
 
-    setNodes((curState: any) => {
-      return [...curState, newNode];
-    });
+    setNodes([...configStore.getState().tree.nodes, newNode]);
 
     rebuildMainTree();
     if (isAddingTheFirst) {
@@ -233,29 +219,22 @@ export default function EditTree() {
   const startBlank = () => {
     setFocusedNode(null);
     setFocusedNodePath(null);
-    setNodes(() => {
-      return [];
-    });
-    setEdges(() => {
-      return [];
-    });
+    setNodes([]);
+    setEdges([]);
     rebuildMainTree();
   };
 
   const loadFromEditor = async () => {
     const updatedTree = await new SkillTree(
       project,
-      skillTreeMod,
+      skillTreeMod!,
+      configStore.getState(),
     ).initializeTree();
 
     setFocusedNode(null);
     setFocusedNodePath(null);
-    setNodes(() => {
-      return updatedTree.nodes;
-    });
-    setEdges(() => {
-      return updatedTree.edges;
-    });
+    setNodes(updatedTree.nodes);
+    setEdges(updatedTree.edges);
     rebuildMainTree();
   };
 

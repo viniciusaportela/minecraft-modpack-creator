@@ -1,15 +1,19 @@
-import Realm, { Types } from 'realm';
-import React from 'react';
+import { ReactNode } from 'react';
 import { ConfigNode } from '../../core/domains/minecraft/config/ConfigNode';
+import { IProject } from './project.interface';
 
-export interface IAppStore {
-  title: string;
-  goBack: null | (() => void);
-  setTitle: (title: string) => void;
-  realm: Realm;
+export interface IAppStore extends IAppStored {
+  userDataPath: string;
   configs: ConfigNode[] | null;
-  selectedProjectId: Types.ObjectId;
-  setGoBack: (goBack: null | (() => void)) => void;
-  headerMiddleComponent?: React.ReactNode;
-  setHeaderMiddleComponent: (middleComponent: React.ReactNode) => void;
+  isLoaded: boolean;
+  load: () => void;
+  selectedProject: () => IProject;
+  headerMiddleComponent: ReactNode;
+  title: string;
+  goBack: (() => void) | null;
+}
+
+export interface IAppStored {
+  selectedProjectIndex: number;
+  projects: IProject[];
 }

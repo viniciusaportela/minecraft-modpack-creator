@@ -1,19 +1,10 @@
 import path from 'path';
-import { BaseDirectory } from '../base/base-directory';
+import { LauncherDirectory } from '../base/launcher-directory';
 import { useAppStore } from '../../../../store/app.store';
-import { GlobalStateModel } from '../../../models/global-state.model';
-import { ProjectModel } from '../../../models/project.model';
-import { NullMetadata } from '../base/null-metadata';
 
-export class MinecraftDirectory extends BaseDirectory {
+export class MinecraftDirectory extends LauncherDirectory {
   async getMinecraftJarPath(): Promise<string> {
-    const { realm } = useAppStore.getState();
-    const globalState = realm.objects<GlobalStateModel>('GlobalState')[0];
-    const projectId = globalState.selectedProjectId;
-    const project = realm.objectForPrimaryKey<ProjectModel>(
-      'Project',
-      projectId,
-    );
+    const project = useAppStore.getState().selectedProject();
 
     if (!project) {
       console.warn("Can't determine minecraft version without project");
@@ -27,9 +18,5 @@ export class MinecraftDirectory extends BaseDirectory {
 
   getMinecraftJarPathByVersion(version: string) {
     return path.join(this.modpackFolder, 'versions', version, `${version}.jar`);
-  }
-
-  async readMetadata(): Promise<any> {
-    return new NullMetadata({});
   }
 }

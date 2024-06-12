@@ -1,57 +1,66 @@
-import { Types } from 'realm';
-import { useAppStore } from '../../../store/app.store';
-import { ProjectModel } from '../../models/project.model';
 import { Launchers } from '../launchers/launchers';
-import { TextureModel } from '../../models/texture.model';
-import { BlockModel } from '../../models/block.model';
-import { ItemModel } from '../../models/item.model';
-import { ModConfigModel } from '../../models/mod-config.model';
-import { ModModel } from '../../models/mod.model';
+import BusinessLogicError from '../../errors/business-logic-error';
+import { BusinessError } from '../../errors/business-error.enum';
+import { useAppStore } from '../../../store/app.store';
+
+let instance: ProjectService;
 
 export default class ProjectService {
   private launchers: Launchers;
 
   constructor() {
-    this.launchers = new Launchers();
+    this.launchers = Launchers.getInstance();
+  }
+
+  static getInstance() {
+    if (!instance) {
+      instance = new ProjectService();
+    }
+
+    return instance;
   }
 
   async createFromFolder(folder: string) {
-    const { realm } = useAppStore.getState();
+    console.log('create from folder', folder);
+    const project = await this.launchers.genProjectFromFolder(folder);
 
-    const data = await this.launchers.getProjectData(folder);
+    if (!project) {
+      throw new BusinessLogicError({
+        message: 'Failed to create project from folder',
+        code: BusinessError.FailedToCreateProject,
+      });
+    }
 
-    realm.write(() => {
-      const exists = realm
-        .objects<ProjectModel>(ProjectModel.schema.name)
-        .filtered(`path = $0`, folder);
+    const existsIndex = useAppStore
+      .getState()
+      .projects.findIndex((p) => p.path === folder);
 
-      if (exists[0]) {
-        exists[0].cachedAmountInstalledMods = data.cachedAmountInstalledMods;
-        exists[0].loader = data.loader;
-        exists[0].loaderVersion = data.loaderVersion;
-        exists[0].minecraftVersion =
-          (data.minecraftVersion === 'unknown'
-            ? exists[0].minecraftVersion
-            : data.minecraftVersion) ?? 'unknown';
-        exists[0].orphan = false;
-        return;
-      }
+    if (existsIndex !== -1) {
+      useAppStore.setState((st) => {
+        const exists = st.projects[existsIndex];
 
-      realm.create<ProjectModel>(ProjectModel.schema.name, {
-        name: data.name,
-        path: folder,
-        minecraftVersion: data.minecraftVersion,
-        loaderVersion: data.loaderVersion,
-        loader: data.loader,
-        launcher: data.launcher,
-        cachedAmountInstalledMods: data.cachedAmountInstalledMods,
+        exists.modCount = project.modCount;
+        exists.loader = project.loader;
+        exists.loaderVersion = project.loaderVersion;
+        exists.minecraftVersion =
+          (project.minecraftVersion === 'unknown'
+            ? exists.minecraftVersion
+            : project.minecraftVersion) ?? 'unknown';
+        exists.orphan = false;
+      });
+
+      return;
+    }
+
+    useAppStore.setState((st) => {
+      st.projects.push({
+        ...project,
+        index: st.projects.length,
       });
     });
   }
 
   async populateProjects() {
-    const { realm } = useAppStore.getState();
-
     const modpackFolders = await this.launchers.findModpackFolders();
 
     const promises = modpackFolders.map(async (folder) => {
@@ -59,71 +68,47 @@ export default class ProjectService {
     });
     await Promise.all(promises);
 
-    const projects = realm.objects<ProjectModel>('Project');
+    const { projects } = useAppStore.getState();
     const orphanedProjects = projects.filter(
       (p) => !modpackFolders.includes(p.path),
     );
 
-    realm.write(() => {
-      orphanedProjects.forEach((p) => {
-        p.orphan = true;
-      });
+    orphanedProjects.forEach((p) => {
+      p.orphan = true;
     });
   }
 
-  async deleteProject(projectId: Types.ObjectId) {
-    const { realm } = useAppStore.getState();
-    try {
-      realm.beginTransaction();
-      const project = realm.objectForPrimaryKey<ProjectModel>(
-        ProjectModel,
-        projectId,
-      );
+  selectProject(projectIndex: number) {
+    useAppStore.setState((st) => {
+      st.selectedProjectIndex = projectIndex;
+    });
+  }
 
-      if (!project) {
-        throw new Error('Project not found');
-      }
+  unselectProject() {
+    useAppStore.setState((st) => {
+      st.selectedProjectIndex = -1;
+    });
+  }
 
-      const textures = realm
-        .objects(TextureModel.schema.name)
-        .filtered(`project = $0`, projectId);
-      realm.delete(textures);
+  async deleteProject(projectIndex: number) {
+    const project = useAppStore.getState().projects[projectIndex];
 
-      const blocks = realm
-        .objects(BlockModel.schema.name)
-        .filtered(`project = $0`, projectId);
-      realm.delete(blocks);
-
-      const items = realm
-        .objects(ItemModel.schema.name)
-        .filtered(`project = $0`, projectId);
-      realm.delete(items);
-
-      const mods = realm
-        .objects(ModModel.schema.name)
-        .filtered(`project = $0`, projectId);
-
-      for (const mod of mods) {
-        const modConfigs = realm
-          .objects(ModConfigModel.schema.name)
-          .filtered(`mod = $0`, mod._id);
-        realm.delete(modConfigs);
-      }
-
-      realm.delete(mods);
-
-      project.loaded = false;
-
-      if (project.orphan) {
-        realm.delete(project);
-      }
-
-      realm.commitTransaction();
-    } catch (e) {
-      if (realm.isInTransaction) {
-        realm.cancelTransaction();
-      }
-      throw e;
+    if (!project) {
+      throw new BusinessLogicError({
+        message: 'Invalid project',
+        code: BusinessError.InvalidProject,
+      });
     }
+
+    if (project.orphan) {
+      useAppStore.setState((st) => {
+        st.projects.splice(projectIndex, 1);
+      });
+      return;
+    }
+
+    useAppStore.setState((st) => {
+      st.projects[projectIndex].isLoaded = false;
+    });
   }
 }

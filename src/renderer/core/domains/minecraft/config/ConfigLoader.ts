@@ -3,10 +3,10 @@ import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import recursive from 'recursive-readdir';
 import fsExtra from 'fs-extra';
 import { ConfigNode } from './ConfigNode';
-import { ProjectModel } from '../../../models/project.model';
+import { IProject } from '../../../../store/interfaces/project.interface';
 
 export class ConfigLoader {
-  constructor(private readonly project: ProjectModel) {}
+  constructor(private readonly project: IProject) {}
 
   async load() {
     const configs: ConfigNode[] = [];
@@ -61,7 +61,7 @@ export class ConfigLoader {
 
     const safeEditingFolder = path.join(
       this.project.path,
-      'minecraft_toolkit',
+      'minecraft-toolkit',
       'configs',
     );
 
@@ -81,7 +81,7 @@ export class ConfigLoader {
 
     const safeEditingFolder = path.join(
       this.project.path,
-      'minecraft_toolkit',
+      'minecraft-toolkit',
       'configs',
     );
 

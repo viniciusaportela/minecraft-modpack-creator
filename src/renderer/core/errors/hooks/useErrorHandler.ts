@@ -2,9 +2,9 @@ import toast from 'react-hot-toast';
 import { writeFile } from 'node:fs/promises';
 import { ipcRenderer } from 'electron';
 import path from 'path';
+import safeJsonStringify from 'safe-json-stringify';
 import BusinessLogicError from '../business-logic-error';
 import { useAppStore } from '../../../store/app.store';
-import { GlobalStateModel } from '../../models/global-state.model';
 
 export function useErrorHandler() {
   return async (err: Error) => {
@@ -21,7 +21,6 @@ export function useErrorHandler() {
 }
 
 async function writeErrorLog(err: unknown) {
-  const { realm } = useAppStore.getState();
   let data = JSON.stringify(err, null, 2);
 
   if (err instanceof Error) {
@@ -30,10 +29,19 @@ async function writeErrorLog(err: unknown) {
   }
 
   data += `\n\n===================================\n\n`;
-  data += `Stack: ${JSON.stringify(process.memoryUsage(), null, 2)}`;
+  data += `Memory Stack: ${JSON.stringify(process.memoryUsage(), null, 2)}`;
+
+  const appState = useAppStore.getState();
+
+  const filtered = {
+    projects: appState.projects,
+    selectedProject: appState.selectedProject,
+    selectedProjectIndex: appState.selectedProjectIndex,
+    title: appState.title,
+  };
 
   data += `\n\n===================================\n\n`;
-  data += `GlobalState: ${JSON.stringify(realm.objects(GlobalStateModel)[0].toJSON() ?? {}, null, 2)}`;
+  data += `AppState: ${safeJsonStringify(filtered, null, 2)}`;
 
   await writeFile(
     path.join(

@@ -23,6 +23,8 @@ import { IncomingHealing } from '../../../../../pages/mods/passive-skill-tree/co
 import { JumpHeight } from '../../../../../pages/mods/passive-skill-tree/components/bonus/bonuses/JumpHeight';
 import { LootDuplication } from '../../../../../pages/mods/passive-skill-tree/components/bonus/bonuses/LootDuplication';
 import { RepairEfficiency } from '../../../../../pages/mods/passive-skill-tree/components/bonus/bonuses/RepairEfficiency';
+import { FunctionComponent } from 'react';
+import { FunctionWithDefaultConfig } from '../../../../../pages/mods/passive-skill-tree/interfaces/function-with-default-config';
 
 export enum EBonus {
   AllAttributes = 'skilltree:all_attributes',
@@ -54,7 +56,10 @@ export enum EBonus {
 
 export const ALL_BONUSES = Object.values(EBonus);
 
-export const COMPONENTS_BY_BONUS = () => ({
+export const COMPONENTS_BY_BONUS = (): Record<
+  EBonus,
+  FunctionWithDefaultConfig
+> => ({
   [EBonus.AllAttributes]: AllAttributes,
   [EBonus.ArrowRetrieval]: ArrowRetrieval,
   [EBonus.CraftedItemBonus]: CraftedItemBonus,

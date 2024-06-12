@@ -11,9 +11,9 @@ import { X } from '@phosphor-icons/react';
 import PickerButton from '../../../../../components/ItemPickerButton/PickerButton';
 import { PickerType } from '../../../../../typings/picker-type.enum';
 import BonusModal from '../bonus/BonusModal';
-import { useModConfig } from '../../../../../hooks/use-mod-config';
 import { formatTextureInput } from './utils/format-texture-input';
 import { formatTextureOutput } from './utils/format-texture-output';
+import { useModConfigSelector } from '../../../../../store/hooks/use-mod-config-selector';
 
 interface EditSkillPanelProps {
   focusedNodePath: string[];
@@ -25,47 +25,55 @@ export default function EditSkillPanel({
   onClose,
 }: EditSkillPanelProps) {
   const { isOpen, onOpenChange, onOpen } = useDisclosure();
-  const [focusedNodeData] = useModConfig([...(focusedNodePath ?? []), 'data']);
 
-  console.log('focusedNodeData', focusedNodeData, focusedNodePath);
+  const [focusedNodeData] = useModConfigSelector([
+    ...(focusedNodePath ?? []),
+    'data',
+  ]);
 
-  const [title, setTitle] = useModConfig([
+  console.log(
+    'focusedNodeData',
+    [...(focusedNodePath ?? []), 'data'],
+    focusedNodeData,
+  );
+
+  const [title, setTitle] = useModConfigSelector([
     ...(focusedNodePath ?? []),
     'data',
     'title',
   ]);
 
-  const [titleColor, setTitleColor] = useModConfig([
+  const [titleColor, setTitleColor] = useModConfigSelector([
     ...(focusedNodePath ?? []),
     'data',
     'titleColor',
   ]);
 
-  const [iconTexture, setIconTexture] = useModConfig([
+  const [iconTexture, setIconTexture] = useModConfigSelector([
     ...(focusedNodePath ?? []),
     'data',
     'iconTexture',
   ]);
 
-  const [backgroundTexture, setBackgroundTexture] = useModConfig([
+  const [backgroundTexture, setBackgroundTexture] = useModConfigSelector([
     ...(focusedNodePath ?? []),
     'data',
     'backgroundTexture',
   ]);
 
-  const [borderTexture, setBorderTexture] = useModConfig([
+  const [borderTexture, setBorderTexture] = useModConfigSelector([
     ...(focusedNodePath ?? []),
     'data',
     'borderTexture',
   ]);
 
-  const [buttonSize, setButtonSize] = useModConfig([
+  const [buttonSize, setButtonSize] = useModConfigSelector([
     ...(focusedNodePath ?? []),
     'data',
     'buttonSize',
   ]);
 
-  const [isStartingPoint, setIsStartingPoint] = useModConfig([
+  const [isStartingPoint, setIsStartingPoint] = useModConfigSelector([
     ...(focusedNodePath ?? []),
     'data',
     'isStartingPoint',
@@ -97,7 +105,7 @@ export default function EditSkillPanel({
               placeholder="Skill title"
               value={title}
               onValueChange={(value) => {
-                setTitle(() => value);
+                setTitle(value);
               }}
             />
             <div className="flex items-center">
@@ -107,9 +115,7 @@ export default function EditSkillPanel({
                 className="ml-auto"
                 value={`#${titleColor?.toLowerCase() ?? '#ffffff'}`}
                 onChange={(e) => {
-                  setTitleColor(() =>
-                    e.target.value?.toUpperCase().replace('#', ''),
-                  );
+                  setTitleColor(e.target.value?.toUpperCase().replace('#', ''));
                 }}
               />
             </div>
@@ -121,9 +127,7 @@ export default function EditSkillPanel({
                 value={
                   formatTextureInput(iconTexture) ?? 'skilltree:icons/void'
                 }
-                onPick={(value) =>
-                  setIconTexture(() => formatTextureOutput(value))
-                }
+                onPick={(value) => setIconTexture(formatTextureOutput(value))}
               />
             </div>
             <div className="flex items-center">
@@ -136,7 +140,7 @@ export default function EditSkillPanel({
                   'skilltree:icons/background/lesser'
                 }
                 onPick={(value) =>
-                  setBackgroundTexture(() => formatTextureOutput(value))
+                  setBackgroundTexture(formatTextureOutput(value))
                 }
               />
             </div>
@@ -149,9 +153,7 @@ export default function EditSkillPanel({
                   formatTextureInput(borderTexture) ??
                   'skilltree:tooltip/lesser'
                 }
-                onPick={(value) =>
-                  setBorderTexture(() => formatTextureOutput(value))
-                }
+                onPick={(value) => setBorderTexture(formatTextureOutput(value))}
               />
             </div>
             <Input
@@ -160,15 +162,13 @@ export default function EditSkillPanel({
               variant="bordered"
               placeholder="16"
               value={buttonSize ?? 16}
-              onValueChange={(text) => setButtonSize(() => parseFloat(text))}
+              onValueChange={(text) => setButtonSize(parseFloat(text))}
             />
 
             <Switch
               size="sm"
               isSelected={isStartingPoint}
-              onValueChange={(isSelected) =>
-                setIsStartingPoint(() => isSelected)
-              }
+              onValueChange={(isSelected) => setIsStartingPoint(isSelected)}
             >
               Is starting point
             </Switch>

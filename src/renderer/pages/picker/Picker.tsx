@@ -10,20 +10,18 @@ import React, {
 import { ipcRenderer } from 'electron';
 import { FixedSizeList as List } from 'react-window';
 import useParams from '../../hooks/use-params.hook';
-import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
-import { GlobalStateModel } from '../../core/models/global-state.model';
-import { ProjectModel } from '../../core/models/project.model';
 import PickerItem from './components/PickerItem';
 import { PickerType } from '../../typings/picker-type.enum';
-import { useAppStore } from '../../store/app.store';
-import { ItemModel } from '../../core/models/item.model';
-import { TextureModel } from '../../core/models/texture.model';
-import { BlockModel } from '../../core/models/block.model';
+import { useItemsStore } from '../../store/items.store';
+import { IItem } from '../../store/interfaces/items-store.interface';
+import { IBlock } from '../../store/interfaces/blocks-store.interface';
+import { ITexture } from '../../store/interfaces/textures-store.interface';
+import { useTexturesStore } from '../../store/textures.store';
 
 interface PickerListItemProps {
-  item: ItemModel | BlockModel | TextureModel;
+  item: IItem | IBlock | ITexture;
   style: React.CSSProperties;
-  select: (item: ItemModel | BlockModel | TextureModel) => void;
+  select: (item: IItem | IBlock | ITexture) => void;
   type: PickerType;
 }
 
@@ -60,13 +58,11 @@ export default function Picker() {
   const inputTextRef = useRef('');
   const [inputText, setInputText] = useReducer(reflectOnRef(inputTextRef), '');
 
+  const textures = useTexturesStore((state) => state.textures);
+
   const requestId = useParams('requestId');
 
   const [type, setType] = useState(PickerType.Item);
-
-  const realm = useAppStore((st) => st.realm);
-  const globalState = useQueryFirst(GlobalStateModel);
-  const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
 
   const [listItems, setListItems] = useState<
     {
@@ -104,14 +100,11 @@ export default function Picker() {
     if (
       [
         PickerType.SkillTreeBackground,
-        PickerType.SkillTreeBackground,
         PickerType.SkillTreeIcon,
         PickerType.Texture,
       ].includes(type)
     ) {
-      const textures = realm
-        .objects<TextureModel>(TextureModel.schema.name)
-        .filtered('project = $0', project._id);
+      // TODO should also create textures object
 
       setListItems([
         {
@@ -135,17 +128,15 @@ export default function Picker() {
               style={style}
               type={type}
               item={texture}
-              select={(item) => select((item as TextureModel).textureId)}
+              select={(item) => select((item as ITexture).internalPath)}
             />
           ),
           type: 'item',
-          value: texture.textureId,
+          value: texture.internalPath,
         })),
       ]);
     } else if (type === PickerType.Item) {
-      const items = realm
-        .objects<ItemModel>(ItemModel.schema.name)
-        .filtered('project = $0', project._id);
+      const { items } = useItemsStore.getState();
 
       setListItems([
         {
@@ -178,13 +169,14 @@ export default function Picker() {
           showOnSearch: true,
           value: null,
         },
-        ...items.map((item) => ({
+        ...Object.values(items).map((item) => ({
+          // eslint-disable-next-line react/no-unused-prop-types
           render: ({ style }: { style: React.CSSProperties }) => (
             <PickerListItem
               style={style}
               item={item}
               type={type}
-              select={(item) => select((item as ItemModel).itemId)}
+              select={(item) => select((item as IItem).id)}
             />
           ),
           type: 'item',

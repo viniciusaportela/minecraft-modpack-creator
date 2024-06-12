@@ -1,7 +1,7 @@
-import { useAppStore } from '../../store/app.store';
-import { ModModel } from '../models/mod.model';
 import { ModFactory } from '../domains/mods/mod-factory';
-import { ProjectModel } from '../models/project.model';
+import { IProject } from '../../store/interfaces/project.interface';
+import { useModsStore } from '../../store/mods.store';
+import { ContextStoreRegistry } from '../../store/context-store-registry';
 
 export default class ModpackBuilder {
   private onProgressCb?: (
@@ -21,26 +21,28 @@ export default class ModpackBuilder {
     return this;
   }
 
-  async build(project: ProjectModel) {
-    const { realm } = useAppStore.getState();
+  async build(project: IProject) {
+    const { mods } = useModsStore.getState();
 
-    const modsDb = realm
-      .objects<ModModel>('Mod')
-      .filtered('project = $0', project._id);
+    this.onProgressCb?.(0, 'Building mods...', mods.length);
 
-    this.onProgressCb?.(0, 'Building mods...', modsDb.length);
+    const modCfgStore = ContextStoreRegistry.getInstance();
 
     let index = 1;
-    for await (const modDb of modsDb) {
+    for await (const modDb of mods) {
       this.onProgressCb?.(
         index,
-        `Building ${modDb.modId}... (${index}/${modsDb.length})`,
-        modsDb.length,
+        `Building ${modDb.id}... (${index}/${mods.length})`,
+        mods.length,
       );
-      const mod = ModFactory.create(project, modDb);
-      await mod.preBuild(project, modDb);
-      await mod.build(project, modDb);
-      await mod.postBuild(project, modDb);
+      const mod = ModFactory.create(
+        project,
+        modDb,
+        modCfgStore.get(modDb).getState(),
+      );
+      await mod.preBuild();
+      await mod.build();
+      await mod.postBuild();
       index += 1;
     }
   }

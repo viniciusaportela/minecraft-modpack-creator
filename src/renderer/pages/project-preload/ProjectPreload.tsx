@@ -1,33 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { Progress } from '@nextui-org/react';
 import { ipcRenderer } from 'electron';
-import { mkdir, stat } from 'node:fs/promises';
-import path from 'path';
 import { usePager } from '../../components/pager/hooks/usePager';
-import { useQueryById, useQueryFirst } from '../../hooks/realm.hook';
-import { ProjectModel } from '../../core/models/project.model';
-import AppBarHeader from '../../components/app-bar/AppBarHeader';
-import { GlobalStateModel } from '../../core/models/global-state.model';
-import { useAppStore } from '../../store/app.store';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
-import { ProjectPreloader } from '../../core/domains/project/project-preloader';
 import { ConfigLoader } from '../../core/domains/minecraft/config/ConfigLoader';
+import { Launchers } from '../../core/domains/launchers/launchers';
+import { useAppStore, useSelectedProject } from '../../store/app.store';
+import { ProjectPreloader } from '../../core/domains/project/project-preloader';
+import ProjectService from '../../core/domains/project/project-service';
 
 export default function ProjectPreload() {
   const handleError = useErrorHandler();
-  const realm = useAppStore((st) => st.realm);
   const { navigate } = usePager();
 
-  const globalState = useQueryFirst(GlobalStateModel);
-  const project = useQueryById(ProjectModel, globalState.selectedProjectId!);
+  const idx = useAppStore((st) => st.selectedProjectIndex);
+  const project = useSelectedProject();
 
-  const progressTextRef = useRef<HTMLSpanElement>(null);
-  const [isInderterminate, setIsInderterminate] = useState(true);
-  const [totalProgress, setTotalProgress] = useState(1);
-  const [currentProgress, setCurrentProgress] = useState(0);
+  console.log('project/idx', project, idx);
 
   useEffect(() => {
-    loadProject().catch((err) => console.log(err));
+    loadProject().catch((err) => console.error(err));
     ipcRenderer.send('resize', 400, 150);
     ipcRenderer.send('make-no-resizable');
 
@@ -36,70 +28,67 @@ export default function ProjectPreload() {
     };
   }, []);
 
+  useEffect(() => {
+    console.log('idx changed', idx);
+  }, [idx]);
+
   async function loadProject() {
     try {
       if (project) {
-        const minecraftToolkitPath = path.join(
-          project.path,
-          'minecraft_toolkit',
-        );
-        const minecraftToolkitExists = await stat(minecraftToolkitPath).catch(
-          () => null,
-        );
-        if (!minecraftToolkitExists) {
-          await mkdir(minecraftToolkitPath);
-        }
-
         const configLoader = new ConfigLoader(project);
         const configs = await configLoader.load();
-        useAppStore.setState({ configs });
 
-        if (project.loaded) {
-          navigate('project');
-        } else {
-          const preloader = new ProjectPreloader(project);
+        useAppStore.setState((st) => {
+          st.configs = configs;
+        });
 
-          preloader.onProgress(({ totalProgress, text }) => {
-            if (totalProgress) {
-              setCurrentProgress(0);
-              setIsInderterminate(false);
-              setTotalProgress(totalProgress);
-            } else {
-              setCurrentProgress((progress) => progress + 1);
-              if (text) progressTextRef.current!.innerText = text;
-            }
-          });
+        // Check if metadata is loaded, if not show instructions
+        const launcher = Launchers.getInstance().getLauncherByName(
+          project.launcher,
+        );
 
-          await preloader.preload();
+        const dir = launcher.toDirectory(project.path);
 
-          navigate('project');
+        const metadata = await dir.getMetadata();
+        console.log(metadata);
+
+        if (!metadata) {
+          navigate('waiting-for-data');
+          return;
         }
+
+        await ProjectPreloader.getInstance().load(project);
+
+        useAppStore.setState((st) => {
+          const projectDraft = st.projects[st.selectedProjectIndex];
+
+          projectDraft.modCount = metadata.modCount;
+          projectDraft.loader = metadata.modLoader;
+          projectDraft.loaderVersion = metadata.loaderVersion;
+          projectDraft.minecraftVersion = metadata.minecraftVersion;
+          projectDraft.isLoaded = true;
+        });
+
+        navigate('project');
       } else {
         throw new Error('Project is undefined on ProjectPreload');
       }
     } catch (err) {
-      await handleError(err);
-      if (realm.isInTransaction) realm.cancelTransaction();
-      realm.write(() => {
-        globalState.selectedProjectId = undefined;
-      });
+      if (err instanceof Error) {
+        await handleError(err);
+      }
+
+      ProjectService.getInstance().unselectProject();
       navigate('projects');
     }
   }
 
   return (
     <div className="flex-1 flex flex-col justify-center h-full p-5 pt-0">
-      <AppBarHeader title="My Projects" goBack={null}>
-        {null}
-      </AppBarHeader>
-      <span id="progress-text" className="mb-2" ref={progressTextRef}>
+      <span id="progress-text" className="mb-2">
         Loading...
       </span>
-      <Progress
-        isIndeterminate={isInderterminate}
-        size="sm"
-        value={(currentProgress / totalProgress) * 100}
-      />
+      <Progress isIndeterminate size="sm" />
     </div>
   );
 }

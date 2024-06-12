@@ -11,7 +11,6 @@ import { createStore, useStore } from 'zustand';
 import type { StoreApi } from 'zustand/vanilla';
 import debounce from 'lodash.debounce';
 import { immer } from 'zustand/middleware/immer';
-import { original } from 'immer';
 import { RefinedConfigContextInterface } from './interfaces/refined-config-context';
 import { RefinedField } from './interfaces/parser';
 import { curriedReadByPath } from '../../../../helpers/read-write-by-path';
@@ -47,8 +46,6 @@ export const RefinedConfigProvider: FC<StoreProviderProps> = ({
   const createStoreForState = () => {
     const debouncedWriteOnDisk = debounce(
       async (field: RefinedField, value: any, callback?: () => void) => {
-        console.log('write on disk', root.getPath(), field, value);
-
         const isArray = field.array;
 
         const stringifiedValue =
@@ -66,16 +63,12 @@ export const RefinedConfigProvider: FC<StoreProviderProps> = ({
         set,
         fields,
         write: async (path: string[], value: any, callback?: () => void) => {
-          console.log('write', path, value);
-
           set((state) => {
-            console.log('[write] state', original(state));
             const field = curriedReadByPath(state.fields)(path);
             field.value = value;
           });
 
           const field = curriedReadByPath(get().fields)(path);
-          console.log('[write] field', field);
           if (field.type !== 'group') {
             await debouncedWriteOnDisk(field, value, callback);
           }

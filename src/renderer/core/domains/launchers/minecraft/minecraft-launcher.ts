@@ -1,10 +1,21 @@
 import { stat } from 'node:fs/promises';
-import { BaseLauncher, IProjectData } from '../base/base-launcher';
+import { BaseLauncher } from '../base/base-launcher';
 import { MinecraftDirectory } from './minecraft-directory';
+import { IProject } from '../../../../store/interfaces/project.interface';
+
+let instance: MinecraftLauncher;
 
 export class MinecraftLauncher extends BaseLauncher {
-  async findModpackFolders(): Promise<string[]> {
-    const minecraftPath = this.getMinecraftPath();
+  static getInstance() {
+    if (!instance) {
+      instance = new MinecraftLauncher();
+    }
+
+    return instance;
+  }
+
+  async getModpacksFolders(): Promise<string[]> {
+    const minecraftPath = this.getMinecraftRoot();
 
     if (!minecraftPath) {
       return [];
@@ -21,21 +32,26 @@ export class MinecraftLauncher extends BaseLauncher {
     return [minecraftPath];
   }
 
-  getDirectory(folder: string): MinecraftDirectory {
-    return new MinecraftDirectory(folder);
+  toDirectory(folderPath: string): MinecraftDirectory {
+    return new MinecraftDirectory(folderPath);
   }
 
-  async getProjectData(folder: string): Promise<IProjectData> {
-    const modPaths = await this.getDirectory(folder).getAllModPaths();
+  async genProjectFromFolder(
+    folderPath: string,
+  ): Promise<Omit<IProject, 'index'> | null> {
+    const modPaths = await this.toDirectory(folderPath).getAllModsPaths();
 
     return {
       name: 'Minecraft',
-      path: folder,
+      path: folderPath,
       minecraftVersion: 'unknown',
-      loaderVersion: '1.0.0',
+      loaderVersion: 'unknown',
       loader: 'unknown',
       launcher: 'minecraft',
-      cachedAmountInstalledMods: modPaths.length,
+      modCount: modPaths.length,
+      isLoaded: false,
+      lastOpenAt: null,
+      orphan: false,
     };
   }
 

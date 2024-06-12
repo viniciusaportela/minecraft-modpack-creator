@@ -4,10 +4,12 @@ import Project from './pages/project/Project';
 import 'reactflow/dist/style.css';
 import { Page, Pager } from './components/pager/Pager';
 import ProjectPreload from './pages/project-preload/ProjectPreload';
+import WaitingForData from './pages/waiting-for-data/WaitingForData';
+import ProjectConfigProvider from './store/providers/project-config-provider';
 
 export default function MainApp() {
   return (
-    <>
+    <ProjectConfigProvider>
       <AppBar />
       <Pager initialPage="projects">
         <Page name="projects">
@@ -16,10 +18,14 @@ export default function MainApp() {
         <Page name="project-preload">
           <ProjectPreload />
         </Page>
+        ]
         <Page name="project">
           <Project />
         </Page>
+        <Page name="waiting-for-data">
+          <WaitingForData />
+        </Page>
       </Pager>
-    </>
+    </ProjectConfigProvider>
   );
 }

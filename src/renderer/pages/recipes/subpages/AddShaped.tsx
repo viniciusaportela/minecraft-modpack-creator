@@ -4,9 +4,6 @@ import { X } from '@phosphor-icons/react';
 import PickerButton from '../../../components/ItemPickerButton/PickerButton';
 import Title from '../../../components/title/Title';
 import { usePager } from '../../../components/pager/hooks/usePager';
-import { useQueryById, useQueryFirst } from '../../../hooks/realm.hook';
-import { GlobalStateModel } from '../../../core/models/global-state.model';
-import { ProjectModel } from '../../../core/models/project.model';
 import { PickerType } from '../../../typings/picker-type.enum';
 
 export default function AddShaped() {
@@ -18,9 +15,6 @@ export default function AddShaped() {
   ]);
   const [outputCount, setOutputCount] = useState(1);
   const [output, setOutput] = useState<string | null>(null);
-
-  const globalState = useQueryFirst(GlobalStateModel);
-  const project = useQueryById(ProjectModel, globalState.selectedProjectId!)!;
 
   const onPickInput = (value: string, row: number, col: number) => {
     setInput((prev) => {

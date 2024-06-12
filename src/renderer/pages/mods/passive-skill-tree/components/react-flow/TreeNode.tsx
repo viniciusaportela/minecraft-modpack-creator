@@ -1,6 +1,5 @@
 import { Handle, Position, useStore } from 'reactflow';
 import { memo, useLayoutEffect, useState } from 'react';
-import { BSON } from 'realm';
 import LazyTexture from '../../../../../components/lazy-texture/LazyTexture';
 import { TextureLoader } from '../../../../../core/domains/minecraft/texture/texture-loader';
 
@@ -16,14 +15,20 @@ export default memo(({ data, id }: { data: any; id: string }) => {
       .replace('textures/', '')
       .replace('.png', '');
 
-    new TextureLoader()
-      .load(new BSON.ObjectId(data.projectId), textureId)
-      .then(() => {
-        setBackgroundImg(
-          new TextureLoader().getTextureSource(textureId) as string,
-        );
-      });
+    if (textureId.includes('background')) {
+      console.log(
+        data.backgroundTexture,
+        textureId,
+        TextureLoader.getInstance().getTextureSource(textureId),
+      );
+    }
+
+    setBackgroundImg(
+      TextureLoader.getInstance().getTextureSource(textureId) as string,
+    );
   }, [data.backgroundTexture]);
+
+  console.log(data.buttonSize);
 
   return (
     <div
@@ -31,8 +36,9 @@ export default memo(({ data, id }: { data: any; id: string }) => {
       style={{
         width: data.buttonSize,
         height: data.buttonSize,
+        pointerEvents: isConnecting ? 'none' : 'all',
         ...(backgroundImg && {
-          backgroundImage: `url(${backgroundImg})`,
+          backgroundImage: `url("${backgroundImg}")`,
           backgroundSize: `${3 * data.buttonSize}px ${data.buttonSize}px`,
           backgroundRepeat: 'no-repeat',
           backgroundPosition: '0px 0px',
@@ -40,9 +46,7 @@ export default memo(({ data, id }: { data: any; id: string }) => {
       }}
     >
       <LazyTexture
-        textureId={data.iconTexture
-          .replace('textures/', '')
-          .replace('.png', '')}
+        path={data.iconTexture.replace('textures/', '').replace('.png', '')}
         className="pixelated h-3 w-3 object-contain rounded-none"
       />
 
@@ -57,7 +61,7 @@ export default memo(({ data, id }: { data: any; id: string }) => {
           backgroundColor: 'red',
           width: '50%',
           height: '50%',
-          zIndex: 1,
+          zIndex: 99,
           right: 0,
           top: 0,
         }}
