@@ -15,20 +15,10 @@ export default memo(({ data, id }: { data: any; id: string }) => {
       .replace('textures/', '')
       .replace('.png', '');
 
-    if (textureId.includes('background')) {
-      console.log(
-        data.backgroundTexture,
-        textureId,
-        TextureLoader.getInstance().getTextureSource(textureId),
-      );
-    }
-
     setBackgroundImg(
       TextureLoader.getInstance().getTextureSource(textureId) as string,
     );
   }, [data.backgroundTexture]);
-
-  console.log(data.buttonSize);
 
   return (
     <div

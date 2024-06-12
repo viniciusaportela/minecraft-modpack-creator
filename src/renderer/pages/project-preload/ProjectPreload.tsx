@@ -16,8 +16,6 @@ export default function ProjectPreload() {
   const idx = useAppStore((st) => st.selectedProjectIndex);
   const project = useSelectedProject();
 
-  console.log('project/idx', project, idx);
-
   useEffect(() => {
     loadProject().catch((err) => console.error(err));
     ipcRenderer.send('resize', 400, 150);
@@ -27,10 +25,6 @@ export default function ProjectPreload() {
       ipcRenderer.send('make-resizable');
     };
   }, []);
-
-  useEffect(() => {
-    console.log('idx changed', idx);
-  }, [idx]);
 
   async function loadProject() {
     try {
@@ -50,7 +44,6 @@ export default function ProjectPreload() {
         const dir = launcher.toDirectory(project.path);
 
         const metadata = await dir.getMetadata();
-        console.log(metadata);
 
         if (!metadata) {
           navigate('waiting-for-data');

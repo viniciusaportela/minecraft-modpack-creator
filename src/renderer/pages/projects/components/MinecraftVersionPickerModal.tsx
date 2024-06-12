@@ -95,11 +95,8 @@ export const MinecraftVersionPickerModal: FC<
   const [value, setValue] = useState(MINECRAFT_VERSIONS[0]);
 
   useEffect(() => {
-    console.log('initialversion changed', initialVersion);
     setValue(initialVersion ?? MINECRAFT_VERSIONS[0]);
   }, [initialVersion]);
-
-  console.log('MinecraftVersionPicker', value);
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="md">

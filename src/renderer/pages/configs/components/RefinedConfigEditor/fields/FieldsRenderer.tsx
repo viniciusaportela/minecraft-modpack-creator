@@ -35,8 +35,6 @@ export const FieldsRenderer = memo(
       true,
     );
 
-    console.log('FieldsRenderer', filter);
-
     return pathsAndTypes?.map((pathAndType) => {
       if (pathAndType.array) {
         return (

@@ -5,7 +5,6 @@ export class SKLauncherDirectory extends LauncherDirectory {
   async getMinecraftJarPath(): Promise<string | null> {
     const meta = await this.getMetadata();
 
-    console.log(meta);
     if (!meta) {
       return null;
     }

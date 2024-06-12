@@ -21,8 +21,6 @@ export default function Projects() {
   const projects = useAppStore((st) => st.projects);
   const selectedProjectIndex = useAppStore((st) => st.selectedProjectIndex);
 
-  console.log('projects', projects);
-
   const handleError = useErrorHandler();
 
   const { navigate } = usePager();
@@ -95,7 +93,6 @@ export default function Projects() {
     try {
       ContextStoreRegistry.getInstance().clear();
 
-      console.log('update selectedProjectIndex', projectIdx);
       ProjectService.getInstance().selectProject(projectIdx);
 
       const project = projects[projectIdx];

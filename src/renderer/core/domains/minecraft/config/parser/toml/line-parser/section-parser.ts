@@ -10,7 +10,6 @@ export class SectionParser extends LineParser {
   }
 
   parse(line: string, ctx: ParseContext): ParseResult {
-    console.log('parse section', line);
     return this.aggregateWithComment(ctx, {
       type: 'group',
       name: this.PATTERN.exec(line.trim())![1],

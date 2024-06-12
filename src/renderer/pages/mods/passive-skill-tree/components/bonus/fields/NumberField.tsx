@@ -1,9 +1,5 @@
 import { Input } from '@nextui-org/react';
-import get from 'lodash.get';
-import set from 'lodash.set';
 import Label from './Label';
-import { useModConfigStore } from '../../../../../../store/hooks/use-mod-config-store';
-import { ISkillTreeConfig } from '../../../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
 import { useModConfigSelector } from '../../../../../../store/hooks/use-mod-config-selector';
 
 interface NumberFieldProps {
@@ -21,7 +17,9 @@ export default function NumberField({
 
   return (
     <>
-      <Label>{label}</Label>
+      <Label nestLevel={path.length} path={path}>
+        {label}
+      </Label>
       <Input
         size="sm"
         classNames={{

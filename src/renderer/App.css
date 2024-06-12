@@ -48,6 +48,10 @@ html, body, #root, main {
   display: inherit;
 }
 
+div:has(> * > .picker-tooltip) {
+  pointer-events: none;
+}
+
 .highlight-filter {
   background-color: #62420E;
 }

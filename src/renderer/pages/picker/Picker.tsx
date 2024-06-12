@@ -79,6 +79,10 @@ export default function Picker() {
   >([]);
 
   useEffect(() => {
+    setInputText('');
+  }, [type]);
+
+  useEffect(() => {
     ipcRenderer.on('init', (ev, type) => {
       setType(type as PickerType);
     });
@@ -96,11 +100,28 @@ export default function Picker() {
     return `minecraft:${inputTextRef.current}`;
   };
 
+  const filteredTextures = (type: PickerType) => {
+    if (type === PickerType.SkillTreeBackground) {
+      return textures.filter((texture) =>
+        texture.id.startsWith('skilltree:textures/icons/background'),
+      );
+    }
+
+    if (type === PickerType.SkillTreeBorder) {
+      return textures.filter((texture) =>
+        texture.id.startsWith('skilltree:textures/tooltip'),
+      );
+    }
+
+    return textures;
+  };
+
   useEffect(() => {
     if (
       [
         PickerType.SkillTreeBackground,
         PickerType.SkillTreeIcon,
+        PickerType.SkillTreeBorder,
         PickerType.Texture,
       ].includes(type)
     ) {
@@ -122,17 +143,17 @@ export default function Picker() {
           showOnSearch: true,
           value: null,
         },
-        ...textures.map((texture) => ({
+        ...filteredTextures(type).map((texture) => ({
           render: ({ style }: { style: React.CSSProperties }) => (
             <PickerListItem
               style={style}
               type={type}
               item={texture}
-              select={(item) => select((item as ITexture).internalPath)}
+              select={(item) => select((item as ITexture).id)}
             />
           ),
           type: 'item',
-          value: texture.internalPath,
+          value: texture.id,
         })),
       ]);
     } else if (type === PickerType.Item) {

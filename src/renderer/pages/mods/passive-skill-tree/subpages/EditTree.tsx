@@ -9,6 +9,7 @@ import React, {
   Key,
   type MouseEvent as ReactMouseEvent,
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -27,16 +28,15 @@ import {
   NoteBlank,
   Plus,
 } from '@phosphor-icons/react';
-import { original } from 'immer';
 import TreeNode from '../components/react-flow/TreeNode';
 import Title from '../../../../components/title/Title';
 import SkillEdge from '../components/react-flow/SkillEdge';
-import { usePager } from '../../../../components/pager/hooks/usePager';
 import ModId from '../../../../typings/mod-id.enum';
-import { SkillTree } from '../../../../core/domains/mods/skilltree/skill-tree';
 import EditSkillPanel from '../components/edit-skill-panel/EditSkillPanel';
 import ScreenToFlowPositionGetter from '../components/react-flow/ScreenToFlowPositionGetter';
 import FitViewGetter from '../components/react-flow/FitViewGetter';
+import { usePager } from '../../../../components/pager/hooks/usePager';
+import { SkillTree } from '../../../../core/domains/mods/skilltree/skill-tree';
 import { useSelectedProject } from '../../../../store/app.store';
 import { useModById } from '../../../../store/hooks/use-mod-by-id';
 import { useModConfigStore } from '../../../../store/hooks/use-mod-config-store';
@@ -56,9 +56,11 @@ export default function EditTree() {
   const skillTreeMod = useModById(ModId.PassiveSkillTree);
   const configStore = useModConfigStore<ISkillTreeConfig>();
 
-  const screenToFlowPosition = useRef();
-  const fitView = useRef();
+  const screenToFlowPosition = useRef<Function>();
+  const fitView = useRef<Function>();
   const reactFlowRef = useRef<HTMLDivElement>();
+
+  const copiedNodeIdx = useRef<number | null>(null);
 
   const [nodes, setNodes] = useModConfigSelector(['tree', 'nodes']);
   const [edges, setEdges] = useModConfigSelector(['tree', 'edges']);
@@ -66,8 +68,31 @@ export default function EditTree() {
 
   const [focusedNode, setFocusedNode] = useState<Node | null>(null);
   const [focusedNodePath, setFocusedNodePath] = useState<string[] | null>(null);
+  const focusedNodePathRef = useRef<string[] | null>(null);
 
   const reactFlowWrapperClasses = useRef<HTMLDivElement>();
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'c') {
+        event.preventDefault();
+        if (focusedNodePathRef.current) {
+          copiedNodeIdx.current = parseInt(focusedNodePathRef.current[2], 10);
+        }
+      }
+
+      if (event.ctrlKey && event.key === 'v') {
+        event.preventDefault();
+        pasteCopiedNode();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   const onNodesChange = useCallback(
     (changes) => {
@@ -81,6 +106,7 @@ export default function EditTree() {
           if (hasDeletedFocused) {
             setFocusedNode(null);
             setFocusedNodePath(null);
+            focusedNodePathRef.current = null;
           }
         }
       }
@@ -89,6 +115,14 @@ export default function EditTree() {
     },
     [focusedNode],
   );
+
+  const pasteCopiedNode = () => {
+    if (copiedNodeIdx.current === null) return;
+
+    const node = configStore.getState().tree.nodes[copiedNodeIdx.current!];
+
+    addSkill(node);
+  };
 
   const onEdgesChange = useCallback((changes) => {
     setEdges(applyEdgeChanges(changes, configStore.getState().tree.edges));
@@ -143,6 +177,7 @@ export default function EditTree() {
         .getState()
         .tree.nodes.findIndex((n) => n.id === node.id);
       setFocusedNodePath(['tree', 'nodes', String(index)]);
+      focusedNodePathRef.current = ['tree', 'nodes', String(index)];
     },
     [nodes],
   );
@@ -154,31 +189,37 @@ export default function EditTree() {
     mainTreeCopy.skillIds = configStore
       .getState()
       .tree.nodes.map((node) => node.id);
-    console.log('new maintree', mainTreeCopy);
 
     setMainTree(mainTreeCopy);
   };
 
-  const addSkill = () => {
-    const bounding = reactFlowRef.current!.getBoundingClientRect();
+  const getNewNodePosition = (node?: any) => {
+    if (node) {
+      return {
+        x: node.position.x + 10,
+        y: node.position.y + 10,
+      };
+    }
 
     const mostUpdatedNodes = configStore.getState().tree.nodes;
+    if (mostUpdatedNodes.length === 0) {
+      return {
+        reactFlowX: 0,
+        reactFlowY: 0,
+      };
+    }
 
-    const reactFlowX =
-      mostUpdatedNodes.length > 0 ? bounding.left + bounding.width / 2 - 16 : 0;
-    const reactFlowY =
-      mostUpdatedNodes.length > 0 ? bounding.top + bounding.height / 2 - 64 : 0;
+    const bounding = reactFlowRef.current!.getBoundingClientRect();
+    return screenToFlowPosition.current!({
+      x: bounding.left + bounding.width / 2 - 16,
+      y: bounding.top + bounding.height / 2 - 64,
+    });
+  };
 
+  const addSkill = (baseNode?: any) => {
+    const position = getNewNodePosition(baseNode);
+    const mostUpdatedNodes = configStore.getState().tree.nodes;
     const isAddingTheFirst = mostUpdatedNodes.length === 0;
-
-    console.log('isAddingTHeFirst', isAddingTheFirst);
-
-    const position = isAddingTheFirst
-      ? { x: 0, y: 0 }
-      : screenToFlowPosition.current({
-          x: reactFlowX,
-          y: reactFlowY,
-        });
 
     const id = `skilltree:skill_node_${Date.now()}`;
 
@@ -188,20 +229,25 @@ export default function EditTree() {
       position,
       data: {
         id,
-        bonuses: [],
-        label: 'New Skill',
+        bonuses: [...baseNode.data.bonuses],
+        label: baseNode.data.label ?? 'New Skill',
         directConnections: [],
         longConnections: [],
         oneWayConnections: [],
-        backgroundTexture: 'skilltree:textures/icons/background/lesser.png',
-        iconTexture: 'skilltree:textures/icons/void.png',
-        borderTexture: 'skilltree:textures/tooltip/lesser.png',
+        backgroundTexture:
+          baseNode.data.backgroundTexture ??
+          'skilltree:textures/icons/background/lesser.png',
+        iconTexture:
+          baseNode.data.iconTexture ?? 'skilltree:textures/icons/void.png',
+        borderTexture:
+          baseNode.data.borderTexture ??
+          'skilltree:textures/tooltip/lesser.png',
         modpackFolder: project.path,
         projectId: project.index.toString(),
-        title: 'New skill',
+        title: baseNode.data.title ?? 'New skill',
         positionX: position.x,
         positionY: position.y,
-        buttonSize: 16,
+        buttonSize: baseNode.data.buttonSize ?? 16,
         isStartingPoint: false,
       },
     };
@@ -219,6 +265,7 @@ export default function EditTree() {
   const startBlank = () => {
     setFocusedNode(null);
     setFocusedNodePath(null);
+    focusedNodePathRef.current = null;
     setNodes([]);
     setEdges([]);
     rebuildMainTree();
@@ -233,6 +280,7 @@ export default function EditTree() {
 
     setFocusedNode(null);
     setFocusedNodePath(null);
+    focusedNodePathRef.current = null;
     setNodes(updatedTree.nodes);
     setEdges(updatedTree.edges);
     rebuildMainTree();
@@ -313,6 +361,7 @@ export default function EditTree() {
           focusedNodePath={focusedNodePath!}
           onClose={() => {
             setFocusedNodePath(null);
+            focusedNodePathRef.current = null;
             setFocusedNode(null);
           }}
         />
