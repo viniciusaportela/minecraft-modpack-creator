@@ -5,7 +5,6 @@ import {
   DropdownMenu,
   DropdownTrigger,
 } from '@nextui-org/react';
-import get from 'lodash.get';
 import Label from './Label';
 import { useModConfigStore } from '../../../../../../store/hooks/use-mod-config-store';
 import { ISkillTreeConfig } from '../../../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
@@ -23,7 +22,6 @@ interface ChoiceProps {
 }
 
 export default function ChoiceField({ options, path, label }: ChoiceProps) {
-  const store = useModConfigStore<ISkillTreeConfig>();
   const [value, setValue] = useModConfigSelector(path);
 
   const getLabel = (value: string | number) => {
@@ -44,7 +42,9 @@ export default function ChoiceField({ options, path, label }: ChoiceProps) {
 
   return (
     <>
-      <Label>{label}</Label>
+      <Label nestLevel={path.length} path={path}>
+        {label}
+      </Label>
       <Dropdown>
         <DropdownTrigger>
           <Button>{getLabel(value)}</Button>
@@ -52,20 +52,14 @@ export default function ChoiceField({ options, path, label }: ChoiceProps) {
         <DropdownMenu
           selectedKeys={[value]}
           onAction={(key) => {
-            store.setState((state) => {
-              get(state, path) === key;
-            });
-
-            setValue(() => {
-              return (
-                // eslint-disable-next-line eqeqeq
-                (
-                  options.find(
-                    (opt) => opt === key || (opt as IFullOption)?.value === key,
-                  ) as IFullOption
-                )?.value ?? key
-              );
-            });
+            setValue(
+              (
+                options.find(
+                  // eslint-disable-next-line eqeqeq
+                  (opt) => opt == key || (opt as IFullOption)?.value == key,
+                ) as IFullOption
+              )?.value ?? key,
+            );
           }}
         >
           {options.map((option) => (

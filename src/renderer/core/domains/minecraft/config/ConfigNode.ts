@@ -27,7 +27,6 @@ export class ConfigNode {
     } = {},
   ) {
     this.debounceWrite = debounce(async (newData, callback) => {
-      console.log('debounceWrite', !!callback);
       await writeFile(this.path, newData, 'utf-8');
       callback?.();
     }, 500);
@@ -127,7 +126,6 @@ export class ConfigNode {
     if (!isValid) return { isValid: false, severity: 'error' };
 
     const toRead = this.getFields() ?? [];
-    console.log('toRead', this.path, toRead);
 
     while (toRead.length) {
       const field = toRead.shift();
@@ -157,7 +155,6 @@ export class ConfigNode {
         Number(field.value) < field.range[0]! ||
         Number(field.value) > field.range[1]!
       ) {
-        console.log('validateNumber', field.value, field.range);
         return false;
       }
     }
@@ -170,7 +167,6 @@ export class ConfigNode {
 
     if (field.allowedValues) {
       if (!field.allowedValues.includes(field.value as string)) {
-        console.log('validateString', field.value, field.allowedValues);
         return false;
       }
     }

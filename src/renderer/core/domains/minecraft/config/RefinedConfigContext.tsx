@@ -80,7 +80,6 @@ export const RefinedConfigProvider: FC<StoreProviderProps> = ({
   const [store, setStore] = useState(createStoreForState());
 
   useEffect(() => {
-    console.log('fields changed', fields, store.getState());
     setStore(createStoreForState());
   }, [fields]);
 

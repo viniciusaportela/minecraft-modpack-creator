@@ -5,12 +5,9 @@ import {
   DropdownMenu,
   DropdownTrigger,
 } from '@nextui-org/react';
-import set from 'lodash.set';
 import { Key } from 'react';
 import Label from './Label';
 import { FunctionWithDefaultConfig } from '../../../interfaces/function-with-default-config';
-import { useModConfigStore } from '../../../../../../store/hooks/use-mod-config-store';
-import { ISkillTreeConfig } from '../../../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
 import { useModConfigSelector } from '../../../../../../store/hooks/use-mod-config-selector';
 
 interface ComponentChoiceProps {
@@ -28,7 +25,6 @@ export const ComponentChoice = ({
   label,
   options,
 }: ComponentChoiceProps) => {
-  const store = useModConfigStore<ISkillTreeConfig>();
   const [value, setValue] = useModConfigSelector(path);
 
   const getSelectedLabel = () => {
@@ -43,12 +39,10 @@ export const ComponentChoice = ({
   const onChangeType = (key: Key) => {
     const Component = getComponent(key);
     const newDefault = Component.getDefaultConfig();
-    console.log('newDefault for path', path, newDefault);
     setValue(newDefault);
   };
 
   const getSelectedKeys = () => {
-    console.log('getSelectedKeys', [value.type]);
     return [value.type];
   };
 
@@ -58,25 +52,9 @@ export const ComponentChoice = ({
     return <Component path={path} />;
   };
 
-  const calculateLabelColorFromNestedLevel = () => {
-    const baseColorHue = 17;
-    const baseColorSaturation = 63;
-    const baseColorLightness = 51;
-
-    const BASE_PATH_LENGTH = 7;
-    const nestedLevel = path.length - BASE_PATH_LENGTH;
-
-    const hue = baseColorHue + nestedLevel * 25;
-
-    return `hsl(${hue}, ${baseColorSaturation}%, ${baseColorLightness}%)`;
-  };
-
   return (
     <>
-      <Label
-        className="font-bold"
-        style={{ color: calculateLabelColorFromNestedLevel() }}
-      >
+      <Label className="font-bold" nestLevel={path.length} path={path}>
         {label}
       </Label>
       <Dropdown>

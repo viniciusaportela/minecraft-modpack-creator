@@ -50,7 +50,6 @@ const TextField = memo(({ path, onUpdatedRefined, filter }: TextFieldProps) => {
     return false;
   };
 
-  console.log('TextField', filter, config.name);
   if (filter && !config.name?.toLowerCase().includes(filter.toLowerCase())) {
     return null;
   }

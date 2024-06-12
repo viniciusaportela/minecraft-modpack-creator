@@ -62,15 +62,12 @@ export class ContextStoreRegistry {
                     if (!st!.isSetupDone) {
                       let additionalData = {};
                       if (mod) {
-                        console.log('has mod', mod);
                         const modInstance = ModFactory.create(
                           useAppStore.getState().selectedProject(),
                           mod,
                           { isLoaded: false },
                         );
-                        console.log('modInst', modInstance);
                         additionalData = await modInstance.makeConfig();
-                        console.log('addData', await modInstance.makeConfig());
 
                         st.set({ ...additionalData });
                       }

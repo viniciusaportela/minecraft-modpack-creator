@@ -1,10 +1,6 @@
 import { Input } from '@nextui-org/react';
-import get from 'lodash.get';
-import set from 'lodash.set';
 import Label from './Label';
 import { useModConfigSelector } from '../../../../../../store/hooks/use-mod-config-selector';
-import { ISkillTreeConfig } from '../../../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
-import { useModConfigStore } from '../../../../../../store/hooks/use-mod-config-store';
 
 interface TextFieldProps {
   path: string[];
@@ -16,7 +12,9 @@ export const TextField = ({ path, label }: TextFieldProps) => {
 
   return (
     <>
-      <Label>{label}</Label>
+      <Label nestLevel={path.length} path={path}>
+        {label}
+      </Label>
       <Input
         size="sm"
         classNames={{

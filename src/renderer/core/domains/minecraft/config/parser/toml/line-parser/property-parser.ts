@@ -11,7 +11,6 @@ export class PropertyParser extends LineParser {
 
   parse(line: string, ctx: ParseContext): ParseResult {
     const [, name, value] = this.PATTERN.exec(line)!;
-    console.log('parse property', line, name, value);
     return this.aggregateWithComment(ctx, {
       name: name.trim(),
       value: this.parseValue(value.trim()),

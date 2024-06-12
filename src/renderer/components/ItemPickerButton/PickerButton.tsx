@@ -28,10 +28,10 @@ export default function PickerButton({
   return (
     <Tooltip
       isDisabled={!value}
-      content={value || ''}
+      content={<span className="pointer-events-none">{value || ''}</span>}
       closeDelay={0}
+      className="picker-tooltip"
       offset={-10}
-      className="pointer-events-none"
     >
       <Button onPress={onPress} className={className}>
         {!value && 'Pick'}

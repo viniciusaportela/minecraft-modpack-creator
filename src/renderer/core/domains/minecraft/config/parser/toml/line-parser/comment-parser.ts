@@ -12,7 +12,6 @@ export class CommentParser extends LineParser {
   }
 
   parse(line: string, ctx: ParseContext): ParseResult {
-    console.log('parse comment', line);
     let commentValue = this.PATTERN.exec(line.replaceAll(/\t/g, ''))![1].trim();
 
     const uniqueChars = new Set(commentValue.split(''));
