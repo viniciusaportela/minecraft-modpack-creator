@@ -1,5 +1,6 @@
 import { readdir } from 'node:fs/promises';
 import path from 'path';
+import { exists } from 'fs-extra';
 import { BaseLauncher } from '../base/base-launcher';
 import { SKLauncherDirectory } from './sk-launcher-directory';
 import { isUUIDValid } from '../../../../helpers/is-uuid-valid';
@@ -17,9 +18,14 @@ export class SKLauncher extends BaseLauncher {
   }
 
   async getModpacksFolders(): Promise<string[]> {
-    const minecraftPath = this.getMinecraftRoot();
+    const minecraftPath = await this.getMinecraftRoot();
 
     if (!minecraftPath) {
+      return [];
+    }
+
+    const pathExists = await exists(path.join(minecraftPath, 'modpacks'));
+    if (!pathExists) {
       return [];
     }
 

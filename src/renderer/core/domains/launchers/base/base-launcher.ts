@@ -15,14 +15,14 @@ export abstract class BaseLauncher {
 
   abstract getModpacksFolders(): Promise<string[]>;
 
-  protected getMinecraftRoot() {
+  protected async getMinecraftRoot() {
     if (process.platform === 'linux') {
       const home = os.homedir();
       return path.join(home, '.minecraft');
     }
 
     if (process.platform === 'win32') {
-      const appData = ipcRenderer.sendSync('getPath', 'appData');
+      const appData = await ipcRenderer.invoke('getPath', 'appData');
       return path.join(appData, '.minecraft');
     }
 

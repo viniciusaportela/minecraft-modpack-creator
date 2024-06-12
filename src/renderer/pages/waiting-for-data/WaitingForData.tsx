@@ -1,6 +1,7 @@
 import { Code, Link, Spinner } from '@nextui-org/react';
 import React, { useCallback, useLayoutEffect } from 'react';
 import { ipcRenderer, shell } from 'electron';
+import path from 'node:path';
 import AppBarHeader, {
   AppBarHeaderContainer,
 } from '../../components/app-bar/AppBarHeader';
@@ -26,7 +27,7 @@ export default function WaitingForData() {
   }, []);
 
   const openModsFolder = () => {
-    shell.openPath(`${project!.path}/mods`);
+    shell.openPath(`${project!.path}${path.sep}mods`);
   };
 
   return (
