@@ -1,3 +1,4 @@
+import path from 'path';
 import { useAppStore } from '../../../../store/app.store';
 
 let instance: TextureLoader;
@@ -10,7 +11,8 @@ export class TextureLoader {
     return instance;
   }
 
-  getTextureSource(textureId: string | null | undefined) {
+  getTextureSource(textureId: string | null | undefined, isURI?: boolean) {
+    console.log('getTextureSource', textureId);
     if (!textureId) {
       return undefined;
     }
@@ -24,6 +26,18 @@ export class TextureLoader {
     const modId = splittedTexture[0];
     const texturePath = splittedTexture[1];
 
-    return `textures://${projectPath}/minecraft-toolkit/assets/${modId}/textures/${texturePath}.png`;
+    const osCompatiblePath =
+      process.platform === 'win32' && !isURI
+        ? path.win32.normalize(texturePath)
+        : texturePath;
+
+    const extraSlashesForURI = isURI ? `${path.sep}${path.sep}` : '';
+
+    const separator = isURI ? '/' : path.sep;
+    const projectPathConsideringUri = isURI
+      ? projectPath.replaceAll('\\', '/')
+      : projectPath;
+
+    return `textures:${path.sep}${path.sep}${extraSlashesForURI}${projectPathConsideringUri}${separator}minecraft-toolkit${separator}assets${separator}${modId}${separator}textures${separator}${osCompatiblePath}.png`;
   }
 }

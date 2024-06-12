@@ -3,11 +3,15 @@ import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { Edge, Node } from 'reactflow';
 import { DefaultMod } from '../default-mod';
 import { ISkillTreeConfig } from './interfaces/skill-tree-config.interface';
+import { useModsStore } from '../../../../store/mods.store';
+import ModId from '../../../../typings/mod-id.enum';
 
 export class SkillTree extends DefaultMod {
   async build() {
     // TODO check if has KubeJS installed, if so, use their path for datapacks
-    const config = this.modConfig;
+    const kubeJs = useModsStore
+      .getState()
+      .mods.find((m) => m.id === ModId.KubeJS);
 
     const basePath = path.join(
       this.project.path,
@@ -16,8 +20,8 @@ export class SkillTree extends DefaultMod {
       'skilltree',
     );
 
+    // Generate datapack metadata
     await mkdir(basePath, { recursive: true });
-
     await writeFile(
       path.join(basePath, 'pack.mcmeta'),
       JSON.stringify({
@@ -30,7 +34,19 @@ export class SkillTree extends DefaultMod {
       }),
     );
 
-    const treesPath = path.join(basePath, 'data', 'skilltree', 'skill_trees');
+    await this.generateFiles(this.getDataPath());
+
+    if (kubeJs) {
+      await this.generateFiles(this.getKubeDataPath());
+    }
+  }
+
+  async generateFiles(dataPath: string) {
+    await mkdir(dataPath, { recursive: true });
+
+    const config = this.modConfig;
+
+    const treesPath = path.join(dataPath, 'skilltree', 'skill_trees');
     await mkdir(treesPath, { recursive: true });
 
     const mainTreePath = path.join(treesPath, 'main_tree.json');
@@ -39,7 +55,7 @@ export class SkillTree extends DefaultMod {
       JSON.stringify(config.tree.mainTree, null, 2),
     );
 
-    const skillsPath = path.join(basePath, 'data', 'skilltree', 'skills');
+    const skillsPath = path.join(dataPath, 'skilltree', 'skills');
     await mkdir(skillsPath, { recursive: true });
 
     const filesInsideSkills = await readdir(skillsPath);
@@ -68,6 +84,20 @@ export class SkillTree extends DefaultMod {
       const skillPath = path.join(skillsPath, `${skillWithoutMod}.json`);
       await writeFile(skillPath, JSON.stringify(skill, null, 2));
     }
+  }
+
+  getDataPath() {
+    return path.join(
+      this.project.path,
+      'minecraft-toolkit',
+      'generated',
+      'skilltree',
+      'data',
+    );
+  }
+
+  getKubeDataPath() {
+    return path.join(this.project.path, 'kubejs', 'data');
   }
 
   async postBuild() {}

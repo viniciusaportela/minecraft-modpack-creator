@@ -227,7 +227,14 @@ app
   .whenReady()
   .then(() => {
     protocol.handle('textures', (request) => {
-      return net.fetch(`file://${request.url.slice('textures://'.length)}`);
+      const withoutProtocol = request.url.slice(
+        `textures:${path.sep}${path.sep}`.length,
+      );
+
+      const filePath = path.posix.normalize(withoutProtocol);
+      console.log(request.url, '->', `file://${filePath}`);
+
+      return net.fetch(`file://${filePath}`);
     });
 
     mkdirSync(path.join(app.getPath('userData'), 'app_logs'), {

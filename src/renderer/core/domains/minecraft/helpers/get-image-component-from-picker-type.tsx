@@ -14,12 +14,12 @@ export default function getImageComponentFromPickerType(
     const modId = item?.mod;
     const withoutModId = value.split(':')[1];
 
-    const texturePath = `${modId}/textures/${item?.isBlock ? 'block' : 'item'}/${withoutModId}.png`;
+    const textureId = `${modId}:textures/${item?.isBlock ? 'block' : 'item'}/${withoutModId}.png`;
 
     return item?.isBlock ? (
-      <Block3D path={texturePath} className="h-6 w-6" />
+      <Block3D textureId={textureId} className="h-6 w-6" />
     ) : (
-      <LazyTexture path={texturePath} className="h-6 w-6" />
+      <LazyTexture textureId={textureId} className="h-6 w-6" />
     );
   }
 
@@ -31,8 +31,9 @@ export default function getImageComponentFromPickerType(
       PickerType.SkillTreeIcon,
     ].includes(type)
   ) {
-    return <LazyTexture path={value} className="h-6 w-6" />;
+    console.log('getImageComponentFromPickerType', value);
+    return <LazyTexture textureId={value} className="h-6 w-6" />;
   }
 
-  return <LazyTexture path={null} className="h-6 w-6" />;
+  return <LazyTexture textureId={null} className="h-6 w-6" />;
 }

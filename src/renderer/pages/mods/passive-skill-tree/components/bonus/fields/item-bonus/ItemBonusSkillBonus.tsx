@@ -1,3 +1,4 @@
+import { v4 } from 'uuid';
 import { FunctionWithDefaultConfig } from '../../../../interfaces/function-with-default-config';
 import { ComponentChoice } from '../ComponentChoice';
 import { AllAttributes } from '../../bonuses/AllAttributes';
@@ -36,6 +37,8 @@ ItemBonusSkillBonus.getDefaultConfig = () => {
     type: 'skilltree:skill_bonus',
     skill_bonus: {
       ...AllAttributes.getDefaultConfig(),
+      name: 'Skill',
+      id: v4(),
     },
   };
 };

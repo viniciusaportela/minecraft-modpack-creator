@@ -61,7 +61,11 @@ export const ComponentChoice = ({
         <DropdownTrigger>
           <Button>{getSelectedLabel()}</Button>
         </DropdownTrigger>
-        <DropdownMenu onAction={onChangeType} selectedKeys={getSelectedKeys()}>
+        <DropdownMenu
+          onAction={onChangeType}
+          selectedKeys={getSelectedKeys()}
+          className="max-h-60 overflow-y-auto"
+        >
           {options.map((option) => (
             <DropdownItem key={option.value}>{option.label}</DropdownItem>
           ))}

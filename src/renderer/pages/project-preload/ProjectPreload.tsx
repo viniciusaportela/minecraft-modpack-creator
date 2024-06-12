@@ -13,7 +13,6 @@ export default function ProjectPreload() {
   const handleError = useErrorHandler();
   const { navigate } = usePager();
 
-  const idx = useAppStore((st) => st.selectedProjectIndex);
   const project = useSelectedProject();
 
   useEffect(() => {

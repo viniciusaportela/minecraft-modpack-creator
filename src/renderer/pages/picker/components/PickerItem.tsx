@@ -19,6 +19,10 @@ export default function PickerItem({
   style,
   type,
 }: PickerItemProps) {
+  const getValueFromType = () => {
+    return (item as IItem | IBlock).id || (item as ITexture).id;
+  };
+
   const getNameFromType = () => {
     return (item as IItem | IBlock).name || (item as ITexture).id;
   };
@@ -31,7 +35,7 @@ export default function PickerItem({
       style={style}
       onPress={onPress}
     >
-      {getImageComponentFromPickerType(type, getNameFromType())}
+      {getImageComponentFromPickerType(type, getValueFromType())}
       {getNameFromType()}
     </Button>
   );

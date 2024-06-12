@@ -4,12 +4,15 @@ import clsx from 'clsx';
 import { TextureLoader } from '../../core/domains/minecraft/texture/texture-loader';
 
 interface ILazyTextureProps {
-  path: string | null | undefined;
+  textureId: string | null | undefined;
   className?: string;
 }
 
-export default function LazyTexture({ path, className }: ILazyTextureProps) {
-  const texturePath = TextureLoader.getInstance().getTextureSource(path);
+export default function LazyTexture({
+  textureId,
+  className,
+}: ILazyTextureProps) {
+  const texturePath = TextureLoader.getInstance().getTextureSource(textureId);
 
   if (!texturePath) {
     return <Placeholder className={className} />;

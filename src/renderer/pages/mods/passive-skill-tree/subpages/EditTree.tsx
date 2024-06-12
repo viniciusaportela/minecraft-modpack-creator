@@ -182,6 +182,8 @@ export default function EditTree() {
     [nodes],
   );
 
+  console.log(nodes);
+
   const rebuildMainTree = () => {
     const { mainTree } = configStore.getState().tree;
 
@@ -204,8 +206,8 @@ export default function EditTree() {
     const mostUpdatedNodes = configStore.getState().tree.nodes;
     if (mostUpdatedNodes.length === 0) {
       return {
-        reactFlowX: 0,
-        reactFlowY: 0,
+        x: 0,
+        y: 0,
       };
     }
 
@@ -229,25 +231,25 @@ export default function EditTree() {
       position,
       data: {
         id,
-        bonuses: [...baseNode.data.bonuses],
-        label: baseNode.data.label ?? 'New Skill',
+        bonuses: baseNode ? [...baseNode.data.bonuses] : [],
+        label: baseNode?.data?.label ?? 'New Skill',
         directConnections: [],
         longConnections: [],
         oneWayConnections: [],
         backgroundTexture:
-          baseNode.data.backgroundTexture ??
+          baseNode?.data?.backgroundTexture ??
           'skilltree:textures/icons/background/lesser.png',
         iconTexture:
-          baseNode.data.iconTexture ?? 'skilltree:textures/icons/void.png',
+          baseNode?.data?.iconTexture ?? 'skilltree:textures/icons/void.png',
         borderTexture:
-          baseNode.data.borderTexture ??
+          baseNode?.data?.borderTexture ??
           'skilltree:textures/tooltip/lesser.png',
         modpackFolder: project.path,
         projectId: project.index.toString(),
-        title: baseNode.data.title ?? 'New skill',
+        title: baseNode?.data?.title ?? 'New skill',
         positionX: position.x,
         positionY: position.y,
-        buttonSize: baseNode.data.buttonSize ?? 16,
+        buttonSize: baseNode?.data?.buttonSize ?? 16,
         isStartingPoint: false,
       },
     };
@@ -319,7 +321,7 @@ export default function EditTree() {
           </DropdownMenu>
         </Dropdown>
 
-        <Button color="primary" onPress={addSkill}>
+        <Button color="primary" onPress={() => addSkill()}>
           <Plus />
           Add Skill
         </Button>

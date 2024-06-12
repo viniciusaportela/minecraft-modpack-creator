@@ -9,9 +9,11 @@ import {
   Tabs,
   useDisclosure,
 } from '@nextui-org/react';
-import { Hammer, X } from '@phosphor-icons/react';
-import { ipcRenderer } from 'electron';
+import { Folder, Hammer, X } from '@phosphor-icons/react';
+import { ipcRenderer, shell } from 'electron';
 import toast from 'react-hot-toast';
+import path from 'path';
+import { exec } from 'node:child_process';
 import useHorizontalScroll from '../../hooks/use-horizontal-scroll.hook';
 import Recipes from '../recipes/Recipes';
 import { pageByMod } from '../../constants/page-by-mod';
@@ -29,7 +31,6 @@ import PageHider from './components/PageHider';
 import BuildErrorReport from '../../components/build-error-modal/BuildErrorReport';
 import SearchBar from '../../components/search-bar/SearchBar';
 import { useModsStore } from '../../store/mods.store';
-import { TextureLoader } from '../../core/domains/minecraft/texture/texture-loader';
 import { IMod } from '../../store/interfaces/mods-store.interface';
 import ProjectService from '../../core/domains/project/project-service';
 import { useSelectedProject } from '../../store/app.store';
@@ -152,6 +153,14 @@ export default function Project() {
     return current === selectedTab;
   }
 
+  function openProjectFolder() {
+    if (process.platform === 'win32') {
+      exec(`start "" "${project!.path}"`);
+    } else {
+      shell.openPath(project!.path);
+    }
+  }
+
   const filteredMods = modsFilter
     ? mods.filter((mod) =>
         mod.name.toLowerCase().includes(modsFilter.toLowerCase()),
@@ -176,6 +185,14 @@ export default function Project() {
       >
         <AppBarHeaderContainer>
           <div className="flex-1 app-bar-drag h-full" />
+          <Button
+            size="sm"
+            className="mr-2"
+            isIconOnly
+            onPress={() => openProjectFolder()}
+          >
+            <Folder size={18} />
+          </Button>
           <Button
             startContent={isBuilding ? undefined : <Hammer size={16} />}
             className="my-3"
@@ -211,7 +228,11 @@ export default function Project() {
                 >
                   <CardBody className="min-h-fit flex flex-row">
                     <Image
-                      src={mod.icon ? `textures://${mod.icon}` : NoThumb}
+                      src={
+                        mod.icon
+                          ? `textures:${path.sep}${path.sep}${mod.icon}`
+                          : NoThumb
+                      }
                       className="w-full h-full"
                       classNames={{
                         wrapper: 'min-w-10 min-h-10 w-10 h-10 mr-3',

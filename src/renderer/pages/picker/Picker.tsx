@@ -64,6 +64,8 @@ export default function Picker() {
 
   const [type, setType] = useState(PickerType.Item);
 
+  console.log('textures', textures, 'type', type);
+
   const [listItems, setListItems] = useState<
     {
       render: FunctionComponent<{
@@ -201,7 +203,7 @@ export default function Picker() {
             />
           ),
           type: 'item',
-          value: item.name,
+          value: item.id,
         })),
       ]);
     }

@@ -14,6 +14,7 @@ import get from 'lodash.get';
 import set from 'lodash.set';
 import React, { Key, useState } from 'react';
 import { Plus, X } from '@phosphor-icons/react';
+import { v4 } from 'uuid';
 import { Page, Pager } from '../../../../../components/pager/Pager';
 import { useErrorHandler } from '../../../../../core/errors/hooks/useErrorHandler';
 import { AllAttributes } from './bonuses/AllAttributes';
@@ -56,6 +57,8 @@ export default function BonusModal({
     store.setState((state) => {
       set(state, [...focusedNodePath, 'data', 'bonuses', index], {
         ...defaultConfig,
+        name: 'Skill',
+        id: v4(),
       });
     });
   };
@@ -88,6 +91,8 @@ export default function BonusModal({
             ...bonuses,
             {
               ...defaultConfig,
+              name: 'Skill',
+              id: v4(),
             },
           ],
         );
