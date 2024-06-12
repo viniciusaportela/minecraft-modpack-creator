@@ -10,7 +10,6 @@ interface ILazyTextureProps {
 
 export default function LazyTexture({ path, className }: ILazyTextureProps) {
   const texturePath = TextureLoader.getInstance().getTextureSource(path);
-  console.log(texturePath);
 
   if (!texturePath) {
     return <Placeholder className={className} />;

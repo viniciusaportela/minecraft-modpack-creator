@@ -26,8 +26,6 @@ export const ModConfigProvider = memo(
       );
     }
 
-    console.log('provider', mod, store);
-
     return (
       <ModConfigContext.Provider value={mod ? store : null}>
         {children}

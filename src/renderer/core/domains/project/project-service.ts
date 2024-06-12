@@ -21,7 +21,6 @@ export default class ProjectService {
   }
 
   async createFromFolder(folder: string) {
-    console.log('create from folder', folder);
     const project = await this.launchers.genProjectFromFolder(folder);
 
     if (!project) {

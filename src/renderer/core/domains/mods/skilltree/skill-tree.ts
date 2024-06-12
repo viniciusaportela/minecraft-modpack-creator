@@ -81,8 +81,6 @@ export class SkillTree extends DefaultMod {
       mainTree: { skillIds: [] as any[], id: 'skilltree:main_tree' },
     };
 
-    console.log('initialize tree', configFile);
-
     updatedTree.nodes = configFile.skills.map((cfg) => {
       return {
         id: cfg.id,

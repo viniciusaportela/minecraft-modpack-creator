@@ -8,7 +8,6 @@ export class UnknownParser extends LineParser {
   }
 
   parse(line: string, ctx: ParseContext): ParseResult {
-    console.log('parse unknown', line);
     return this.aggregateWithComment(ctx, {
       type: 'unknown',
       name: `Line ${ctx.lineNumber}`,

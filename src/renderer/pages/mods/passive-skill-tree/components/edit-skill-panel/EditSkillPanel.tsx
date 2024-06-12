@@ -31,12 +31,6 @@ export default function EditSkillPanel({
     'data',
   ]);
 
-  console.log(
-    'focusedNodeData',
-    [...(focusedNodePath ?? []), 'data'],
-    focusedNodeData,
-  );
-
   const [title, setTitle] = useModConfigSelector([
     ...(focusedNodePath ?? []),
     'data',
@@ -124,10 +118,8 @@ export default function EditSkillPanel({
               <PickerButton
                 type={PickerType.Texture}
                 className="h-8 ml-auto"
-                value={
-                  formatTextureInput(iconTexture) ?? 'skilltree:icons/void'
-                }
-                onPick={(value) => setIconTexture(formatTextureOutput(value))}
+                value={iconTexture ?? 'skilltree:textures/icons/void'}
+                onPick={(value) => setIconTexture(value)}
               />
             </div>
             <div className="flex items-center">
@@ -136,12 +128,10 @@ export default function EditSkillPanel({
                 type={PickerType.SkillTreeBackground}
                 className="h-8 ml-auto"
                 value={
-                  formatTextureInput(backgroundTexture) ??
-                  'skilltree:icons/background/lesser'
+                  backgroundTexture ??
+                  'skilltree:textures/icons/background/lesser'
                 }
-                onPick={(value) =>
-                  setBackgroundTexture(formatTextureOutput(value))
-                }
+                onPick={(value) => setBackgroundTexture(value)}
               />
             </div>
             <div className="flex items-center">
@@ -149,11 +139,8 @@ export default function EditSkillPanel({
               <PickerButton
                 type={PickerType.SkillTreeBorder}
                 className="h-8 ml-auto"
-                value={
-                  formatTextureInput(borderTexture) ??
-                  'skilltree:tooltip/lesser'
-                }
-                onPick={(value) => setBorderTexture(formatTextureOutput(value))}
+                value={borderTexture ?? 'skilltree:textures/tooltip/lesser'}
+                onPick={(value) => setBorderTexture(value)}
               />
             </div>
             <Input

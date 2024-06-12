@@ -109,14 +109,11 @@ const createWindow = async () => {
   ipcMain.on(
     'watchMetadata',
     async (event, baseFolder: string, callBackChannel: string) => {
-      console.log('watch metadata');
       const folderExists = existsSync(
         path.join(baseFolder, 'minecraft-toolkit'),
       );
-      console.log('watch metadata 2', baseFolder, folderExists);
 
       if (!folderExists) {
-        console.log('minecraft-toolkit doesnt exists');
         await new Promise((resolve) => {
           const watcher = chokidar.watch(baseFolder, {
             ignored: /(^|[/\\])\../, // ignore dotfiles
@@ -127,7 +124,6 @@ const createWindow = async () => {
           watcher.on('addDir', (dirPath) => {
             // Check if the added directory is the specific folder
             if (path.basename(dirPath) === 'minecraft-toolkit') {
-              console.log(`folder has been created.`);
               watcher.close();
               watcher.removeAllListeners();
               resolve(undefined);
@@ -141,7 +137,6 @@ const createWindow = async () => {
       );
 
       if (!metadataExists) {
-        console.log("metadata doesn't exists. Waiting...");
         await new Promise((resolve) => {
           const watcher = chokidar.watch(
             path.join(baseFolder, 'minecraft-toolkit'),
@@ -152,10 +147,8 @@ const createWindow = async () => {
           );
 
           watcher.on('add', (filePath) => {
-            console.log('add', filePath);
             // Check if the added file is the specific file
             if (path.basename(filePath) === 'metadata.json') {
-              console.log(`file has been created.`);
               watcher.close();
               watcher.removeAllListeners();
               resolve(undefined);

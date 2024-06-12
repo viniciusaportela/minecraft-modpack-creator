@@ -126,7 +126,6 @@ export default function Project() {
   function getModViewFromTab(tab: string) {
     const mod = getModFromTab(tab);
     const CustomPlugin = pageByMod[mod?.id as keyof typeof pageByMod];
-    console.log('get mod view', mod);
 
     return (
       <ModConfigProvider mod={mod} key={mod?.id || tab}>
@@ -212,13 +211,7 @@ export default function Project() {
                 >
                   <CardBody className="min-h-fit flex flex-row">
                     <Image
-                      src={
-                        mod.icon
-                          ? TextureLoader.getInstance().getTextureSource(
-                              mod.icon,
-                            )
-                          : NoThumb
-                      }
+                      src={mod.icon ? `textures://${mod.icon}` : NoThumb}
                       className="w-full h-full"
                       classNames={{
                         wrapper: 'min-w-10 min-h-10 w-10 h-10 mr-3',

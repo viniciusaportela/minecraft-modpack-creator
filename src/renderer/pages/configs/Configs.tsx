@@ -76,8 +76,6 @@ export default function Configs() {
     Promise.all(promises).then(async (results) => {
       const invalids = results.filter((v) => !v.isValid);
 
-      console.log('results', results);
-
       setInvalidNodes(
         invalids.map((inv) => ({
           node: inv.node,
@@ -90,7 +88,6 @@ export default function Configs() {
   useEffect(() => {
     setFields(selectedConfig?.getFields() ?? []);
   }, [selectedConfig]);
-  console.log('fields', fields);
 
   useEffect(() => {
     if (filesTreeRef.current) {
@@ -103,7 +100,6 @@ export default function Configs() {
   );
 
   const revalidateSelected = async () => {
-    console.log('revalidateSelected', await selectedConfig!.isValid());
     const { isValid, severity } = await selectedConfig!.isValid();
 
     if (isValid) {
@@ -116,7 +112,6 @@ export default function Configs() {
       const alreadyExists = invalidNodes.find(
         (invalid) => invalid.node.getPath() === selectedConfig?.getPath(),
       );
-      console.log('alreadyExists', alreadyExists);
 
       if (!alreadyExists) {
         setInvalidNodes((prev) => [
@@ -126,8 +121,6 @@ export default function Configs() {
       }
     }
   };
-
-  console.log('invalid', invalidNodes);
 
   const resetFromSourceSelected = async () => {
     setIsResetingFile(true);
@@ -150,14 +143,12 @@ export default function Configs() {
   };
 
   const onUpdatedRaw = useCallback(async () => {
-    console.log('onUpdatedRaw');
     await selectedConfig!.setupFile();
     setFields(selectedConfig?.getFields() ?? []);
     await revalidateSelected();
   }, [selectedConfig]);
 
   const onUpdatedRefined = useCallback(async () => {
-    console.log('onUpdatedRefined');
     await selectedConfig?.setupFile();
     await revalidateSelected();
   }, [selectedConfig]);

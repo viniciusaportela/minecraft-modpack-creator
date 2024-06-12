@@ -55,7 +55,6 @@ export class SKLauncher extends BaseLauncher {
   async isFolderOfThisLauncher(folder: string): Promise<boolean> {
     const lastPart = folder.split('/').pop();
     const secondLastPart = folder.split('/').slice(-2, -1)[0];
-    console.log('lastPart', lastPart, 'secondLastPart', secondLastPart);
 
     return secondLastPart === 'modpacks' && isUUIDValid(lastPart as string);
   }

@@ -1,13 +1,12 @@
 import {
-  Button,
+  Autocomplete,
+  AutocompleteItem,
   Dropdown,
   DropdownItem,
   DropdownMenu,
-  DropdownTrigger,
   ScrollShadow,
 } from '@nextui-org/react';
-import { Key, useEffect } from 'react';
-import get from 'lodash.get';
+import { Key } from 'react';
 import {
   ALL_BONUSES,
   COMPONENTS_BY_BONUS,
@@ -29,23 +28,21 @@ export default function EditBonus({
 
   return (
     <ScrollShadow className="flex flex-col no-scrollbar">
-      <Dropdown size="lg" shouldBlockScroll={false}>
-        <DropdownTrigger>
-          <Button variant="bordered" className="min-h-[42px]">
-            {bonus.type}
-          </Button>
-        </DropdownTrigger>
-        <DropdownMenu
-          items={ALL_BONUSES.map((bonus) => ({ key: bonus, label: bonus }))}
-          selectedKeys={[bonus.type]}
-          onAction={onSelect}
-          classNames={{
-            base: 'h-60 overflow-y-auto',
-          }}
-        >
-          {(item) => <DropdownItem key={item.key}>{item.label}</DropdownItem>}
-        </DropdownMenu>
-      </Dropdown>
+      <Autocomplete
+        selectedKey={bonus.type}
+        size="sm"
+        onSelectionChange={(key) => {
+          if (key) {
+            onSelect(key);
+          }
+        }}
+        isClearable={false}
+        defaultItems={ALL_BONUSES.map((b) => ({ label: b, value: b }))}
+      >
+        {(item) => (
+          <AutocompleteItem key={item.value}>{item.label}</AutocompleteItem>
+        )}
+      </Autocomplete>
       <span className="font-bold mt-3 mb-2">
         {ReadableByBonus[bonus.type as EBonus] ?? bonus.type}
       </span>

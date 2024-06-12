@@ -18,12 +18,10 @@ export class TomlParser extends BaseParser {
   ];
 
   parseFields(rawData: string): RefinedField[] {
-    console.log('parseFields', rawData);
     const lines = rawData.split('\n');
 
     const parsed = lines.reduce<RefinedField[]>((acc, line, index) => {
       const { last, lastGroup } = this.getLast(line, acc);
-      console.log('parseLine, last', last, 'lastPath', lastGroup);
 
       return this.parseLine(line, acc, {
         lineNumber: index + 1,
@@ -79,19 +77,11 @@ export class TomlParser extends BaseParser {
     path: string,
     currentIndentation: number,
   ): { last: RefinedField | undefined; lastGroup: RefinedField | undefined } {
-    console.log(
-      '[getLastMatchingIndentationFromGroup]',
-      group,
-      path,
-      currentIndentation,
-    );
     if (!group) {
-      console.log('[getLastMatchingIndentationFromGroup] no group');
       return { last: undefined, lastGroup: undefined };
     }
 
     if (currentIndentation === group.indentation + 1) {
-      console.log('[getLastMatchingIndentationFromGroup] matching indentation');
       return {
         last: group.children!.length
           ? group.children![group.children!.length - 1]
@@ -101,9 +91,6 @@ export class TomlParser extends BaseParser {
     }
 
     if (group.children) {
-      console.log(
-        '[getLastMatchingIndentationFromGroup] not matching indentation but has children',
-      );
       return this.getLastMatchingIndentationFromGroup(
         group.children[group.children.length - 1],
         `${path ? `${path}.` : ''}children`,
@@ -111,9 +98,6 @@ export class TomlParser extends BaseParser {
       );
     }
 
-    console.log(
-      '[getLastMatchingIndentationFromGroup] no matching indentation and doesnt have children',
-    );
     return { last: undefined, lastGroup: undefined };
   }
 
@@ -127,24 +111,9 @@ export class TomlParser extends BaseParser {
     for (const Parser of this.LINE_PARSERS) {
       const lineParser = new Parser();
       if (lineParser.matches(line)) {
-        console.group('line');
-        console.log('Reading line:', line);
-        console.log('Indentation:', countIndentation(line));
-        console.log(
-          'With Context, last:',
-          ctx.last,
-          'lastGroup:',
-          ctx.lastGroup,
-          'lineNumber:',
-          ctx.lineNumber,
-        );
         const { operation, result } = lineParser.parse(line, ctx);
 
-        console.log('result: ', operation, JSON.stringify(result, null, 2));
-        console.groupEnd();
-
         if (ctx.lastGroup) {
-          console.log('has lastGroup', ctx.lastGroup);
           if (operation === 'add') {
             ctx.lastGroup.children!.push(result);
           } else if (operation === 'replace') {
@@ -154,8 +123,6 @@ export class TomlParser extends BaseParser {
 
           return acc;
         }
-
-        console.log("doesn't has lastGroup");
 
         return operation === 'add'
           ? [...acc, result]

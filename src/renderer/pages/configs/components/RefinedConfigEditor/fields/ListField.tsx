@@ -62,8 +62,6 @@ const ListField = memo(({ path, onUpdatedRefined, filter }: ListFieldProps) => {
     saveValues(valuesWithout);
   };
 
-  console.log('list', values);
-
   if (filter && !config.name?.toLowerCase().includes(filter.toLowerCase())) {
     return null;
   }
