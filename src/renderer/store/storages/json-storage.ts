@@ -11,6 +11,8 @@ export class JsonStorage {
     dataFolder: string,
   ) => Promise<void>;
 
+  private cachedExists: boolean | null = null;
+
   constructor(
     private readonly basePathGetter: () => any,
     private readonly useCache = true,
@@ -18,11 +20,17 @@ export class JsonStorage {
     // @ts-ignore
     this.debounceWrite = debounce(
       async (name: string, value: any, dataFolder: string) => {
-        console.log('write', path.join(dataFolder, `${name}.json`), value);
-        await writeFile(
-          path.join(dataFolder, `${name}.json`),
-          JSON.stringify(value),
-        );
+        if (this.cachedExists === null) {
+          this.cachedExists = existsSync(path.join(dataFolder, `${name}.json`));
+        }
+
+        if (this.cachedExists) {
+          console.log('write', path.join(dataFolder, `${name}.json`), value);
+          await writeFile(
+            path.join(dataFolder, `${name}.json`),
+            JSON.stringify(value),
+          );
+        }
       },
       1000,
     );

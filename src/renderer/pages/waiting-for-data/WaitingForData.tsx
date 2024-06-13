@@ -8,6 +8,7 @@ import AppBarHeader, {
 import { useSelectedProject } from '../../store/app.store';
 import { usePager } from '../../components/pager/hooks/usePager';
 import ProjectService from '../../core/domains/project/project-service';
+import openFolder from '../../helpers/open-folder';
 
 export default function WaitingForData() {
   const { navigate } = usePager();
@@ -27,7 +28,7 @@ export default function WaitingForData() {
   }, []);
 
   const openModsFolder = () => {
-    shell.openPath(`${project!.path}${path.sep}mods`);
+    openFolder(`${project!.path}${path.sep}mods`);
   };
 
   return (

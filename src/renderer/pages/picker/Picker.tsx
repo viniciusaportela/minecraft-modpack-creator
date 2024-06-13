@@ -58,7 +58,7 @@ export default function Picker() {
   const inputTextRef = useRef('');
   const [inputText, setInputText] = useReducer(reflectOnRef(inputTextRef), '');
 
-  const textures = useTexturesStore((state) => state.textures);
+  const textures = useTexturesStore((state) => state.recipes);
 
   const requestId = useParams('requestId');
 

@@ -6,7 +6,7 @@ import Title from '../../../components/title/Title';
 import { usePager } from '../../../components/pager/hooks/usePager';
 import { PickerType } from '../../../typings/picker-type.enum';
 
-export default function AddShaped() {
+export default function AddRecipe() {
   const { navigate } = usePager();
   const [input, setInput] = useState<(string | null)[][]>([
     [null, null, null],

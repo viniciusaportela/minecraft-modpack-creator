@@ -1,8 +1,7 @@
 import ModId from '../../typings/mod-id.enum';
 import RecipeList from './subpages/RecipeList';
 import { Page, Pager } from '../../components/pager/Pager';
-import AddRecipeList from './subpages/AddRecipeList';
-import AddShaped from './subpages/AddShaped';
+import AddRecipe from './subpages/AddRecipe';
 import Alert from '../../components/alert/Alert';
 import { useModsStore } from '../../store/mods.store';
 
@@ -28,11 +27,8 @@ export default function Recipes() {
       <Page name="recipe-list">
         <RecipeList />
       </Page>
-      <Page name="add-recipe-list">
-        <AddRecipeList />
-      </Page>
-      <Page name="add-shaped-recipe">
-        <AddShaped />
+      <Page name="add-recipe">
+        <AddRecipe />
       </Page>
     </Pager>
   );

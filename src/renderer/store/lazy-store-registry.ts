@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { StoreApi } from 'zustand/vanilla';
+import { type Mutate, StoreApi } from 'zustand/vanilla';
 import { persist } from 'zustand/middleware';
 import path from 'path';
 import { UseBoundStore } from 'zustand/react';
@@ -24,7 +24,15 @@ function ModsFolderGetter() {
 export class LazyStoreRegistry {
   constructor() {}
 
-  private stores: Map<string, StoreApi<any>> = new Map();
+  private stores: Map<
+    string,
+    UseBoundStore<
+      Mutate<
+        StoreApi<any>,
+        [['zustand/immer', null], ['zustand/persist', null]]
+      >
+    >
+  > = new Map();
 
   static getInstance() {
     if (!instance) {
@@ -87,10 +95,15 @@ export class LazyStoreRegistry {
     return this.stores.get(modId)!;
   }
 
-  getProjectStore(): UseBoundStore<StoreApi<IProjectStore>> {
-    if (!this.stores.has(useAppStore.getState().selectedProject()!.path)) {
+  getProjectStore(): UseBoundStore<
+    Mutate<StoreApi<IProjectStore>, [['zustand/immer', null]]>
+  > {
+    const storePath =
+      useAppStore.getState().selectedProject()?.path ?? '__project_default';
+
+    if (!this.stores.has(storePath)) {
       this.stores.set(
-        useAppStore.getState().selectedProject()!.path,
+        storePath,
         create(
           persist(
             immer(
@@ -110,7 +123,7 @@ export class LazyStoreRegistry {
               storage: new JsonStorage(
                 () =>
                   path.join(
-                    useAppStore.getState().selectedProject()!.path,
+                    useAppStore.getState().selectedProject()?.path ?? '',
                     'minecraft-toolkit',
                   ),
                 false,
@@ -130,6 +143,6 @@ export class LazyStoreRegistry {
       );
     }
 
-    return this.stores.get(useAppStore.getState().selectedProject()!.path)!;
+    return this.stores.get(storePath)!;
   }
 }

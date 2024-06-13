@@ -38,6 +38,7 @@ import {
   useProjectSelector,
   useProjectStore,
 } from '../../store/hooks/use-project-store';
+import openFolder from '../../helpers/open-folder';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -164,11 +165,7 @@ export default function Project() {
   }
 
   function openProjectFolder() {
-    if (process.platform === 'win32') {
-      exec(`start "" "${project!.path}"`);
-    } else {
-      shell.openPath(project!.path);
-    }
+    openFolder(project!.path);
   }
 
   const filteredMods = modsFilter

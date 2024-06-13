@@ -198,6 +198,7 @@ export default function Projects() {
         {orderedProjects.map((p) => (
           <ProjectCard
             title={p.name}
+            path={p.path}
             projectIdx={p.index}
             key={p.path}
             launcher={p.launcher}

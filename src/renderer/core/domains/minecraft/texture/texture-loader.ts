@@ -11,8 +11,20 @@ export class TextureLoader {
     return instance;
   }
 
+  getTextureSourceFromItem(itemId: string) {
+    return this.getTextureSource(this.getTextureFromItem(itemId));
+  }
+
+  getTextureFromItem(itemId: string) {
+    const itemSplitted = itemId.split(':');
+
+    const modId = itemSplitted[0];
+    const itemName = itemSplitted[1];
+
+    return `${modId}:textures/item/${itemName}.png`;
+  }
+
   getTextureSource(textureId: string | null | undefined, isURI?: boolean) {
-    console.log('getTextureSource', textureId);
     if (!textureId) {
       return undefined;
     }

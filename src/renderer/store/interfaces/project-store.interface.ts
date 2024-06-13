@@ -1,7 +1,7 @@
 import { IMod } from './mods-store.interface';
 
 export interface IProjectStore {
-  recipes: any[];
+  recipes: ICustomRecipe[];
   items: any[];
   blocks: any[];
   loaded: boolean;
@@ -9,3 +9,5 @@ export interface IProjectStore {
   focusedTab: string;
   load: () => void;
 }
+
+export interface ICustomRecipe {}

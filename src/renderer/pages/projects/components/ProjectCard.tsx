@@ -10,12 +10,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@nextui-org/react';
-import { CaretDown, TrashSimple, Warning } from '@phosphor-icons/react';
+import { CaretDown, Folder, TrashSimple, Warning } from '@phosphor-icons/react';
 import CurseForgeLogo from '../../../assets/curse-forge-logo.svg';
 import MinecraftLogo from '../../../assets/minecraft.png';
 import SKLauncherLogo from '../../../assets/sklauncher-logo.png';
 import capitalize from '../../../helpers/capitalize';
-import { useAppStore, useSelectedProject } from '../../../store/app.store';
+import { useAppStore } from '../../../store/app.store';
+import openFolder from '../../../helpers/open-folder';
 
 interface ProjectCardProps {
   title: string;
@@ -24,6 +25,7 @@ interface ProjectCardProps {
   onDelete?: (projectIdx: number) => void;
   onOpenVersionPicker?: (projectIdx: number, version: string) => void;
   launcher: string;
+  path: string;
 }
 
 export default function ProjectCard({
@@ -33,6 +35,7 @@ export default function ProjectCard({
   onOpenVersionPicker,
   onDelete,
   launcher,
+  path,
 }: ProjectCardProps) {
   const project = useAppStore((st) => st.projects[projectIdx]);
 
@@ -132,6 +135,10 @@ export default function ProjectCard({
               <CaretDown className="ml-1" />
             </Button>
           )}
+        <Button size="sm" isIconOnly onPress={() => openFolder(path)}>
+          <Folder />
+        </Button>
+
         {project.isLoaded || project.orphan ? (
           <Popover
             backdrop="opaque"

@@ -11,6 +11,7 @@ import { useEntitiesStore } from '../../../store/entities.store';
 import { usePotionsStore } from '../../../store/potions.store';
 import { useTexturesStore } from '../../../store/textures.store';
 import { LazyStoreRegistry } from '../../../store/lazy-store-registry';
+import { useRecipesStore } from '../../../store/recipes.store';
 
 let instance: ProjectPreloader;
 
@@ -37,6 +38,7 @@ export class ProjectPreloader {
     await this.loadStore('entities');
     await this.loadStore('potions');
     await this.loadStore('textures');
+    await this.loadStore('recipes');
 
     LazyStoreRegistry.getInstance().getProjectStore();
   }
@@ -61,6 +63,8 @@ export class ProjectPreloader {
         return usePotionsStore;
       case 'textures':
         return useTexturesStore;
+      case 'recipes':
+        return useRecipesStore;
       default:
         throw new Error(`Unknown store: ${storeName}`);
     }
