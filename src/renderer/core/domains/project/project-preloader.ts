@@ -10,6 +10,7 @@ import { useMetadataStore } from '../../../store/metadata.store';
 import { useEntitiesStore } from '../../../store/entities.store';
 import { usePotionsStore } from '../../../store/potions.store';
 import { useTexturesStore } from '../../../store/textures.store';
+import { LazyStoreRegistry } from '../../../store/lazy-store-registry';
 
 let instance: ProjectPreloader;
 
@@ -36,6 +37,8 @@ export class ProjectPreloader {
     await this.loadStore('entities');
     await this.loadStore('potions');
     await this.loadStore('textures');
+
+    LazyStoreRegistry.getInstance().getProjectStore();
   }
 
   private getStore(storeName: string) {

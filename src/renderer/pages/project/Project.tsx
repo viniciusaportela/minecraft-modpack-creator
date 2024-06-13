@@ -34,6 +34,10 @@ import { useModsStore } from '../../store/mods.store';
 import { IMod } from '../../store/interfaces/mods-store.interface';
 import ProjectService from '../../core/domains/project/project-service';
 import { useSelectedProject } from '../../store/app.store';
+import {
+  useProjectSelector,
+  useProjectStore,
+} from '../../store/hooks/use-project-store';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -50,6 +54,10 @@ export default function Project() {
   const project = useSelectedProject();
   const mods = useModsStore((st) => Object.values(st.mods));
 
+  const projectStore = useProjectStore();
+  const openedTabs = useProjectSelector((st) => st.openedTabs);
+  const focusedTab = useProjectSelector((st) => st.focusedTab);
+
   const [modsFilter, setModsFilter] = useState('');
 
   const {
@@ -62,9 +70,6 @@ export default function Project() {
   useLayoutEffect(() => {
     ipcRenderer.send('resize', 1280, 900);
   }, []);
-
-  const [openedModTabs, setOpenedModTabs] = useState<any[]>([]);
-  const [selectedTab, setSelectedTab] = useState('recipes');
 
   async function build() {
     setIsBuilding(true);
@@ -95,29 +100,34 @@ export default function Project() {
   }
 
   function clickOnMod(addon: IMod) {
-    const exists = openedModTabs.find((tab) => tab.name === addon.name);
+    const exists = openedTabs.find((tab) => tab.name === addon.name);
 
     if (!exists) {
-      setOpenedModTabs([...openedModTabs, addon]);
+      projectStore.setState((st) => {
+        st.openedTabs.push(addon);
+      });
     }
 
     setTimeout(() => {
-      setSelectedTab(addon.name);
+      projectStore.setState({ focusedTab: addon.name });
     }, 0);
   }
 
   function closeTab(tab: string) {
-    const newTabs = openedModTabs.filter((addon) => addon.name !== tab);
+    const newTabs = openedTabs.filter((addon) => addon.name !== tab);
 
-    if (tab === selectedTab) {
-      const selectedTabIndex = openedModTabs.findIndex(
+    if (tab === focusedTab) {
+      const selectedTabIndex = openedTabs.findIndex(
         (opened) => opened.name === tab,
       );
-      const beforeSelectedTab = openedModTabs[selectedTabIndex - 1];
-      setSelectedTab(beforeSelectedTab?.name ?? 'recipes');
+      const beforeSelectedTab = openedTabs[selectedTabIndex - 1];
+
+      projectStore.setState({
+        focusedTab: beforeSelectedTab?.name ?? 'recipes',
+      });
     }
 
-    setOpenedModTabs(newTabs);
+    projectStore.setState({ openedTabs: newTabs });
   }
 
   function getModFromTab(tab: string) {
@@ -150,7 +160,7 @@ export default function Project() {
   }
 
   function isVisible(current: string) {
-    return current === selectedTab;
+    return current === focusedTab;
   }
 
   function openProjectFolder() {
@@ -233,7 +243,7 @@ export default function Project() {
                           ? `textures:${path.sep}${path.sep}${mod.icon}`
                           : NoThumb
                       }
-                      className="w-full h-full"
+                      className="w-full h-full object-contain"
                       classNames={{
                         wrapper: 'min-w-10 min-h-10 w-10 h-10 mr-3',
                       }}
@@ -256,15 +266,17 @@ export default function Project() {
           id="tabs"
         >
           <Tabs
-            selectedKey={selectedTab}
-            onSelectionChange={(tab) => setSelectedTab(tab.toString())}
+            selectedKey={focusedTab}
+            onSelectionChange={(tab) =>
+              projectStore.setState({ focusedTab: tab.toString() })
+            }
           >
             <Tab key="recipes" title="Recipes" />
             <Tab key="items" title="Items" />
             <Tab key="blocks" title="Blocks" />
             <Tab key="configs" title="Configs" />
             <Tab key="progression" title="Progression" />
-            {openedModTabs.map((addon) => (
+            {openedTabs.map((addon) => (
               <Tab
                 key={addon.name}
                 title={
@@ -289,7 +301,7 @@ export default function Project() {
         <PageHider isVisible={isVisible('configs')}>
           <Configs />
         </PageHider>
-        {openedModTabs.map((addon) => getModViewFromTab(addon.name))}
+        {openedTabs.map((addon) => getModViewFromTab(addon.name))}
       </div>
       <BuildErrorReport
         isOpen={isReportOpen}

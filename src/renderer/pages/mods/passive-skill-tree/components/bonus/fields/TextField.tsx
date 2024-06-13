@@ -1,6 +1,7 @@
 import { Input } from '@nextui-org/react';
 import Label from './Label';
 import { useModConfigSelector } from '../../../../../../store/hooks/use-mod-config-selector';
+import { NestWrapper } from '../NestWrapper';
 
 interface TextFieldProps {
   path: string[];
@@ -11,10 +12,8 @@ export const TextField = ({ path, label }: TextFieldProps) => {
   const [value, setValue] = useModConfigSelector(path);
 
   return (
-    <>
-      <Label nestLevel={path.length} path={path}>
-        {label}
-      </Label>
+    <NestWrapper nestLevel={path.length}>
+      <Label nestLevel={path.length}>{label}</Label>
       <Input
         size="sm"
         classNames={{
@@ -25,6 +24,6 @@ export const TextField = ({ path, label }: TextFieldProps) => {
           setValue(newValue);
         }}
       />
-    </>
+    </NestWrapper>
   );
 };

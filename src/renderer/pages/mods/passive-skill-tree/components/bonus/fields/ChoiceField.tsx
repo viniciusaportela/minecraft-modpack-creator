@@ -40,9 +40,7 @@ export default function ChoiceField({ options, path, label }: ChoiceProps) {
 
   return (
     <>
-      <Label nestLevel={path.length} path={path}>
-        {label}
-      </Label>
+      <Label nestLevel={path.length}>{label}</Label>
       <Dropdown>
         <DropdownTrigger>
           <Button>{getLabel(value)}</Button>

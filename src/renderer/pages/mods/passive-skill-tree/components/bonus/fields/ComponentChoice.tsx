@@ -9,6 +9,7 @@ import { Key } from 'react';
 import Label from './Label';
 import { FunctionWithDefaultConfig } from '../../../interfaces/function-with-default-config';
 import { useModConfigSelector } from '../../../../../../store/hooks/use-mod-config-selector';
+import { NestWrapper } from '../NestWrapper';
 
 interface ComponentChoiceProps {
   path: string[];
@@ -53,8 +54,8 @@ export const ComponentChoice = ({
   };
 
   return (
-    <>
-      <Label className="font-bold" nestLevel={path.length} path={path}>
+    <NestWrapper nestLevel={path.length}>
+      <Label className="font-bold" nestLevel={path.length}>
         {label}
       </Label>
       <Dropdown>
@@ -72,6 +73,6 @@ export const ComponentChoice = ({
         </DropdownMenu>
       </Dropdown>
       {renderCurrentComponent()}
-    </>
+    </NestWrapper>
   );
 };

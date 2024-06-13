@@ -232,7 +232,6 @@ app
       );
 
       const filePath = path.posix.normalize(withoutProtocol);
-      console.log(request.url, '->', `file://${filePath}`);
 
       return net.fetch(`file://${filePath}`);
     });

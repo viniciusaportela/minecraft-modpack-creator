@@ -3,6 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import { StoreApi } from 'zustand/vanilla';
 import { persist } from 'zustand/middleware';
 import path from 'path';
+import { UseBoundStore } from 'zustand/react';
 import { IBaseModConfig } from './interfaces/mod-config.interface';
 import { JsonStorage } from './storages/json-storage';
 import { useAppStore } from './app.store';
@@ -10,7 +11,7 @@ import { IMod } from './interfaces/mods-store.interface';
 import { IProjectStore } from './interfaces/project-store.interface';
 import { ModFactory } from '../core/domains/mods/mod-factory';
 
-let instance: ContextStoreRegistry;
+let instance: LazyStoreRegistry;
 
 function ModsFolderGetter() {
   return path.join(
@@ -20,14 +21,14 @@ function ModsFolderGetter() {
   );
 }
 
-export class ContextStoreRegistry {
+export class LazyStoreRegistry {
   constructor() {}
 
   private stores: Map<string, StoreApi<any>> = new Map();
 
   static getInstance() {
     if (!instance) {
-      instance = new ContextStoreRegistry();
+      instance = new LazyStoreRegistry();
     }
 
     return instance;
@@ -65,7 +66,7 @@ export class ContextStoreRegistry {
                         const modInstance = ModFactory.create(
                           useAppStore.getState().selectedProject(),
                           mod,
-                          { isLoaded: false },
+                          { isLoaded: false, isSetupDone: false },
                         );
                         additionalData = await modInstance.makeConfig();
 
@@ -86,7 +87,7 @@ export class ContextStoreRegistry {
     return this.stores.get(modId)!;
   }
 
-  getProjectStore() {
+  getProjectStore(): UseBoundStore<StoreApi<IProjectStore>> {
     if (!this.stores.has(useAppStore.getState().selectedProject()!.path)) {
       this.stores.set(
         useAppStore.getState().selectedProject()!.path,
@@ -99,6 +100,8 @@ export class ContextStoreRegistry {
                   items: [],
                   blocks: [],
                   loaded: false,
+                  focusedTab: 'recipes',
+                  openedTabs: [],
                   load: () => set({ loaded: true }),
                 }) as IProjectStore,
             ),
