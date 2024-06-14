@@ -10,6 +10,8 @@ import {
 } from '@nextui-org/react';
 import { Funnel, Plus } from '@phosphor-icons/react';
 import { useState } from 'react';
+import { FixedSizeGrid as Grid } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import { usePager } from '../../../components/pager/hooks/usePager';
 import Title from '../../../components/title/Title';
 import {
@@ -163,9 +165,32 @@ export default function RecipeList() {
       </div>
 
       <div className="overflow-y-auto flex flex-1 flex-wrap gap-2 pt-4">
-        {filteredRecipes.map((r) => (
-          <RecipeCard recipe={r} />
-        ))}
+        <AutoSizer>
+          {({ height, width }) => (
+            <Grid
+              columnCount={Math.floor(width / 270)}
+              rowCount={filteredRecipes.length / Math.floor(width / 270)}
+              columnWidth={270}
+              rowHeight={110}
+              height={height}
+              width={width}
+            >
+              {({ style, rowIndex, columnIndex }) => {
+                return (
+                  <div className="pr-[10px]" style={style}>
+                    <RecipeCard
+                      recipe={
+                        filteredRecipes[
+                          rowIndex * Math.floor(width / 270) + columnIndex
+                        ]
+                      }
+                    />
+                  </div>
+                );
+              }}
+            </Grid>
+          )}
+        </AutoSizer>
       </div>
     </>
   );

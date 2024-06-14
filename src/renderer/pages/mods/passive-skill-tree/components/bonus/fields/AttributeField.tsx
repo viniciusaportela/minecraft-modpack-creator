@@ -9,8 +9,6 @@ export const AttributeField: FunctionWithDefaultConfig = ({ path }) => {
 
   const attributes = useAttributesStore((st) => st.attributes);
 
-  console.log(value);
-
   return (
     <>
       <Label nestLevel={path.length}>Attribute</Label>

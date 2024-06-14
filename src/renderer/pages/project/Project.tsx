@@ -1,19 +1,16 @@
 import React, { useLayoutEffect, useState } from 'react';
 import {
   Button,
-  Card,
-  CardBody,
-  Image,
   ScrollShadow,
   Tab,
   Tabs,
   useDisclosure,
 } from '@nextui-org/react';
 import { Folder, Hammer, X } from '@phosphor-icons/react';
-import { ipcRenderer, shell } from 'electron';
+import { ipcRenderer } from 'electron';
 import toast from 'react-hot-toast';
-import path from 'path';
-import { exec } from 'node:child_process';
+import { FixedSizeList as List } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import useHorizontalScroll from '../../hooks/use-horizontal-scroll.hook';
 import Recipes from '../recipes/Recipes';
 import { pageByMod } from '../../constants/page-by-mod';
@@ -25,7 +22,6 @@ import AppBarHeader, {
 import ModpackBuilder from '../../core/builder/ModpackBuilder';
 import BuildingModal from './components/BuildingModal';
 import { ModConfigProvider } from '../../store/providers/mod-config-provider';
-import NoThumb from '../../assets/no-thumb.png';
 import Configs from '../configs/Configs';
 import PageHider from './components/PageHider';
 import BuildErrorReport from '../../components/build-error-modal/BuildErrorReport';
@@ -39,6 +35,7 @@ import {
   useProjectStore,
 } from '../../store/hooks/use-project-store';
 import openFolder from '../../helpers/open-folder';
+import { ModCard } from './components/ModCard';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -223,36 +220,26 @@ export default function Project() {
         />
 
         <div className="flex-1 min-h-0">
-          <ScrollShadow className="flex flex-col gap-2 h-full max-h-full pb-5 px-5">
-            {filteredMods.map((mod) => (
-              <div>
-                <Card
-                  className="w-full"
-                  isPressable
-                  key={mod.name}
-                  isHoverable
-                  onPress={() => clickOnMod(mod)}
-                >
-                  <CardBody className="min-h-fit flex flex-row">
-                    <Image
-                      src={
-                        mod.icon
-                          ? `textures:${path.sep}${path.sep}${mod.icon}`
-                          : NoThumb
-                      }
-                      className="w-full h-full object-contain"
-                      classNames={{
-                        wrapper: 'min-w-10 min-h-10 w-10 h-10 mr-3',
-                      }}
+          <AutoSizer>
+            {({ height, width }) => (
+              <List
+                itemCount={filteredMods.length}
+                height={height}
+                width={width}
+                className="pb-3"
+                itemSize={80}
+              >
+                {({ style, index }) => (
+                  <div className="px-5" style={style}>
+                    <ModCard
+                      onClickMod={(m) => clickOnMod(m)}
+                      mod={filteredMods[index]}
                     />
-                    <span className="font-bold text-left flex-1">
-                      {mod.name}
-                    </span>
-                  </CardBody>
-                </Card>
-              </div>
-            ))}
-          </ScrollShadow>
+                  </div>
+                )}
+              </List>
+            )}
+          </AutoSizer>
         </div>
       </div>
 

@@ -9,6 +9,9 @@ import { useAppStore, useSelectedProject } from '../../store/app.store';
 import { ProjectPreloader } from '../../core/domains/project/project-preloader';
 import ProjectService from '../../core/domains/project/project-service';
 import { useProjectSelector } from '../../store/hooks/use-project-store';
+import AppBarHeader, {
+  AppBarHeaderContainer,
+} from '../../components/app-bar/AppBarHeader';
 
 export default function ProjectPreload() {
   const handleError = useErrorHandler();
@@ -87,6 +90,11 @@ export default function ProjectPreload() {
 
   return (
     <div className="flex-1 flex flex-col justify-center h-full p-5 pt-0">
+      <AppBarHeader title="">
+        <AppBarHeaderContainer>
+          <div className="w-full app-bar-drag" />
+        </AppBarHeaderContainer>
+      </AppBarHeader>
       <span id="progress-text" className="mb-2">
         Loading...
       </span>

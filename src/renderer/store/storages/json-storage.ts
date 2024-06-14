@@ -25,7 +25,6 @@ export class JsonStorage {
         }
 
         if (this.cachedExists) {
-          console.log('write', path.join(dataFolder, `${name}.json`), value);
           await writeFile(
             path.join(dataFolder, `${name}.json`),
             JSON.stringify(value),

@@ -1,5 +1,4 @@
-import React from 'react';
-import path from 'path';
+import React, { CSSProperties } from 'react';
 import {
   Button,
   Card,
@@ -8,7 +7,6 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
-  Image,
 } from '@nextui-org/react';
 import { DotsThree, PencilSimple, TrashSimple } from '@phosphor-icons/react';
 import { IRecipe } from '../../../store/interfaces/recipes-store.interface';
@@ -19,9 +17,10 @@ import LazyTexture from '../../../components/lazy-texture/LazyTexture';
 interface RecipeCardProps {
   recipe: IRecipe;
   onSelect?: (recipe: IRecipe) => void;
+  style?: CSSProperties;
 }
 
-export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
+export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, style }) => {
   const getImage = () => {
     // Has to adapt if item is a block instead
     if (recipe.result?.item) {
@@ -31,12 +30,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe }) => {
     return null;
   };
 
-  console.log(
-    TextureLoader.getInstance().getTextureFromItem('minecraft:arrow'),
-  );
-
   return (
-    <Card className="w-[260px] h-[100px]">
+    <Card className="w-[260px] h-[100px]" style={style}>
       <CardBody>
         <div className="flex">
           <LazyTexture
