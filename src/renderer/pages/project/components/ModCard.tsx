@@ -30,7 +30,7 @@ export const ModCard: React.FC<ModCardProps> = ({ mod, onClickMod, style }) => {
             wrapper: 'min-w-10 min-h-10 w-10 h-10 mr-3',
           }}
         />
-        <span className="font-bold text-left flex-1 text-ellipsis overflow-hidden text-wrap">
+        <span className="font-bold text-left flex-1 text-ellipsis overflow-hidden text-nowrap">
           {mod.name}
         </span>
       </CardBody>

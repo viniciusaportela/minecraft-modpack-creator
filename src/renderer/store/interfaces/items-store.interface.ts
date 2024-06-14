@@ -1,5 +1,6 @@
 export interface IItemsStore {
   items: IItem[];
+  findItem: (id: string) => IItem | undefined;
   version: number;
 }
 

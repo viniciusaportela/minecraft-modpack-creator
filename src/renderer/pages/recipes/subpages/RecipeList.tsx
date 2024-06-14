@@ -7,9 +7,10 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  Switch,
 } from '@nextui-org/react';
 import { Funnel, Plus } from '@phosphor-icons/react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FixedSizeGrid as Grid } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { usePager } from '../../../components/pager/hooks/usePager';
@@ -20,7 +21,8 @@ import {
 } from '../../../store/hooks/use-project-store';
 import CustomRecipeCard from '../components/CustomRecipeCard';
 import { useRecipesStore } from '../../../store/recipes.store';
-import { RecipeCard } from '../components/RecipeCard';
+import { RecipeCard, RecipeCardItemWrapper } from '../components/RecipeCard';
+import { IRecipe } from '../../../store/interfaces/recipes-store.interface';
 
 export default function RecipeList() {
   const { navigate } = usePager();
@@ -33,7 +35,7 @@ export default function RecipeList() {
 
   const [selectedRecipes, setSelectedRecipes] = useState<number[]>([]);
 
-  const [nameFilter, setNameFilter] = useState('');
+  const [idFilter, setIdFilter] = useState('');
   const [inputFilter, setInputFilter] = useState('');
   const [outputFilter, setOutputFilter] = useState('');
   const [modFilter, setModFilter] = useState('');
@@ -42,12 +44,22 @@ export default function RecipeList() {
   const [typeFilter, setTypeFilter] = useState('');
 
   const filter = (recipes: any[]) => {
-    return recipes;
+    const filtered = recipes;
+
+    if (removedOnlyFilter) {
+      // Look for custom recipes that are removed
+    }
+
+    if (modifiedOnlyFilter) {
+      // ...
+    }
+
+    return filtered;
   };
 
   const isFilterActive = () => {
     return (
-      nameFilter ||
+      idFilter ||
       inputFilter ||
       outputFilter ||
       modFilter ||
@@ -59,7 +71,18 @@ export default function RecipeList() {
 
   const filteredRecipes = filter(allRecipes);
 
-  console.log(recipesTypes);
+  const onSelectRecipe = useCallback(
+    (recipe: IRecipe) => {
+      const alreadySelected = selectedRecipes.includes(recipe.index);
+
+      if (alreadySelected) {
+        setSelectedRecipes((prev) => prev.filter((r) => r !== recipe.index));
+      } else {
+        setSelectedRecipes((prev) => [...prev, recipe.index]);
+      }
+    },
+    [selectedRecipes],
+  );
 
   return (
     <>
@@ -128,27 +151,49 @@ export default function RecipeList() {
               <div className="gap-4 flex">
                 <div>
                   <span>Recipe ID</span>
-                  <Input size="sm" classNames={{ inputWrapper: 'h-10' }} />
+                  <Input
+                    size="sm"
+                    classNames={{ inputWrapper: 'h-10' }}
+                    value={idFilter}
+                    onValueChange={(txt) => setIdFilter(txt)}
+                  />
                 </div>
                 <div>
                   <span>Mod ID</span>
-                  <Input size="sm" classNames={{ inputWrapper: 'h-10' }} />
+                  <Input
+                    size="sm"
+                    classNames={{ inputWrapper: 'h-10' }}
+                    value={modFilter}
+                    onValueChange={(txt) => setModFilter(txt)}
+                  />
                 </div>
               </div>
               <div className="gap-4 flex">
                 <div>
                   <span>Input Filter</span>
-                  <Input size="sm" classNames={{ inputWrapper: 'h-10' }} />
+                  <Input
+                    size="sm"
+                    classNames={{ inputWrapper: 'h-10' }}
+                    value={inputFilter}
+                    onValueChange={(txt) => setInputFilter(txt)}
+                  />
                 </div>
                 <div>
                   <span>Output Filter</span>
-                  <Input size="sm" classNames={{ inputWrapper: 'h-10' }} />
+                  <Input
+                    size="sm"
+                    classNames={{ inputWrapper: 'h-10' }}
+                    value={outputFilter}
+                    onValueChange={(txt) => setOutputFilter(txt)}
+                  />
                 </div>
               </div>
               <div className="gap-4 flex">
                 <div className="flex-1">
                   <span>By Type</span>
                   <Autocomplete
+                    inputValue={typeFilter}
+                    onInputChange={(key) => setTypeFilter(key)}
                     allowsCustomValue
                     inputProps={{ classNames: { inputWrapper: 'h-10' } }}
                   >
@@ -157,14 +202,29 @@ export default function RecipeList() {
                     ))}
                   </Autocomplete>
                 </div>
-                <div className="flex-1" />
+              </div>
+              <div className="gap-4 flex">
+                <Switch
+                  isSelected={removedOnlyFilter}
+                  onValueChange={(val) => setRemovedOnlyFilter(val)}
+                >
+                  Show removed only
+                </Switch>
+              </div>
+              <div className="gap-4 flex">
+                <Switch
+                  isSelected={modifiedOnlyFilter}
+                  onValueChange={(val) => setModifiedOnlyFilter(val)}
+                >
+                  Show modified only
+                </Switch>
               </div>
             </div>
           </PopoverContent>
         </Popover>
       </div>
 
-      <div className="overflow-y-auto flex flex-1 flex-wrap gap-2 pt-4">
+      <div className="flex flex-1">
         <AutoSizer>
           {({ height, width }) => (
             <Grid
@@ -172,22 +232,16 @@ export default function RecipeList() {
               rowCount={filteredRecipes.length / Math.floor(width / 270)}
               columnWidth={270}
               rowHeight={110}
+              itemData={{
+                filteredRecipes,
+                selectedRecipes,
+                onSelectRecipe,
+                width,
+              }}
               height={height}
               width={width}
             >
-              {({ style, rowIndex, columnIndex }) => {
-                return (
-                  <div className="pr-[10px]" style={style}>
-                    <RecipeCard
-                      recipe={
-                        filteredRecipes[
-                          rowIndex * Math.floor(width / 270) + columnIndex
-                        ]
-                      }
-                    />
-                  </div>
-                );
-              }}
+              {RecipeCardItemWrapper}
             </Grid>
           )}
         </AutoSizer>

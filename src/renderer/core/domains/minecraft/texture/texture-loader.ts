@@ -24,6 +24,15 @@ export class TextureLoader {
     return `${modId}:textures/item/${itemName}.png`;
   }
 
+  getTextureFromBlock(blockId: string) {
+    const blockSplitted = blockId.split(':');
+
+    const modId = blockSplitted[0];
+    const blockName = blockSplitted[1];
+
+    return `${modId}:textures/block/${blockName}.png`;
+  }
+
   getTextureSource(textureId: string | null | undefined, isURI?: boolean) {
     if (!textureId) {
       return undefined;

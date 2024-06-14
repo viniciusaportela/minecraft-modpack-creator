@@ -3,16 +3,21 @@ import { TextureLoader } from '../../core/domains/minecraft/texture/texture-load
 interface TextureBoxProps {
   textureId: string;
   className?: string;
+  size?: number;
 }
 
-export default function Block3D({ textureId, className }: TextureBoxProps) {
+export default function Block3D({
+  textureId,
+  className,
+  size,
+}: TextureBoxProps) {
   const texture = TextureLoader.getInstance().getTextureSource(textureId, true);
 
   return (
     <div
       style={{
-        width: '16px',
-        height: '16px',
+        width: size ?? '16px',
+        height: size ?? '16px',
         transformStyle: 'preserve-3d',
         position: 'relative',
         transform: 'rotateX(-30deg) rotateY(45deg)',
@@ -20,24 +25,36 @@ export default function Block3D({ textureId, className }: TextureBoxProps) {
       className={className}
     >
       <div
-        className="absolute w-[16px] h-[16px] leading-[16px] text-[16px] text-center bg-red-700"
+        className="absolute text-center bg-red-700"
         style={{
-          transform: 'rotateX(90deg) translateZ(8px)',
+          transform: `rotateX(90deg) translateZ(${(size ?? 16) / 2}px)`,
           background: `url('${texture}')`,
+          width: size ?? '16px',
+          height: size ?? '16px',
+          lineHeight: size ?? '16px',
+          fontSize: size ?? '16px',
         }}
       />
       <div
-        className="absolute w-[16px] h-[16px] leading-[16px] text-[16px] text-center bg-blue-600"
+        className="absolute text-center bg-blue-600"
         style={{
-          transform: 'rotateY(-90deg) translateZ(8px)',
+          transform: `rotateY(-90deg) translateZ(${(size ?? 16) / 2}px)`,
           background: `url('${texture}')`,
+          width: size ?? '16px',
+          height: size ?? '16px',
+          lineHeight: size ?? '16px',
+          fontSize: size ?? '16px',
         }}
       />
       <div
-        className="absolute w-[16px] h-[16px] leading-[16px] text-[16px] text-center bg-green-600"
+        className="absolute text-center bg-green-600"
         style={{
-          transform: 'translateZ(8px)',
+          transform: `translateZ(${(size ?? 16) / 2}px)`,
           background: `url('${texture}')`,
+          width: size ?? '16px',
+          height: size ?? '16px',
+          lineHeight: size ?? '16px',
+          fontSize: size ?? '16px',
         }}
       />
     </div>

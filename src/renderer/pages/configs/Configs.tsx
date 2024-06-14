@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Tab, Tabs, Tooltip } from '@nextui-org/react';
 import {
   File,
@@ -38,7 +38,7 @@ const getFirstFile = (nodes: readonly ConfigNode[]) => {
   return undefined;
 };
 
-export default function Configs() {
+const Configs = memo(() => {
   const configs = useAppStore((st) => st.configs);
 
   const flattedNodes = useMemo(
@@ -251,4 +251,6 @@ export default function Configs() {
       </div>
     </div>
   );
-}
+});
+
+export default Configs;
