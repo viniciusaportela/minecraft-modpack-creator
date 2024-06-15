@@ -56,7 +56,7 @@ export default function AddRecipe() {
   const [chosenRecipeType, setChosenRecipeType] = useState(
     'minecraft:crafting_shaped',
   );
-  const [recipeName, setRecipeName] = useState('Name of recipe');
+  const [recipeName, setRecipeName] = useState('name_of_recipe');
   const [editorType, setEditorType] = useState('refined');
   const [recipeJson, setRecipeJson] = useState(DEFAULT_RECIPE_JSON);
   const [exampleJson, setExampleJson] = useState(
@@ -75,16 +75,13 @@ export default function AddRecipe() {
     ];
   };
 
-  const updateRecipeType = (type: string) => {
-    if (!type) return;
+  const updateRecipeType = (type: Key) => {
+    setChosenRecipeType(type as string);
+    setRecipesOfCurrentType(findRecipesOfType(type as string));
 
-    setChosenRecipeType(type);
-    setRecipesOfCurrentType(findRecipesOfType(type));
-
-    const exampleRecipe = findRecipe(type);
+    const exampleRecipe = findRecipe(type as string);
 
     if (exampleRecipe) {
-      console.log(exampleRecipe);
       setExampleJson(
         JSON.stringify(
           { ...exampleRecipe, filePath: undefined, index: undefined },
@@ -101,11 +98,9 @@ export default function AddRecipe() {
   };
 
   const onChangeExample = (index: Key) => {
-    console.log('change example', index);
     const recipe = useRecipesStore
       .getState()
-      .recipes.find((r) => r.index === parseInt(index));
-    console.log('founnd', recipe);
+      .recipes.find((r) => r.index === parseInt(index, 10));
     if (recipe) {
       setExampleJson(
         JSON.stringify(
@@ -145,9 +140,12 @@ export default function AddRecipe() {
 
   return (
     <>
-      <Title goBack={() => navigate('recipe-list')} className="mb-3">
-        Add Custom Recipe
-      </Title>
+      <div className="flex">
+        <Title goBack={() => navigate('recipe-list')} className="mb-3">
+          Add Custom Recipe
+        </Title>
+        <Title className="ml-auto w-[350px]">Templates</Title>
+      </div>
 
       <div className="flex flex-1 gap-4">
         <div className="flex flex-col flex-1">
@@ -170,12 +168,12 @@ export default function AddRecipe() {
           </div>
           <div className="mt-3 flex-1">{renderPage()}</div>
         </div>
-        <div className="flex flex-col w-[350px] gap-2">
+        <div className="flex flex-col w-[350px] min-w-[350px] gap-2">
           <Autocomplete
             isClearable={false}
             size="sm"
-            inputValue={chosenRecipeType}
-            onInputChange={updateRecipeType}
+            selectedKey={chosenRecipeType}
+            onSelectionChange={updateRecipeType}
             inputProps={{
               classNames: {
                 inputWrapper: 'h-10',
@@ -207,7 +205,12 @@ export default function AddRecipe() {
             </Autocomplete>
           </div>
 
-          <SimpleCodeEditor data={exampleJson} fileType="json" readOnly />
+          <SimpleCodeEditor
+            data={exampleJson}
+            fileType="json"
+            readOnly
+            style={{ minHeight: 'auto', flex: 1 }}
+          />
         </div>
       </div>
     </>

@@ -21,7 +21,7 @@ const PickerImage = memo(({ type, value }: PickerImageProps) => {
     return item?.isBlock ? (
       <Block3D textureId={textureId} className="h-6 w-6" />
     ) : (
-      <LazyTexture textureId={textureId} className="h-6 w-6" />
+      <LazyTexture textureId={textureId} className="h-6 w-6 object-contain" />
     );
   }
 

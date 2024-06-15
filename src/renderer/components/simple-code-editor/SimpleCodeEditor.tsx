@@ -8,6 +8,7 @@ interface SimpleCodeEditorProps {
   onChange?: (data: string) => void;
   readOnly?: boolean;
   filter?: string;
+  style?: React.CSSProperties;
 }
 
 export default function SimpleCodeEditor({
@@ -16,6 +17,7 @@ export default function SimpleCodeEditor({
   onChange,
   readOnly,
   filter,
+  style,
 }: SimpleCodeEditorProps) {
   return (
     <CodeEditor
@@ -49,6 +51,7 @@ export default function SimpleCodeEditor({
         fontSize: 12,
         minHeight: '100%',
         minWidth: '100%',
+        ...style,
       }}
     />
   );

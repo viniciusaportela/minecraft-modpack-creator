@@ -37,7 +37,7 @@ interface RecipeCardProps {
   isSelected?: boolean;
   isDeleted?: boolean;
   isEdited?: boolean;
-  onRestore?: () => void;
+  onRestore?: (recipe: IRecipe) => void;
 }
 
 export const RecipeCardItemWrapper = memo(
@@ -46,14 +46,6 @@ export const RecipeCardItemWrapper = memo(
       data.filteredRecipes[
         rowIndex * Math.floor(data.width / 260) + columnIndex
       ];
-
-    console.log(
-      'card wrapper',
-      recipe,
-      data.deletedRecipes,
-      data.deletedRecipes.find((dr) => dr.filePath === recipe.filePath),
-      data.editedRecipes,
-    );
 
     return (
       <RecipeCard
@@ -149,18 +141,23 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               <span
                 className={clsx(
                   'overflow-hidden text-ellipsis text-nowrap',
-                  isDeleted && 'text-red-500',
-                  isEdited && 'text-primary-500',
+                  isDeleted && 'text-red-400',
+                  isEdited && 'text-primary-400',
                 )}
               >
                 {getTitle()}
               </span>
             </Tooltip>
-            <div className="flex flex-1 justify-stretch">
+            <div className="flex flex-1 justify-stretch mt-1">
               {getImage()}
               <div className="flex items-end justify-end flex-1 gap-1">
                 {(isDeleted || isEdited) && (
-                  <Button isIconOnly size="sm" color="primary">
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    color="primary"
+                    onPress={() => onRestore?.(recipe)}
+                  >
                     <ArrowCounterClockwise />
                   </Button>
                 )}

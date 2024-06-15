@@ -9,12 +9,14 @@ interface ItemPickerProps {
   onPick: (value: string) => void;
   type: PickerType;
   className?: string;
+  variant?: 'default' | 'ghost';
 }
 
 export default function PickerButton({
   value,
   type,
   onPick,
+  variant,
   className,
 }: ItemPickerProps) {
   const projectIdx = useAppStore((st) => st.selectedProjectIndex);
@@ -33,8 +35,12 @@ export default function PickerButton({
       className="tooltip-not-selectable"
       offset={-10}
     >
-      <Button onPress={onPress} className={className}>
-        {!value && 'Pick'}
+      <Button
+        onPress={onPress}
+        className={className}
+        variant={variant === 'ghost' ? 'light' : undefined}
+      >
+        {!value && variant !== 'ghost' && 'Pick'}
         {value && <PickerImage type={type} value={value} />}
       </Button>
     </Tooltip>

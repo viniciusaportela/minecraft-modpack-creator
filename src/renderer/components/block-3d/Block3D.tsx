@@ -1,4 +1,7 @@
+import { Image } from '@nextui-org/react';
+import { useState } from 'react';
 import { TextureLoader } from '../../core/domains/minecraft/texture/texture-loader';
+import NoRecipe from '../../assets/no-recipe.png';
 
 interface TextureBoxProps {
   textureId: string;
@@ -13,6 +16,12 @@ export default function Block3D({
 }: TextureBoxProps) {
   const texture = TextureLoader.getInstance().getTextureSource(textureId, true);
 
+  const [fallbackImage, setFallbackImage] = useState<string | null>(null);
+
+  const handleImageError = () => {
+    setFallbackImage(NoRecipe);
+  };
+
   return (
     <div
       style={{
@@ -24,37 +33,53 @@ export default function Block3D({
       }}
       className={className}
     >
-      <div
-        className="absolute text-center bg-red-700"
+      <Image
+        src={fallbackImage ?? texture}
+        fallbackSrc={NoRecipe}
+        removeWrapper
+        onError={handleImageError}
+        className="rounded-none absolute"
         style={{
           transform: `rotateX(90deg) translateZ(${(size ?? 16) / 2}px)`,
-          background: `url('${texture}')`,
+          backgroundSize: 'cover',
           width: size ?? '16px',
           height: size ?? '16px',
           lineHeight: size ?? '16px',
           fontSize: size ?? '16px',
+          filter: 'brightness(55%)',
         }}
       />
-      <div
-        className="absolute text-center bg-blue-600"
+      <Image
+        src={fallbackImage ?? texture}
+        onError={handleImageError}
+        removeWrapper
+        classNames={{
+          wrapper: 'bg-cover absolute w-[16px] h-[16px]',
+        }}
+        className="rounded-none absolute"
         style={{
           transform: `rotateY(-90deg) translateZ(${(size ?? 16) / 2}px)`,
-          background: `url('${texture}')`,
           width: size ?? '16px',
           height: size ?? '16px',
           lineHeight: size ?? '16px',
           fontSize: size ?? '16px',
         }}
       />
-      <div
-        className="absolute text-center bg-green-600"
+      <Image
+        src={fallbackImage ?? texture}
+        onError={handleImageError}
+        fallbackSrc={NoRecipe}
+        removeWrapper
+        className="rounded-none absolute"
         style={{
           transform: `translateZ(${(size ?? 16) / 2}px)`,
-          background: `url('${texture}')`,
           width: size ?? '16px',
           height: size ?? '16px',
+          minWidth: size ?? '16px',
+          minHeight: size ?? '16px',
           lineHeight: size ?? '16px',
           fontSize: size ?? '16px',
+          filter: 'brightness(35%)',
         }}
       />
     </div>
