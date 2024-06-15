@@ -9,7 +9,12 @@ import {
   DropdownTrigger,
   Tooltip,
 } from '@nextui-org/react';
-import { DotsThree, PencilSimple, TrashSimple } from '@phosphor-icons/react';
+import {
+  ArrowCounterClockwise,
+  DotsThree,
+  PencilSimple,
+  TrashSimple,
+} from '@phosphor-icons/react';
 import path from 'path';
 import clsx from 'clsx';
 import { GridChildComponentProps } from 'react-window';
@@ -19,6 +24,10 @@ import { TextureLoader } from '../../../core/domains/minecraft/texture/texture-l
 import LazyTexture from '../../../components/lazy-texture/LazyTexture';
 import { useItemsStore } from '../../../store/items.store';
 import Block3D from '../../../components/block-3d/Block3D';
+import {
+  IDeleteRecipe,
+  IEditRecipe,
+} from '../../../store/interfaces/project-store.interface';
 
 interface RecipeCardProps {
   recipe: IRecipe;
@@ -26,14 +35,25 @@ interface RecipeCardProps {
   style?: CSSProperties;
   wrapperStyle?: CSSProperties;
   isSelected?: boolean;
+  isDeleted?: boolean;
+  isEdited?: boolean;
+  onRestore?: () => void;
 }
 
 export const RecipeCardItemWrapper = memo(
   ({ style, rowIndex, columnIndex, data }: GridChildComponentProps) => {
-    const recipe =
+    const recipe: IRecipe =
       data.filteredRecipes[
         rowIndex * Math.floor(data.width / 260) + columnIndex
       ];
+
+    console.log(
+      'card wrapper',
+      recipe,
+      data.deletedRecipes,
+      data.deletedRecipes.find((dr) => dr.filePath === recipe.filePath),
+      data.editedRecipes,
+    );
 
     return (
       <RecipeCard
@@ -42,6 +62,15 @@ export const RecipeCardItemWrapper = memo(
         onSelect={data.onSelectRecipe}
         isSelected={data.selectedRecipes.includes(recipe.index)}
         style={{ marginTop: 10 }}
+        onRestore={data.onRestoreRecipe}
+        isDeleted={data.deletedRecipes.some(
+          (r: IDeleteRecipe) => r.filePath === recipe.filePath,
+        )}
+        isEdited={
+          !!data.editedRecipes.some(
+            (r: IEditRecipe) => r.filePath === recipe.filePath,
+          )
+        }
       />
     );
   },
@@ -53,6 +82,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   onSelect,
   isSelected,
   wrapperStyle,
+  isEdited,
+  isDeleted,
+  onRestore,
 }) => {
   const getImage = () => {
     // TODO Has to adapt if item is a block instead
@@ -97,8 +129,6 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
     return `${path.basename(recipe.filePath).replace('.json', '')}${full && recipe.type ? ` (${recipe.type})` : ''}`;
   };
 
-  console.log('RecipeCard', recipe.index);
-
   return (
     <div style={wrapperStyle}>
       <Card
@@ -116,13 +146,24 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               content={getTitle(true)}
               className="tooltip-not-selectable"
             >
-              <span className="overflow-hidden text-ellipsis text-nowrap">
+              <span
+                className={clsx(
+                  'overflow-hidden text-ellipsis text-nowrap',
+                  isDeleted && 'text-red-500',
+                  isEdited && 'text-primary-500',
+                )}
+              >
                 {getTitle()}
               </span>
             </Tooltip>
             <div className="flex flex-1 justify-stretch">
               {getImage()}
-              <div className="flex flex-col items-end justify-end flex-1">
+              <div className="flex items-end justify-end flex-1 gap-1">
+                {(isDeleted || isEdited) && (
+                  <Button isIconOnly size="sm" color="primary">
+                    <ArrowCounterClockwise />
+                  </Button>
+                )}
                 <Dropdown>
                   <DropdownTrigger>
                     <Button isIconOnly size="sm" variant="light">

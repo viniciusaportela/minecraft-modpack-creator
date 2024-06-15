@@ -109,7 +109,11 @@ export class LazyStoreRegistry {
             immer(
               (set) =>
                 ({
-                  recipes: [],
+                  addedRecipes: [],
+                  deletedRecipePaths: [],
+                  deletedRecipes: [],
+                  editedRecipePaths: [],
+                  editedRecipes: [],
                   items: [],
                   blocks: [],
                   loaded: false,

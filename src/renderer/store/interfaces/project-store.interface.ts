@@ -1,7 +1,9 @@
 import { IMod } from './mods-store.interface';
 
 export interface IProjectStore {
-  recipes: ICustomRecipe[];
+  addedRecipes: ICustomRecipe[];
+  deletedRecipes: IDeleteRecipe[];
+  editedRecipes: IEditRecipe[];
   items: any[];
   blocks: any[];
   loaded: boolean;
@@ -10,4 +12,15 @@ export interface IProjectStore {
   load: () => void;
 }
 
-export interface ICustomRecipe {}
+export interface ICustomRecipe {
+  json: string;
+}
+
+export interface IDeleteRecipe {
+  filePath: string;
+}
+
+export interface IEditRecipe {
+  filePath: string;
+  json: string;
+}

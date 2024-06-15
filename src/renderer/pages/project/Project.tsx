@@ -227,16 +227,14 @@ export default function Project() {
                 height={height}
                 width={width}
                 className="pb-3"
+                itemData={{
+                  onClickMod: clickOnMod,
+                  mods: filteredMods,
+                  wrapperStyle: { padding: '0 5px' },
+                }}
                 itemSize={80}
               >
-                {({ style, index }) => (
-                  <div className="px-5" style={style}>
-                    <ModCard
-                      onClickMod={(m) => clickOnMod(m)}
-                      mod={filteredMods[index]}
-                    />
-                  </div>
-                )}
+                {ModCard}
               </List>
             )}
           </AutoSizer>

@@ -2,6 +2,7 @@ import {
   Autocomplete,
   AutocompleteItem,
   Button,
+  Checkbox,
   Divider,
   Input,
   Popover,
@@ -9,7 +10,13 @@ import {
   PopoverTrigger,
   Switch,
 } from '@nextui-org/react';
-import { Funnel, Plus } from '@phosphor-icons/react';
+import {
+  ArrowCounterClockwise,
+  CheckSquare,
+  Funnel,
+  Plus,
+  TrashSimple,
+} from '@phosphor-icons/react';
 import { useCallback, useState } from 'react';
 import { FixedSizeGrid as Grid } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
@@ -27,8 +34,10 @@ import { IRecipe } from '../../../store/interfaces/recipes-store.interface';
 export default function RecipeList() {
   const { navigate } = usePager();
 
-  const configStore = useProjectStore();
-  const customRecipes = useProjectSelector((st) => st.recipes);
+  const projectStore = useProjectStore();
+  const customRecipes = useProjectSelector((st) => st.addedRecipes);
+  const deletedRecipes = useProjectSelector((st) => st.deletedRecipes);
+  const editedRecipes = useProjectSelector((st) => st.editedRecipes);
 
   const allRecipes = useRecipesStore((st) => st.recipes);
   const recipesTypes = useRecipesStore((st) => st.types);
@@ -84,6 +93,90 @@ export default function RecipeList() {
     [selectedRecipes],
   );
 
+  const switchSelection = () => {
+    if (selectedRecipes.length > 0) {
+      setSelectedRecipes([]);
+    } else {
+      setSelectedRecipes(filteredRecipes.map((r) => r.index));
+    }
+  };
+
+  const isToShowRestore = () => {
+    const selectedFilePaths = selectedRecipes.map(
+      (index) => allRecipes[index].filePath,
+    );
+
+    console.log(projectStore.getState());
+
+    const hasAnySelectedDeleted = projectStore
+      .getState()
+      .deletedRecipes.some((dr) => selectedFilePaths.includes(dr.filePath));
+
+    if (hasAnySelectedDeleted) {
+      return true;
+    }
+
+    const hasAnySelectedEdited = projectStore
+      .getState()
+      .editedRecipes.some((er) => selectedFilePaths.includes(er.filePath));
+
+    return hasAnySelectedEdited;
+  };
+
+  const bulkRestore = () => {
+    const selectedPaths = selectedRecipes.map(
+      (rIndex) => allRecipes[rIndex].filePath,
+    );
+
+    // restore edit and delete
+    projectStore.setState((st) => {
+      st.deletedRecipes = st.deletedRecipes.filter(
+        (dr) => !selectedPaths.includes(dr.filePath),
+      );
+
+      st.editedRecipes = st.editedRecipes.filter(
+        (er) => !selectedPaths.includes(er.filePath),
+      );
+    });
+
+    setSelectedRecipes([]);
+  };
+
+  const bulkDelete = () => {
+    const currentDeleted = projectStore.getState().deletedRecipes;
+
+    const onlyNonDeleted = selectedRecipes.filter((index) => {
+      const toDeleteRecipe = allRecipes[index];
+      return !currentDeleted.some(
+        (deleted) => deleted.filePath === toDeleteRecipe.filePath,
+      );
+    });
+
+    const newDeleted = onlyNonDeleted.map((index) => {
+      const recipe = allRecipes[index];
+      return {
+        filePath: recipe.filePath,
+      } as const;
+    });
+
+    console.log(
+      'currentDeleted',
+      currentDeleted,
+      'onlyNonDeleted',
+      onlyNonDeleted,
+      'newDeleted',
+      newDeleted,
+    );
+
+    projectStore.setState((st) => {
+      st.deletedRecipes.push(...newDeleted);
+    });
+
+    setSelectedRecipes([]);
+  };
+
+  const onRestoreRecipe = (recipe: IRecipe) => {};
+
   return (
     <>
       <Title>Your custom recipes</Title>
@@ -121,8 +214,8 @@ export default function RecipeList() {
               <CustomRecipeCard
                 customRecipe={r}
                 onDelete={() =>
-                  configStore.setState((st) => {
-                    st.recipes.splice(index, 1);
+                  projectStore.setState((st) => {
+                    st.addedRecipes.splice(index, 1);
                   })
                 }
               />
@@ -132,13 +225,38 @@ export default function RecipeList() {
       </div>
 
       <Divider className="mb-2" />
-      <div className="flex justify-between">
-        <div>
+      <div className="flex">
+        <div className="mr-auto">
           <Title>All recipes</Title>
           <i className="text-sm text-zinc-500">
             You can remove and modify recipes here
           </i>
         </div>
+
+        {selectedRecipes.length > 0 && (
+          <div className="mr-2">
+            <span className="text-sm mr-2">
+              {selectedRecipes.length} selected
+            </span>
+            {isToShowRestore() && (
+              <Button
+                isIconOnly
+                color="primary"
+                className="mr-1"
+                onPress={bulkRestore}
+              >
+                <ArrowCounterClockwise />
+              </Button>
+            )}
+            <Button isIconOnly color="primary" onPress={bulkDelete}>
+              <TrashSimple />
+            </Button>
+          </div>
+        )}
+
+        <Button isIconOnly className="mr-1" onPress={switchSelection}>
+          <CheckSquare size={16} />
+        </Button>
 
         <Popover showArrow placement="bottom">
           <PopoverTrigger>
@@ -235,8 +353,11 @@ export default function RecipeList() {
               itemData={{
                 filteredRecipes,
                 selectedRecipes,
+                deletedRecipes,
+                editedRecipes,
                 onSelectRecipe,
                 width,
+                onRestoreRecipe,
               }}
               height={height}
               width={width}
