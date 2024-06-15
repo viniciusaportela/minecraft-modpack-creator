@@ -21,7 +21,7 @@ import {
 } from '../../../store/hooks/use-project-store';
 import CustomRecipeCard from '../components/CustomRecipeCard';
 import { useRecipesStore } from '../../../store/recipes.store';
-import { RecipeCard, RecipeCardItemWrapper } from '../components/RecipeCard';
+import { RecipeCardItemWrapper } from '../components/RecipeCard';
 import { IRecipe } from '../../../store/interfaces/recipes-store.interface';
 
 export default function RecipeList() {

@@ -1,6 +1,6 @@
 import { Button } from '@nextui-org/react';
 import { CSSProperties } from 'react';
-import getImageComponentFromPickerType from '../../../core/domains/minecraft/helpers/get-image-component-from-picker-type';
+import PickerImage from '../../../components/picker-image/picker-image';
 import { PickerType } from '../../../typings/picker-type.enum';
 import { IItem } from '../../../store/interfaces/items-store.interface';
 import { IBlock } from '../../../store/interfaces/blocks-store.interface';
@@ -35,7 +35,7 @@ export default function PickerItem({
       style={style}
       onPress={onPress}
     >
-      {getImageComponentFromPickerType(type, getValueFromType())}
+      <PickerImage type={type} value={getValueFromType()} />
       {getNameFromType()}
     </Button>
   );

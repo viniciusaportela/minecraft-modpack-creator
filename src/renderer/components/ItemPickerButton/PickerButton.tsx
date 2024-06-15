@@ -1,7 +1,7 @@
 import { Button, Tooltip } from '@nextui-org/react';
 import { ipcRenderer } from 'electron';
 import { PickerType } from '../../typings/picker-type.enum';
-import getImageComponentFromPickerType from '../../core/domains/minecraft/helpers/get-image-component-from-picker-type';
+import PickerImage from '../picker-image/picker-image';
 import { useAppStore } from '../../store/app.store';
 
 interface ItemPickerProps {
@@ -35,7 +35,7 @@ export default function PickerButton({
     >
       <Button onPress={onPress} className={className}>
         {!value && 'Pick'}
-        {value && getImageComponentFromPickerType(type, value)}
+        {value && <PickerImage type={type} value={value} />}
       </Button>
     </Tooltip>
   );

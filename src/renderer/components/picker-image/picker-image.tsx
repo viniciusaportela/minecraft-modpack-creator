@@ -1,13 +1,15 @@
-import { PickerType } from '../../../../typings/picker-type.enum';
-import Block3D from '../../../../components/block-3d/Block3D';
-import LazyTexture from '../../../../components/lazy-texture/LazyTexture';
-import { useItemsStore } from '../../../../store/items.store';
+import { memo } from 'react';
+import { PickerType } from '../../typings/picker-type.enum';
+import Block3D from '../block-3d/Block3D';
+import LazyTexture from '../lazy-texture/LazyTexture';
+import { useItemsStore } from '../../store/items.store';
 
-// TODO turn this as a component instead
-export default function getImageComponentFromPickerType(
-  type: PickerType,
-  value: string,
-) {
+interface PickerImageProps {
+  type: PickerType;
+  value: string;
+}
+
+const PickerImage = memo(({ type, value }: PickerImageProps) => {
   if (type === PickerType.Item) {
     const item = useItemsStore((st) => st.items.find((i) => i.id === value));
 
@@ -31,9 +33,10 @@ export default function getImageComponentFromPickerType(
       PickerType.SkillTreeIcon,
     ].includes(type)
   ) {
-    console.log('getImageComponentFromPickerType', value);
     return <LazyTexture textureId={value} className="h-6 w-6" />;
   }
 
   return <LazyTexture textureId={null} className="h-6 w-6" />;
-}
+});
+
+export default PickerImage;

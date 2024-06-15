@@ -1,7 +1,5 @@
-import CodeEditor from '@uiw/react-textarea-code-editor';
-import rehypePrism from 'rehype-prism-plus';
-import rehypeRewrite from 'rehype-rewrite';
 import { ConfigNode } from '../../../../core/domains/minecraft/config/ConfigNode';
+import SimpleCodeEditor from '../../../../components/simple-code-editor/SimpleCodeEditor';
 
 interface RawConfigEditorProps {
   config: ConfigNode;
@@ -23,37 +21,11 @@ export default function RawConfigEditor({
       style={{ maxHeight: 'calc(100% - 32px)' }}
       id="code-editor"
     >
-      <CodeEditor
-        value={data}
-        language={fileType === 'snbt' ? 'js' : fileType}
-        onChange={(ev) => {
-          config.writeRawData(ev.target.value, onUpdatedRaw);
-        }}
-        rehypePlugins={[
-          [rehypePrism, { ignoreMissing: true }],
-          [
-            rehypeRewrite,
-            {
-              rewrite: (node, index, parent) => {
-                if (
-                  filter &&
-                  node.type === 'text' &&
-                  node.value.includes(filter) &&
-                  parent.children.length === 1
-                ) {
-                  parent.properties.className.push('highlight-filter');
-                }
-              },
-            },
-          ],
-        ]}
-        style={{
-          fontFamily: 'IBM Plex Mono',
-          height: 'fit-content',
-          fontSize: 12,
-          minHeight: '100%',
-          minWidth: '100%',
-        }}
+      <SimpleCodeEditor
+        data={data}
+        onChange={(value) => config.writeRawData(value, onUpdatedRaw)}
+        fileType={fileType === 'snbt' ? 'js' : fileType}
+        filter={filter}
       />
     </div>
   );

@@ -35,12 +35,6 @@ export const RecipeCardItemWrapper = memo(
         rowIndex * Math.floor(data.width / 260) + columnIndex
       ];
 
-    console.group('recipe');
-    console.log('row', rowIndex, 'column', columnIndex);
-    console.log('rowsCount', Math.floor(270 / 260));
-    console.log(recipe.index, data.selectedRecipes);
-    console.groupEnd();
-
     return (
       <RecipeCard
         recipe={recipe}

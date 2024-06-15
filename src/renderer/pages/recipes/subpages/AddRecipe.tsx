@@ -1,141 +1,215 @@
-import { useState } from 'react';
-import { Button, Input } from '@nextui-org/react';
-import { X } from '@phosphor-icons/react';
-import PickerButton from '../../../components/ItemPickerButton/PickerButton';
-import Title from '../../../components/title/Title';
+import {
+  Autocomplete,
+  AutocompleteItem,
+  Button,
+  Input,
+  Tab,
+  Tabs,
+  Tooltip,
+} from '@nextui-org/react';
+import { Key, useState } from 'react';
+import { ArrowLeft, PencilSimple, PenNib } from '@phosphor-icons/react';
+import path from 'path';
 import { usePager } from '../../../components/pager/hooks/usePager';
-import { PickerType } from '../../../typings/picker-type.enum';
+import { useRecipesStore } from '../../../store/recipes.store';
+import { ComponentByRecipeType } from '../helpers/component-by-recipe-type';
+import Title from '../../../components/title/Title';
+import RawRecipeEditor from '../components/RawRecipeEditor';
+import { DEFAULT_RECIPE_JSON } from '../helpers/default-recipe-json';
+import SimpleCodeEditor from '../../../components/simple-code-editor/SimpleCodeEditor';
 
 export default function AddRecipe() {
   const { navigate } = usePager();
-  const [input, setInput] = useState<(string | null)[][]>([
-    [null, null, null],
-    [null, null, null],
-    [null, null, null],
-  ]);
-  const [outputCount, setOutputCount] = useState(1);
-  const [output, setOutput] = useState<string | null>(null);
 
-  const onPickInput = (value: string, row: number, col: number) => {
-    setInput((prev) => {
-      const copy = [...prev];
-      copy[row][col] = value === '@custom:removeItem' ? null : value;
-      return copy;
-    });
+  const recipeTypes = useRecipesStore((st) => ['custom', ...st.types]);
+
+  const stringifiedRecipeOfType = (type: string) => {
+    const found = useRecipesStore
+      .getState()
+      .recipes.find((r) => r.type === type);
+
+    if (!found) {
+      return '{}';
+    }
+
+    return JSON.stringify(
+      { ...found, filePath: undefined, index: undefined },
+      null,
+      2,
+    );
   };
 
-  const addRecipe = () => {
-    // const recipes = project.getRecipes();
-    // recipes.push({
-    //   type: 'shaped',
-    //   input,
-    //   output: output!,
-    //   outputCount,
-    // });
-    // project.setRecipes(recipes);
+  const findRecipesOfType = (type: string) => {
+    return useRecipesStore.getState().recipes.filter((r) => r.type === type);
+  };
 
+  const findRecipe = (type: string) => {
+    return useRecipesStore.getState().recipes.find((r) => r.type === type);
+  };
+
+  const findRecipeIndex = (type: string) => {
+    const { recipes } = useRecipesStore.getState();
+    const recipe = recipes.find((r) => r.type === type);
+    return recipe ? recipe.index : undefined;
+  };
+
+  const [chosenRecipeType, setChosenRecipeType] = useState(
+    'minecraft:crafting_shaped',
+  );
+  const [recipeName, setRecipeName] = useState('Name of recipe');
+  const [editorType, setEditorType] = useState('refined');
+  const [recipeJson, setRecipeJson] = useState(DEFAULT_RECIPE_JSON);
+  const [exampleJson, setExampleJson] = useState(
+    stringifiedRecipeOfType(chosenRecipeType),
+  );
+  const [recipesOfCurrentType, setRecipesOfCurrentType] = useState(
+    findRecipesOfType(chosenRecipeType),
+  );
+  const [chosenExample, setChosenExample] = useState(
+    findRecipeIndex(chosenRecipeType),
+  );
+
+  const hasRefinedEditor = () => {
+    return !!ComponentByRecipeType[
+      chosenRecipeType as keyof typeof ComponentByRecipeType
+    ];
+  };
+
+  const updateRecipeType = (type: string) => {
+    if (!type) return;
+
+    setChosenRecipeType(type);
+    setRecipesOfCurrentType(findRecipesOfType(type));
+
+    const exampleRecipe = findRecipe(type);
+
+    if (exampleRecipe) {
+      console.log(exampleRecipe);
+      setExampleJson(
+        JSON.stringify(
+          { ...exampleRecipe, filePath: undefined, index: undefined },
+          null,
+          2,
+        ),
+      );
+      setChosenExample(exampleRecipe.index);
+    }
+  };
+
+  const onAdded = () => {
     navigate('recipe-list');
   };
 
-  const hasAnyInput = () => {
-    for (let i = 0; i < input.length; i++) {
-      for (let j = 0; j < input[i].length; j++) {
-        if (input[i][j]) return true;
-      }
+  const onChangeExample = (index: Key) => {
+    console.log('change example', index);
+    const recipe = useRecipesStore
+      .getState()
+      .recipes.find((r) => r.index === parseInt(index));
+    console.log('founnd', recipe);
+    if (recipe) {
+      setExampleJson(
+        JSON.stringify(
+          { ...recipe, filePath: undefined, index: undefined },
+          null,
+          2,
+        ),
+      );
+      setChosenExample(recipe.index);
     }
-    return false;
+  };
+
+  const onCopyExample = () => {
+    setRecipeJson(exampleJson);
+  };
+
+  const renderPage = () => {
+    const CustomComponent =
+      ComponentByRecipeType[
+        chosenRecipeType as keyof typeof ComponentByRecipeType
+      ];
+
+    return editorType === 'refined' && CustomComponent ? (
+      <CustomComponent
+        onChange={setRecipeJson}
+        json={recipeJson}
+        onAdded={onAdded}
+      />
+    ) : (
+      <RawRecipeEditor
+        json={recipeJson}
+        className="flex-1"
+        onChange={setRecipeJson}
+      />
+    );
   };
 
   return (
-    <div className="flex flex-col">
-      <Title goBack={() => navigate('add-recipe-list')} className="mb-2">
-        Add shaped recipe
+    <>
+      <Title goBack={() => navigate('recipe-list')} className="mb-3">
+        Add Custom Recipe
       </Title>
-      <span className="text-lg font-bold mb-2">Input</span>
-      <div className="flex flex-col gap-1">
-        <div className="flex gap-1">
-          <PickerButton
-            value={input[0][0]}
-            onPick={(value) => onPickInput(value, 0, 0)}
-            type={PickerType.Item}
-          />
-          <PickerButton
-            value={input[0][1]}
-            onPick={(value) => onPickInput(value, 0, 1)}
-            type={PickerType.Item}
-          />
-          <PickerButton
-            value={input[0][2]}
-            onPick={(value) => onPickInput(value, 0, 2)}
-            type={PickerType.Item}
-          />
+
+      <div className="flex flex-1 gap-4">
+        <div className="flex flex-col flex-1">
+          <div className="flex gap-2">
+            <Input
+              value={recipeName}
+              onValueChange={setRecipeName}
+              size="sm"
+              classNames={{ inputWrapper: 'h-10' }}
+            />
+            {hasRefinedEditor() && (
+              <Tabs
+                onSelectionChange={(key) => setEditorType(key as string)}
+                selectedKey={editorType}
+              >
+                <Tab title={<PenNib />} key="refined" />
+                <Tab title={<PencilSimple />} key="raw" />
+              </Tabs>
+            )}
+          </div>
+          <div className="mt-3 flex-1">{renderPage()}</div>
         </div>
-        <div className="flex gap-1">
-          <PickerButton
-            value={input[1][0]}
-            onPick={(value) => onPickInput(value, 1, 0)}
-            type={PickerType.Item}
-          />
-          <PickerButton
-            value={input[1][1]}
-            onPick={(value) => onPickInput(value, 1, 1)}
-            type={PickerType.Item}
-          />
-          <PickerButton
-            value={input[1][2]}
-            onPick={(value) => onPickInput(value, 1, 2)}
-            type={PickerType.Item}
-          />
-        </div>
-        <div className="flex gap-1">
-          <PickerButton
-            value={input[2][0]}
-            onPick={(value) => onPickInput(value, 2, 0)}
-            type={PickerType.Item}
-          />
-          <PickerButton
-            value={input[2][1]}
-            onPick={(value) => onPickInput(value, 2, 1)}
-            type={PickerType.Item}
-          />
-          <PickerButton
-            value={input[2][2]}
-            onPick={(value) => onPickInput(value, 2, 2)}
-            type={PickerType.Item}
-          />
+        <div className="flex flex-col w-[350px] gap-2">
+          <Autocomplete
+            isClearable={false}
+            size="sm"
+            inputValue={chosenRecipeType}
+            onInputChange={updateRecipeType}
+            inputProps={{
+              classNames: {
+                inputWrapper: 'h-10',
+              },
+            }}
+          >
+            {recipeTypes.map((type) => (
+              <AutocompleteItem key={type}>{type}</AutocompleteItem>
+            ))}
+          </Autocomplete>
+          <div className="flex gap-2">
+            <Tooltip content="Copy">
+              <Button isIconOnly onPress={onCopyExample}>
+                <ArrowLeft />
+              </Button>
+            </Tooltip>
+            <Autocomplete
+              onSelectionChange={onChangeExample}
+              defaultItems={recipesOfCurrentType}
+              selectedKey={String(chosenExample)}
+              isClearable={false}
+              inputProps={{ classNames: { inputWrapper: 'h-10' } }}
+            >
+              {(recipe) => (
+                <AutocompleteItem key={recipe.index}>
+                  {path.basename(recipe.filePath)}
+                </AutocompleteItem>
+              )}
+            </Autocomplete>
+          </div>
+
+          <SimpleCodeEditor data={exampleJson} fileType="json" readOnly />
         </div>
       </div>
-
-      <span className="text-lg font-bold mb-2 mt-4">Output</span>
-      <div className="flex items-center">
-        <Input
-          type="number"
-          className="w-16"
-          size="sm"
-          value={String(outputCount)}
-          onValueChange={(value) => setOutputCount(parseInt(value, 10))}
-          placeholder="1"
-          classNames={{
-            inputWrapper: 'h-10 px-3',
-          }}
-        />
-        <X className="mx-1" />
-        <PickerButton
-          value={output}
-          onPick={(picked) => setOutput(picked)}
-          className="w-[225px]"
-          type={PickerType.Item}
-        />
-      </div>
-
-      <Button
-        color="primary"
-        className="w-[312px] mt-4"
-        onPress={addRecipe}
-        isDisabled={!output || !hasAnyInput()}
-      >
-        Add recipe
-      </Button>
-    </div>
+    </>
   );
 }
