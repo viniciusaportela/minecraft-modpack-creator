@@ -42,6 +42,7 @@ export class SkillTree extends DefaultMod {
   }
 
   async generateFiles(dataPath: string) {
+    console.log('generateFiles', dataPath, this.modConfig);
     await mkdir(dataPath, { recursive: true });
 
     const config = this.modConfig;

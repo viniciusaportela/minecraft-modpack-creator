@@ -1,7 +1,7 @@
 import { Button, Tooltip } from '@nextui-org/react';
 import { ipcRenderer } from 'electron';
 import { PickerType } from '../../typings/picker-type.enum';
-import PickerImage from '../picker-image/picker-image';
+import MinecraftTexture from '../minecraft-texture/minecraft-texture';
 import { useAppStore } from '../../store/app.store';
 
 interface ItemPickerProps {
@@ -41,7 +41,7 @@ export default function PickerButton({
         variant={variant === 'ghost' ? 'light' : undefined}
       >
         {!value && variant !== 'ghost' && 'Pick'}
-        {value && <PickerImage type={type} value={value} />}
+        {value && <MinecraftTexture type={type} value={value} />}
       </Button>
     </Tooltip>
   );

@@ -2,7 +2,7 @@ import { memo } from 'react';
 import ModId from '../../typings/mod-id.enum';
 import RecipeList from './subpages/RecipeList';
 import { Page, Pager } from '../../components/pager/Pager';
-import AddRecipe from './subpages/AddRecipe';
+import RecipeForm from './subpages/RecipeForm';
 import Alert from '../../components/alert/Alert';
 import { useModsStore } from '../../store/mods.store';
 
@@ -28,8 +28,8 @@ const Recipes = memo(() => {
       <Page name="recipe-list">
         <RecipeList />
       </Page>
-      <Page name="add-recipe">
-        <AddRecipe />
+      <Page name="recipe-form">
+        <RecipeForm />
       </Page>
     </Pager>
   );

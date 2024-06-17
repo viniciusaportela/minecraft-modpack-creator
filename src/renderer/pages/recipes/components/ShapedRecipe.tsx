@@ -7,7 +7,9 @@ import CraftingTableTop from '../../../assets/crafting-table-top.png';
 interface ShapedRecipeProps {
   json: string;
   onChange?: (json: string) => void;
-  onAdded?: () => void;
+  onAdded?: (json: string) => void;
+  onEdited?: (json: string) => void;
+  isEdit?: boolean;
 }
 
 interface IShaped {
@@ -26,6 +28,8 @@ export default function ShapedRecipe({
   json,
   onChange,
   onAdded,
+  onEdited,
+  isEdit,
 }: ShapedRecipeProps) {
   const parsed: IShaped = JSON.parse(json);
 
@@ -49,7 +53,6 @@ export default function ShapedRecipe({
       normalized.push(curRow);
     }
 
-    console.log('normalized', pattern, 'to', normalized);
     return normalized;
   };
 
@@ -87,7 +90,6 @@ export default function ShapedRecipe({
   const { output, outputCount, setOutput, setOutputCount } = getOutput();
 
   const convertInputToJson = (inputToConvert: (string | null)[][]) => {
-    console.log('converting', inputToConvert, 'to json');
     const key: IShaped['key'] = {};
     const POSSIBLE_KEYS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'];
     const pattern = ['   ', '   ', '   '];
@@ -104,22 +106,17 @@ export default function ShapedRecipe({
 
         const [itemKey] =
           Object.entries(key).find(
-            ([_, val]) => val.item === item || val.tag === item,
+            ([, val]) => val.item === item || val.tag === item,
           ) ?? [];
-
-        console.log(`in ${rowIdx},${colIdx} (${item}) has item key?`, itemKey);
 
         if (itemKey) {
           const fullStr = pattern[rowIdx];
-          console.log(`has key ${itemKey}, fullstr:`, `"${fullStr}"`);
 
-          console.log('oldPattern', JSON.stringify(pattern, null, 2));
           pattern[rowIdx] =
             fullStr.substring(0, colIdx) +
             itemKey +
             fullStr.substring(colIdx + 1);
 
-          console.log('newPattern', JSON.stringify(pattern, null, 2));
           continue;
         }
 
@@ -128,13 +125,10 @@ export default function ShapedRecipe({
         if (keyChar) {
           // TODO has to consider if item is actually a tag
           key[keyChar] = { item };
-          console.log('new keychar', `"${keyChar}"`, 'new key', key);
-          console.log('oldPattern', JSON.stringify(pattern, null, 2));
           pattern[rowIdx] =
             pattern[rowIdx].substring(0, colIdx) +
             keyChar +
             pattern[rowIdx].substring(colIdx + 1);
-          console.log('newPattern', JSON.stringify(pattern, null, 2));
         } else {
           console.error('No more possible keys');
           break;
@@ -149,8 +143,6 @@ export default function ShapedRecipe({
     input[row][col] = value === '@custom:removeItem' ? null : value;
 
     const { pattern, key } = convertInputToJson(input);
-
-    console.log('converted', pattern, key);
 
     parsed.pattern = pattern;
     parsed.key = key;
@@ -273,10 +265,10 @@ export default function ShapedRecipe({
       <Button
         color="primary"
         className="w-full mt-4"
-        onPress={() => onAdded?.()}
+        onPress={() => (isEdit ? onEdited?.(json) : onAdded?.(json))}
         isDisabled={!output || !hasAnyInput()}
       >
-        Add recipe
+        {isEdit ? 'Edit' : 'Add'} recipe
       </Button>
     </div>
   );

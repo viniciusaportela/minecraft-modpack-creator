@@ -7,7 +7,7 @@ import {
   Tabs,
   Tooltip,
 } from '@nextui-org/react';
-import { Key, useState } from 'react';
+import { Key, useEffect, useState } from 'react';
 import { ArrowLeft, PencilSimple, PenNib } from '@phosphor-icons/react';
 import path from 'path';
 import { usePager } from '../../../components/pager/hooks/usePager';
@@ -17,10 +17,18 @@ import Title from '../../../components/title/Title';
 import RawRecipeEditor from '../components/RawRecipeEditor';
 import { DEFAULT_RECIPE_JSON } from '../helpers/default-recipe-json';
 import SimpleCodeEditor from '../../../components/simple-code-editor/SimpleCodeEditor';
+import {
+  useProjectSelector,
+  useProjectStore,
+} from '../../../store/hooks/use-project-store';
+import { isCustomRecipe } from '../../../store/interfaces/project-store.interface';
 
-export default function AddRecipe() {
+export default function RecipeForm() {
   const { navigate } = usePager();
 
+  const projectStore = useProjectStore();
+
+  const selectedRecipe = useProjectSelector((st) => st.selectedRecipe);
   const recipeTypes = useRecipesStore((st) => ['custom', ...st.types]);
 
   const stringifiedRecipeOfType = (type: string) => {
@@ -56,7 +64,7 @@ export default function AddRecipe() {
   const [chosenRecipeType, setChosenRecipeType] = useState(
     'minecraft:crafting_shaped',
   );
-  const [recipeName, setRecipeName] = useState('name_of_recipe');
+  const [recipeName, setRecipeName] = useState('Name of recipe');
   const [editorType, setEditorType] = useState('refined');
   const [recipeJson, setRecipeJson] = useState(DEFAULT_RECIPE_JSON);
   const [exampleJson, setExampleJson] = useState(
@@ -68,6 +76,33 @@ export default function AddRecipe() {
   const [chosenExample, setChosenExample] = useState(
     findRecipeIndex(chosenRecipeType),
   );
+
+  useEffect(() => {
+    if (selectedRecipe) {
+      setRecipeJson(
+        isCustomRecipe(selectedRecipe)
+          ? selectedRecipe.json
+          : JSON.stringify(
+              { ...selectedRecipe, filePath: undefined, index: undefined },
+              null,
+              2,
+            ),
+      );
+      setRecipeName(
+        isCustomRecipe(selectedRecipe)
+          ? selectedRecipe.name
+          : selectedRecipe.filePath,
+      );
+      updateRecipeType(
+        (isCustomRecipe(selectedRecipe)
+          ? JSON.parse(selectedRecipe.json)?.type
+          : selectedRecipe.type) ?? 'custom',
+      );
+    } else {
+      setRecipeJson(DEFAULT_RECIPE_JSON);
+      setRecipeName('Name of recipe');
+    }
+  }, [selectedRecipe]);
 
   const hasRefinedEditor = () => {
     return !!ComponentByRecipeType[
@@ -90,6 +125,9 @@ export default function AddRecipe() {
         ),
       );
       setChosenExample(exampleRecipe.index);
+    } else {
+      setExampleJson('');
+      setChosenExample(undefined);
     }
   };
 
@@ -100,7 +138,7 @@ export default function AddRecipe() {
   const onChangeExample = (index: Key) => {
     const recipe = useRecipesStore
       .getState()
-      .recipes.find((r) => r.index === parseInt(index, 10));
+      .recipes.find((r) => r.index === parseInt(index as string, 10));
     if (recipe) {
       setExampleJson(
         JSON.stringify(
@@ -117,6 +155,41 @@ export default function AddRecipe() {
     setRecipeJson(exampleJson);
   };
 
+  const addRecipe = (json: string) => {};
+
+  const editRecipe = (json: string) => {
+    if (isCustomRecipe(selectedRecipe)) {
+      projectStore.setState((st) => {
+        st.addedRecipes[selectedRecipe.index] = {
+          ...selectedRecipe,
+          json,
+        };
+      });
+    } else if (selectedRecipe) {
+      const editedIndex = projectStore
+        .getState()
+        .editedRecipes.findIndex(
+          (er) => er.filePath === selectedRecipe?.filePath,
+        );
+
+      if (editedIndex !== -1) {
+        projectStore.setState((st) => {
+          st.editedRecipes[editedIndex] = {
+            ...st.editedRecipes[editedIndex],
+            json,
+          };
+        });
+      } else {
+        projectStore.setState((st) => {
+          st.editedRecipes.push({
+            filePath: selectedRecipe.filePath ?? '',
+            json,
+          });
+        });
+      }
+    }
+  };
+
   const renderPage = () => {
     const CustomComponent =
       ComponentByRecipeType[
@@ -127,13 +200,18 @@ export default function AddRecipe() {
       <CustomComponent
         onChange={setRecipeJson}
         json={recipeJson}
-        onAdded={onAdded}
+        onAdded={addRecipe}
+        onEdited={editRecipe}
+        isEdit={!!selectedRecipe}
       />
     ) : (
       <RawRecipeEditor
         json={recipeJson}
         className="flex-1"
         onChange={setRecipeJson}
+        onAdded={addRecipe}
+        onEdited={editRecipe}
+        isEdit={!!selectedRecipe}
       />
     );
   };
@@ -142,7 +220,7 @@ export default function AddRecipe() {
     <>
       <div className="flex">
         <Title goBack={() => navigate('recipe-list')} className="mb-3">
-          Add Custom Recipe
+          {selectedRecipe ? 'Edit recipe' : 'Add custom Recipe'}
         </Title>
         <Title className="ml-auto w-[350px]">Templates</Title>
       </div>
@@ -153,6 +231,7 @@ export default function AddRecipe() {
             <Input
               value={recipeName}
               onValueChange={setRecipeName}
+              isDisabled={!isCustomRecipe(selectedRecipe)}
               size="sm"
               classNames={{ inputWrapper: 'h-10' }}
             />
@@ -166,7 +245,7 @@ export default function AddRecipe() {
               </Tabs>
             )}
           </div>
-          <div className="mt-3 flex-1">{renderPage()}</div>
+          <div className="mt-3 flex-1 flex flex-col">{renderPage()}</div>
         </div>
         <div className="flex flex-col w-[350px] min-w-[350px] gap-2">
           <Autocomplete
@@ -205,12 +284,14 @@ export default function AddRecipe() {
             </Autocomplete>
           </div>
 
-          <SimpleCodeEditor
-            data={exampleJson}
-            fileType="json"
-            readOnly
-            style={{ minHeight: 'auto', flex: 1 }}
-          />
+          <div className="flex-1">
+            <SimpleCodeEditor
+              data={exampleJson}
+              fileType="json"
+              readOnly
+              style={{ minHeight: 'auto', flex: 1 }}
+            />
+          </div>
         </div>
       </div>
     </>

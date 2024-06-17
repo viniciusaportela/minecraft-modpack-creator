@@ -1,4 +1,5 @@
 import { IMod } from './mods-store.interface';
+import { IRecipe } from './recipes-store.interface';
 
 export interface IProjectStore {
   addedRecipes: ICustomRecipe[];
@@ -10,11 +11,19 @@ export interface IProjectStore {
   openedTabs: IMod[];
   focusedTab: string;
   load: () => void;
+  selectedRecipe: IRecipe | ICustomRecipe | null;
 }
 
 export interface ICustomRecipe {
   json: string;
+  name: string;
+  index: number;
+  isCustomRecipe: true;
 }
+
+export const isCustomRecipe = (
+  recipe: IRecipe | ICustomRecipe | null,
+): recipe is ICustomRecipe => !!recipe?.isCustomRecipe;
 
 export interface IDeleteRecipe {
   filePath: string;

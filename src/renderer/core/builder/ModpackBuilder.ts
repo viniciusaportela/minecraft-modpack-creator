@@ -40,6 +40,7 @@ export default class ModpackBuilder {
         modDb,
         modCfgStore.get(modDb).getState(),
       );
+      console.log(mod);
       await mod.preBuild();
       await mod.build();
       await mod.postBuild();

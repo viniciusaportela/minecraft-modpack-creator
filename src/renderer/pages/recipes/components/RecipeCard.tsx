@@ -19,47 +19,37 @@ import path from 'path';
 import clsx from 'clsx';
 import { GridChildComponentProps } from 'react-window';
 import { IRecipe } from '../../../store/interfaces/recipes-store.interface';
-import NoRecipe from '../../../assets/no-recipe.png';
-import { TextureLoader } from '../../../core/domains/minecraft/texture/texture-loader';
-import LazyTexture from '../../../components/lazy-texture/LazyTexture';
-import { useItemsStore } from '../../../store/items.store';
-import Block3D from '../../../components/block-3d/Block3D';
 import {
+  ICustomRecipe,
   IDeleteRecipe,
   IEditRecipe,
+  isCustomRecipe,
 } from '../../../store/interfaces/project-store.interface';
-
-interface RecipeCardProps {
-  recipe: IRecipe;
-  onSelect?: (recipe: IRecipe) => void;
-  style?: CSSProperties;
-  wrapperStyle?: CSSProperties;
-  isSelected?: boolean;
-  isDeleted?: boolean;
-  isEdited?: boolean;
-  onRestore?: (recipe: IRecipe) => void;
-}
+import { RecipePreview } from './RecipePreview/RecipePreview';
 
 export const RecipeCardItemWrapper = memo(
   ({ style, rowIndex, columnIndex, data }: GridChildComponentProps) => {
     const recipe: IRecipe =
-      data.filteredRecipes[
-        rowIndex * Math.floor(data.width / 260) + columnIndex
-      ];
+      data.data[rowIndex * Math.floor(data.width / 260) + columnIndex];
+
+    if (!recipe) return null;
 
     return (
       <RecipeCard
-        recipe={recipe}
+        recipe={isCustomRecipe(recipe) ? JSON.parse(recipe.json) : recipe}
         wrapperStyle={{ ...style, paddingLeft: 10 }}
         onSelect={data.onSelectRecipe}
-        isSelected={data.selectedRecipes.includes(recipe.index)}
+        isSelected={data.selectedRecipes?.includes(recipe.index)}
         style={{ marginTop: 10 }}
         onRestore={data.onRestoreRecipe}
-        isDeleted={data.deletedRecipes.some(
+        onDelete={data.onDelete}
+        onEdit={data.onEdit}
+        customRecipe={isCustomRecipe(recipe) ? recipe : undefined}
+        isDeleted={data.deletedRecipes?.some(
           (r: IDeleteRecipe) => r.filePath === recipe.filePath,
         )}
         isEdited={
-          !!data.editedRecipes.some(
+          !!data.editedRecipes?.some(
             (r: IEditRecipe) => r.filePath === recipe.filePath,
           )
         }
@@ -67,6 +57,20 @@ export const RecipeCardItemWrapper = memo(
     );
   },
 );
+
+interface RecipeCardProps {
+  recipe: IRecipe;
+  onSelect?: (recipe: IRecipe | ICustomRecipe) => void;
+  style?: CSSProperties;
+  wrapperStyle?: CSSProperties;
+  isSelected?: boolean;
+  isDeleted?: boolean;
+  isEdited?: boolean;
+  onRestore?: (recipe: IRecipe | ICustomRecipe) => void;
+  onEdit?: (recipe: IRecipe | ICustomRecipe) => void;
+  onDelete?: (recipe: IRecipe | ICustomRecipe) => void;
+  customRecipe?: ICustomRecipe;
+}
 
 export const RecipeCard: React.FC<RecipeCardProps> = ({
   recipe,
@@ -76,49 +80,16 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   wrapperStyle,
   isEdited,
   isDeleted,
+  onDelete,
+  onEdit,
   onRestore,
+  customRecipe,
 }) => {
-  const getImage = () => {
-    // TODO Has to adapt if item is a block instead
-    if (recipe.result?.item) {
-      const foundItem = useItemsStore.getState().findItem(recipe.result.item);
-
-      if (foundItem?.isBlock) {
-        return (
-          <Block3D
-            textureId={TextureLoader.getInstance().getTextureFromBlock(
-              foundItem.id,
-            )}
-            size={28}
-            className="mt-3 ml-2"
-          />
-        );
-      }
-
-      return (
-        <LazyTexture
-          textureId={
-            TextureLoader.getInstance().getTextureFromItem(
-              recipe.result.item,
-            ) || null
-          }
-          className="w-[50px] h-[50px]"
-          fallback={NoRecipe}
-        />
-      );
-    }
-
-    return (
-      <LazyTexture
-        textureId={null}
-        className="w-[50px] h-[50px]"
-        fallback={NoRecipe}
-      />
-    );
-  };
-
   const getTitle = (full?: true) => {
-    return `${path.basename(recipe.filePath).replace('.json', '')}${full && recipe.type ? ` (${recipe.type})` : ''}`;
+    return (
+      customRecipe?.name ??
+      `${path.basename(recipe.filePath).replace('.json', '')}${full && recipe.type ? ` (${recipe.type})` : ''}`
+    );
   };
 
   return (
@@ -130,10 +101,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           isSelected && 'outline-primary-400',
         )}
         style={style}
-        onPress={() => onSelect?.(recipe)}
+        onPress={() => onSelect?.(customRecipe ?? recipe)}
       >
         <CardBody>
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full overflow-y-hidden overflow-x-visible">
             <Tooltip
               content={getTitle(true)}
               className="tooltip-not-selectable"
@@ -141,22 +112,22 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               <span
                 className={clsx(
                   'overflow-hidden text-ellipsis text-nowrap',
-                  isDeleted && 'text-red-400',
-                  isEdited && 'text-primary-400',
+                  isDeleted && 'text-zinc-800',
+                  isEdited && 'text-yellow-300',
                 )}
               >
                 {getTitle()}
               </span>
             </Tooltip>
             <div className="flex flex-1 justify-stretch mt-1">
-              {getImage()}
+              <RecipePreview recipe={recipe} />
               <div className="flex items-end justify-end flex-1 gap-1">
                 {(isDeleted || isEdited) && (
                   <Button
                     isIconOnly
                     size="sm"
                     color="primary"
-                    onPress={() => onRestore?.(recipe)}
+                    onPress={() => onRestore?.(customRecipe ?? recipe)}
                   >
                     <ArrowCounterClockwise />
                   </Button>
@@ -167,7 +138,12 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                       <DotsThree />
                     </Button>
                   </DropdownTrigger>
-                  <DropdownMenu>
+                  <DropdownMenu
+                    onAction={(key) => {
+                      if (key === 'edit') onEdit?.(customRecipe ?? recipe);
+                      if (key === 'delete') onDelete?.(customRecipe ?? recipe);
+                    }}
+                  >
                     <DropdownItem startContent={<PencilSimple />} key="edit">
                       Edit
                     </DropdownItem>

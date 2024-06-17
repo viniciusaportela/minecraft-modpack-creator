@@ -21,6 +21,7 @@ import Alert from '../../components/alert/Alert';
 import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { RefinedConfigProvider } from '../../core/domains/minecraft/config/RefinedConfigContext';
 import { RefinedField } from '../../core/domains/minecraft/config/interfaces/parser';
+import { useProjectSelector } from '../../store/hooks/use-project-store';
 
 const getFirstFile = (nodes: readonly ConfigNode[]) => {
   const toRead = [...nodes];
@@ -39,6 +40,7 @@ const getFirstFile = (nodes: readonly ConfigNode[]) => {
 };
 
 const Configs = memo(() => {
+  const focusedTab = useProjectSelector((st) => st.focusedTab);
   const configs = useAppStore((st) => st.configs);
 
   const flattedNodes = useMemo(
@@ -91,9 +93,9 @@ const Configs = memo(() => {
 
   useEffect(() => {
     if (filesTreeRef.current) {
-      setContentSize(filesTreeRef.current!.scrollWidth + 16);
+      setContentSize((filesTreeRef.current!.scrollWidth || 200) + 16);
     }
-  }, []);
+  }, [filesTreeRef.current, focusedTab]);
 
   const isSelectedInvalid = invalidNodes?.find(
     (n) => n.node.getPath() === selectedConfig?.getPath(),

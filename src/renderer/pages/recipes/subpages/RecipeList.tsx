@@ -28,8 +28,12 @@ import {
 } from '../../../store/hooks/use-project-store';
 import CustomRecipeCard from '../components/CustomRecipeCard';
 import { useRecipesStore } from '../../../store/recipes.store';
-import { RecipeCardItemWrapper } from '../components/RecipeCard';
+import { RecipeCard, RecipeCardItemWrapper } from '../components/RecipeCard';
 import { IRecipe } from '../../../store/interfaces/recipes-store.interface';
+import {
+  ICustomRecipe,
+  isCustomRecipe,
+} from '../../../store/interfaces/project-store.interface';
 
 export default function RecipeList() {
   const { navigate } = usePager();
@@ -101,12 +105,24 @@ export default function RecipeList() {
     }
   };
 
-  const isToShowRestore = () => {
+  const isToShowDelete = () => {
     const selectedFilePaths = selectedRecipes.map(
       (index) => allRecipes[index].filePath,
     );
 
-    console.log(projectStore.getState());
+    const deletedRecipePaths = projectStore
+      .getState()
+      .deletedRecipes.map((deleted) => deleted.filePath);
+
+    return selectedFilePaths.some(
+      (selected) => !deletedRecipePaths.includes(selected),
+    );
+  };
+
+  const isToShowRestore = () => {
+    const selectedFilePaths = selectedRecipes.map(
+      (index) => allRecipes[index].filePath,
+    );
 
     const hasAnySelectedDeleted = projectStore
       .getState()
@@ -159,15 +175,6 @@ export default function RecipeList() {
       } as const;
     });
 
-    console.log(
-      'currentDeleted',
-      currentDeleted,
-      'onlyNonDeleted',
-      onlyNonDeleted,
-      'newDeleted',
-      newDeleted,
-    );
-
     projectStore.setState((st) => {
       st.deletedRecipes.push(...newDeleted);
     });
@@ -175,18 +182,92 @@ export default function RecipeList() {
     setSelectedRecipes([]);
   };
 
-  const onRestoreRecipe = (recipe: IRecipe) => {};
+  const onRestoreRecipe = (recipe: IRecipe) => {
+    const isDeleted = projectStore
+      .getState()
+      .deletedRecipes.some((dr) => dr.filePath === recipe.filePath);
+
+    if (isDeleted) {
+      projectStore.setState((st) => {
+        st.deletedRecipes = st.deletedRecipes.filter(
+          (dr) => dr.filePath !== recipe.filePath,
+        );
+      });
+      return;
+    }
+
+    const isEdited = projectStore
+      .getState()
+      .editedRecipes.some((er) => er.filePath === recipe.filePath);
+    if (isEdited) {
+      projectStore.setState((st) => {
+        st.editedRecipes = st.editedRecipes.filter(
+          (er) => er.filePath !== recipe.filePath,
+        );
+      });
+    }
+  };
+
+  const onDelete = (recipe: IRecipe | ICustomRecipe) => {
+    if (isCustomRecipe(recipe)) {
+      // ...
+    } else {
+      const isDeleted = projectStore
+        .getState()
+        .deletedRecipes.some((dr) => dr.filePath === recipe.filePath);
+
+      if (isDeleted) {
+        return;
+      }
+
+      projectStore.setState((st) => {
+        st.deletedRecipes.push({
+          filePath: recipe.filePath,
+        });
+      });
+    }
+  };
+
+  const onEdit = (recipe: IRecipe | ICustomRecipe) => {
+    if (isCustomRecipe(recipe)) {
+      // ...
+    } else {
+      navigate('recipe-form');
+      projectStore.setState((st) => {
+        st.selectedRecipe = recipe;
+      });
+    }
+  };
+
+  const onClickAddButton = () => {
+    navigate('recipe-form');
+    projectStore.setState((st) => {
+      st.selectedRecipe = null;
+    });
+  };
+
+  console.log(customRecipes);
 
   return (
     <>
-      <Title>Your custom recipes</Title>
+      <div className="flex">
+        <Title>Your custom recipes</Title>
+        <Button
+          color="primary"
+          size="sm"
+          className="min-w-10 min-h-10 ml-auto mr-3"
+          onPress={onClickAddButton}
+        >
+          <Plus size={16} />
+        </Button>
+      </div>
 
-      <div className="h-72">
+      <div className="flex-1 flex flex-col">
         {customRecipes.length === 0 && (
           <Button
             className="border-1 border-dashed border-zinc-700 h-fit w-full p-5 mt-3"
             variant="light"
-            onPress={() => navigate('add-recipe')}
+            onPress={() => navigate('recipe-form')}
           >
             <div className="flex flex-col gap-1">
               <i className="text-zinc-500">No recipes found.</i>
@@ -198,174 +279,181 @@ export default function RecipeList() {
           </Button>
         )}
 
-        {customRecipes.length > 0 && (
-          <div className="flex flex-col gap-2 mt-3">
-            <Button
-              className="border-1 border-dashed border-zinc-700 h-fit w-full p-5 mt-3"
-              variant="light"
-              onPress={() => navigate('add-recipe')}
-            >
-              <div className="flex gap-1 items-center">
-                <Plus />
-                <span className="font-bold">New recipe</span>
-              </div>
-            </Button>
-            {customRecipes.map((r, index) => (
-              <CustomRecipeCard
-                customRecipe={r}
-                onDelete={() =>
-                  projectStore.setState((st) => {
-                    st.addedRecipes.splice(index, 1);
-                  })
-                }
-              />
-            ))}
-          </div>
-        )}
+        <div className="mt-3 gap-2 flex flex-col flex-1">
+          <AutoSizer>
+            {({ height, width }) => (
+              <Grid
+                columnCount={Math.floor(width / 270)}
+                rowCount={customRecipes.length / Math.floor(width / 270)}
+                columnWidth={270}
+                rowHeight={110}
+                itemData={{
+                  data: customRecipes,
+                  onEdit,
+                  onDelete,
+                  width,
+                }}
+                height={height}
+                width={width}
+              >
+                {RecipeCardItemWrapper}
+              </Grid>
+            )}
+          </AutoSizer>
+        </div>
       </div>
 
       <Divider className="mb-2" />
-      <div className="flex">
-        <div className="mr-auto">
-          <Title>All recipes</Title>
-          <i className="text-sm text-zinc-500">
-            You can remove and modify recipes here
-          </i>
-        </div>
+      <div className="flex-1 flex flex-col">
+        <div className="flex">
+          <div className="mr-auto">
+            <Title>All recipes</Title>
+            <i className="text-sm text-zinc-500">
+              You can remove and modify recipes here
+            </i>
+          </div>
 
-        {selectedRecipes.length > 0 && (
-          <div className="mr-2">
-            <span className="text-sm mr-2">
-              {selectedRecipes.length} selected
-            </span>
-            {isToShowRestore() && (
+          {selectedRecipes.length > 0 && (
+            <div className="mr-2">
+              <span className="text-sm mr-2">
+                {selectedRecipes.length} selected
+              </span>
+              {isToShowRestore() && (
+                <Button
+                  isIconOnly
+                  color="primary"
+                  className="mr-1"
+                  onPress={bulkRestore}
+                >
+                  <ArrowCounterClockwise />
+                </Button>
+              )}
+              {isToShowDelete() && (
+                <Button isIconOnly color="primary" onPress={bulkDelete}>
+                  <TrashSimple />
+                </Button>
+              )}
+            </div>
+          )}
+
+          <Button isIconOnly className="mr-1" onPress={switchSelection}>
+            <CheckSquare size={16} />
+          </Button>
+
+          <Popover showArrow placement="bottom">
+            <PopoverTrigger>
               <Button
                 isIconOnly
-                color="primary"
-                className="mr-1"
-                onPress={bulkRestore}
+                color={isFilterActive() ? 'primary' : undefined}
               >
-                <ArrowCounterClockwise />
+                <Funnel />
               </Button>
-            )}
-            <Button isIconOnly color="primary" onPress={bulkDelete}>
-              <TrashSimple />
-            </Button>
-          </div>
-        )}
-
-        <Button isIconOnly className="mr-1" onPress={switchSelection}>
-          <CheckSquare size={16} />
-        </Button>
-
-        <Popover showArrow placement="bottom">
-          <PopoverTrigger>
-            <Button isIconOnly color={isFilterActive() ? 'primary' : undefined}>
-              <Funnel />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <div className="flex flex-col py-4 px-1 gap-4">
-              <div className="gap-4 flex">
-                <div>
-                  <span>Recipe ID</span>
-                  <Input
-                    size="sm"
-                    classNames={{ inputWrapper: 'h-10' }}
-                    value={idFilter}
-                    onValueChange={(txt) => setIdFilter(txt)}
-                  />
+            </PopoverTrigger>
+            <PopoverContent>
+              <div className="flex flex-col py-4 px-1 gap-4">
+                <div className="gap-4 flex">
+                  <div>
+                    <span>Recipe ID</span>
+                    <Input
+                      size="sm"
+                      classNames={{ inputWrapper: 'h-10' }}
+                      value={idFilter}
+                      onValueChange={(txt) => setIdFilter(txt)}
+                    />
+                  </div>
+                  <div>
+                    <span>Mod ID</span>
+                    <Input
+                      size="sm"
+                      classNames={{ inputWrapper: 'h-10' }}
+                      value={modFilter}
+                      onValueChange={(txt) => setModFilter(txt)}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <span>Mod ID</span>
-                  <Input
-                    size="sm"
-                    classNames={{ inputWrapper: 'h-10' }}
-                    value={modFilter}
-                    onValueChange={(txt) => setModFilter(txt)}
-                  />
+                <div className="gap-4 flex">
+                  <div>
+                    <span>Input Filter</span>
+                    <Input
+                      size="sm"
+                      classNames={{ inputWrapper: 'h-10' }}
+                      value={inputFilter}
+                      onValueChange={(txt) => setInputFilter(txt)}
+                    />
+                  </div>
+                  <div>
+                    <span>Output Filter</span>
+                    <Input
+                      size="sm"
+                      classNames={{ inputWrapper: 'h-10' }}
+                      value={outputFilter}
+                      onValueChange={(txt) => setOutputFilter(txt)}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="gap-4 flex">
-                <div>
-                  <span>Input Filter</span>
-                  <Input
-                    size="sm"
-                    classNames={{ inputWrapper: 'h-10' }}
-                    value={inputFilter}
-                    onValueChange={(txt) => setInputFilter(txt)}
-                  />
+                <div className="gap-4 flex">
+                  <div className="flex-1">
+                    <span>By Type</span>
+                    <Autocomplete
+                      inputValue={typeFilter}
+                      onInputChange={(key) => setTypeFilter(key)}
+                      allowsCustomValue
+                      inputProps={{ classNames: { inputWrapper: 'h-10' } }}
+                    >
+                      {recipesTypes.map((item) => (
+                        <AutocompleteItem key={item}>{item}</AutocompleteItem>
+                      ))}
+                    </Autocomplete>
+                  </div>
                 </div>
-                <div>
-                  <span>Output Filter</span>
-                  <Input
-                    size="sm"
-                    classNames={{ inputWrapper: 'h-10' }}
-                    value={outputFilter}
-                    onValueChange={(txt) => setOutputFilter(txt)}
-                  />
-                </div>
-              </div>
-              <div className="gap-4 flex">
-                <div className="flex-1">
-                  <span>By Type</span>
-                  <Autocomplete
-                    inputValue={typeFilter}
-                    onInputChange={(key) => setTypeFilter(key)}
-                    allowsCustomValue
-                    inputProps={{ classNames: { inputWrapper: 'h-10' } }}
+                <div className="gap-4 flex">
+                  <Switch
+                    isSelected={removedOnlyFilter}
+                    onValueChange={(val) => setRemovedOnlyFilter(val)}
                   >
-                    {recipesTypes.map((item) => (
-                      <AutocompleteItem key={item}>{item}</AutocompleteItem>
-                    ))}
-                  </Autocomplete>
+                    Show removed only
+                  </Switch>
+                </div>
+                <div className="gap-4 flex">
+                  <Switch
+                    isSelected={modifiedOnlyFilter}
+                    onValueChange={(val) => setModifiedOnlyFilter(val)}
+                  >
+                    Show modified only
+                  </Switch>
                 </div>
               </div>
-              <div className="gap-4 flex">
-                <Switch
-                  isSelected={removedOnlyFilter}
-                  onValueChange={(val) => setRemovedOnlyFilter(val)}
-                >
-                  Show removed only
-                </Switch>
-              </div>
-              <div className="gap-4 flex">
-                <Switch
-                  isSelected={modifiedOnlyFilter}
-                  onValueChange={(val) => setModifiedOnlyFilter(val)}
-                >
-                  Show modified only
-                </Switch>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
+            </PopoverContent>
+          </Popover>
+        </div>
 
-      <div className="flex flex-1">
-        <AutoSizer>
-          {({ height, width }) => (
-            <Grid
-              columnCount={Math.floor(width / 270)}
-              rowCount={filteredRecipes.length / Math.floor(width / 270)}
-              columnWidth={270}
-              rowHeight={110}
-              itemData={{
-                filteredRecipes,
-                selectedRecipes,
-                deletedRecipes,
-                editedRecipes,
-                onSelectRecipe,
-                width,
-                onRestoreRecipe,
-              }}
-              height={height}
-              width={width}
-            >
-              {RecipeCardItemWrapper}
-            </Grid>
-          )}
-        </AutoSizer>
+        <div className="flex flex-1">
+          <AutoSizer>
+            {({ height, width }) => (
+              <Grid
+                columnCount={Math.floor(width / 270)}
+                rowCount={filteredRecipes.length / Math.floor(width / 270)}
+                columnWidth={270}
+                rowHeight={110}
+                itemData={{
+                  data: filteredRecipes,
+                  selectedRecipes,
+                  deletedRecipes,
+                  editedRecipes,
+                  onSelectRecipe,
+                  onEdit,
+                  onDelete,
+                  width,
+                  onRestoreRecipe,
+                }}
+                height={height}
+                width={width}
+              >
+                {RecipeCardItemWrapper}
+              </Grid>
+            )}
+          </AutoSizer>
+        </div>
       </div>
     </>
   );
