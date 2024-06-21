@@ -6,8 +6,6 @@ import {
   DropdownTrigger,
 } from '@nextui-org/react';
 import Label from './Label';
-import { useModConfigStore } from '../../../../../../store/hooks/use-mod-config-store';
-import { ISkillTreeConfig } from '../../../../../../core/domains/mods/skilltree/interfaces/skill-tree-config.interface';
 import { useModConfigSelector } from '../../../../../../store/hooks/use-mod-config-selector';
 
 interface IFullOption {
@@ -42,15 +40,14 @@ export default function ChoiceField({ options, path, label }: ChoiceProps) {
 
   return (
     <>
-      <Label nestLevel={path.length} path={path}>
-        {label}
-      </Label>
+      <Label nestLevel={path.length}>{label}</Label>
       <Dropdown>
         <DropdownTrigger>
           <Button>{getLabel(value)}</Button>
         </DropdownTrigger>
         <DropdownMenu
           selectedKeys={[value]}
+          className="max-h-60 overflow-y-auto"
           onAction={(key) => {
             setValue(
               (

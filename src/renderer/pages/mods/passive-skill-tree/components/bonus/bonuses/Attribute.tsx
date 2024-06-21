@@ -3,12 +3,12 @@ import NumberField from '../fields/NumberField';
 import { PlayerCondition } from '../fields/player-condition/PlayerCondition';
 import { OperationField } from '../fields/OperationField';
 import { PlayerMultiplier } from '../fields/player-multiplier/PlayerMultiplier';
-import { TextField } from '../fields/TextField';
+import { AttributeField } from '../fields/AttributeField';
 
 export const Attribute: FunctionWithDefaultConfig = ({ path }) => {
   return (
     <>
-      <TextField path={[...path, 'attribute']} label="Attribute" />
+      <AttributeField path={[...path, 'attribute']} />
       <NumberField path={[...path, 'amount']} label="Amount" />
       <OperationField path={[...path, 'operation']} />
       <PlayerMultiplier path={[...path, 'player_multiplier']} />
@@ -20,7 +20,7 @@ export const Attribute: FunctionWithDefaultConfig = ({ path }) => {
 Attribute.getDefaultConfig = () => {
   return {
     type: 'skilltree:attribute',
-    attribute: 'minecraft:generic.armor',
+    attribute: AttributeField.getDefaultConfig(),
     amount: 1,
     operation: OperationField.getDefaultConfig(),
     player_multiplier: PlayerMultiplier.getDefaultConfig(),

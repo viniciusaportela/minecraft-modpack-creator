@@ -1,12 +1,14 @@
 import { Code, Link, Spinner } from '@nextui-org/react';
 import React, { useCallback, useLayoutEffect } from 'react';
 import { ipcRenderer, shell } from 'electron';
+import path from 'node:path';
 import AppBarHeader, {
   AppBarHeaderContainer,
 } from '../../components/app-bar/AppBarHeader';
 import { useSelectedProject } from '../../store/app.store';
 import { usePager } from '../../components/pager/hooks/usePager';
 import ProjectService from '../../core/domains/project/project-service';
+import openFolder from '../../helpers/open-folder';
 
 export default function WaitingForData() {
   const { navigate } = usePager();
@@ -26,7 +28,7 @@ export default function WaitingForData() {
   }, []);
 
   const openModsFolder = () => {
-    shell.openPath(`${project!.path}/mods`);
+    openFolder(`${project!.path}${path.sep}mods`);
   };
 
   return (

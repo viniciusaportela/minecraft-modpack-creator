@@ -23,7 +23,6 @@ import { IncomingHealing } from '../../../../../pages/mods/passive-skill-tree/co
 import { JumpHeight } from '../../../../../pages/mods/passive-skill-tree/components/bonus/bonuses/JumpHeight';
 import { LootDuplication } from '../../../../../pages/mods/passive-skill-tree/components/bonus/bonuses/LootDuplication';
 import { RepairEfficiency } from '../../../../../pages/mods/passive-skill-tree/components/bonus/bonuses/RepairEfficiency';
-import { FunctionComponent } from 'react';
 import { FunctionWithDefaultConfig } from '../../../../../pages/mods/passive-skill-tree/interfaces/function-with-default-config';
 
 export enum EBonus {

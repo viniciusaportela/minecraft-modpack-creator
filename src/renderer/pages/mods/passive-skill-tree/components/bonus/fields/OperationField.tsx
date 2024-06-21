@@ -1,5 +1,6 @@
 import ChoiceField from './ChoiceField';
 import { FunctionWithDefaultConfig } from '../../../interfaces/function-with-default-config';
+import { NestWrapper } from '../NestWrapper';
 
 interface OperationFieldProps {
   path: string[];
@@ -8,15 +9,17 @@ interface OperationFieldProps {
 export const OperationField: FunctionWithDefaultConfig<OperationFieldProps> = ({
   path,
 }: OperationFieldProps) => (
-  <ChoiceField
-    label="Operation"
-    path={path}
-    options={[
-      { label: 'Addition', value: 0 },
-      { label: 'Multiply Base', value: 1 },
-      { label: 'Multiply Total', value: 2 },
-    ]}
-  />
+  <NestWrapper nestLevel={path.length}>
+    <ChoiceField
+      label="Operation"
+      path={path}
+      options={[
+        { label: 'Addition', value: 0 },
+        { label: 'Multiply Base', value: 1 },
+        { label: 'Multiply Total', value: 2 },
+      ]}
+    />
+  </NestWrapper>
 );
 
 OperationField.getDefaultConfig = () => {

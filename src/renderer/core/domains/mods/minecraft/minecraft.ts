@@ -10,16 +10,20 @@ import { BusinessError } from '../../../errors/business-error.enum';
 
 export class Minecraft extends DefaultMod {
   async build() {
+    await this.copyConfigs();
+  }
+
+  async copyConfigs() {
     const baseFolders = ConfigLoader.getBaseFolders();
 
-    const finalSourcePaths = baseFolders.map((p) =>
+    const sourcePaths = baseFolders.map((p) =>
       path.join(this.project.path, 'minecraft-toolkit', 'configs', p),
     );
-    const finalDestinationPaths = baseFolders.map((p) =>
+    const destinationPaths = baseFolders.map((p) =>
       path.join(this.project.path, p),
     );
 
-    const promises = finalSourcePaths.map(async (finalPath) => {
+    const promises = sourcePaths.map(async (finalPath) => {
       const allPaths = await recursive(finalPath);
 
       const pathsWithStat = (await Promise.all(
@@ -55,8 +59,8 @@ export class Minecraft extends DefaultMod {
     });
     await Promise.all(promises);
 
-    const copyPromises = finalSourcePaths.map((finalPath, index) =>
-      cp(finalPath, finalDestinationPaths[index], {
+    const copyPromises = sourcePaths.map((finalPath, index) =>
+      cp(finalPath, destinationPaths[index], {
         recursive: true,
       }),
     );

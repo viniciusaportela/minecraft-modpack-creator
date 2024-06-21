@@ -1,6 +1,7 @@
 import { Input } from '@nextui-org/react';
 import Label from './Label';
 import { useModConfigSelector } from '../../../../../../store/hooks/use-mod-config-selector';
+import { NestWrapper } from '../NestWrapper';
 
 interface NumberFieldProps {
   path: string[];
@@ -16,10 +17,8 @@ export default function NumberField({
   const [value, setValue] = useModConfigSelector(path);
 
   return (
-    <>
-      <Label nestLevel={path.length} path={path}>
-        {label}
-      </Label>
+    <NestWrapper nestLevel={path.length}>
+      <Label nestLevel={path.length}>{label}</Label>
       <Input
         size="sm"
         classNames={{
@@ -35,6 +34,6 @@ export default function NumberField({
           );
         }}
       />
-    </>
+    </NestWrapper>
   );
 }

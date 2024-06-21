@@ -1,17 +1,16 @@
 import React, { useLayoutEffect, useState } from 'react';
 import {
   Button,
-  Card,
-  CardBody,
-  Image,
   ScrollShadow,
   Tab,
   Tabs,
   useDisclosure,
 } from '@nextui-org/react';
-import { Hammer, X } from '@phosphor-icons/react';
+import { Folder, Hammer, X } from '@phosphor-icons/react';
 import { ipcRenderer } from 'electron';
 import toast from 'react-hot-toast';
+import { FixedSizeList as List } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import useHorizontalScroll from '../../hooks/use-horizontal-scroll.hook';
 import Recipes from '../recipes/Recipes';
 import { pageByMod } from '../../constants/page-by-mod';
@@ -23,16 +22,20 @@ import AppBarHeader, {
 import ModpackBuilder from '../../core/builder/ModpackBuilder';
 import BuildingModal from './components/BuildingModal';
 import { ModConfigProvider } from '../../store/providers/mod-config-provider';
-import NoThumb from '../../assets/no-thumb.png';
 import Configs from '../configs/Configs';
 import PageHider from './components/PageHider';
 import BuildErrorReport from '../../components/build-error-modal/BuildErrorReport';
 import SearchBar from '../../components/search-bar/SearchBar';
 import { useModsStore } from '../../store/mods.store';
-import { TextureLoader } from '../../core/domains/minecraft/texture/texture-loader';
 import { IMod } from '../../store/interfaces/mods-store.interface';
 import ProjectService from '../../core/domains/project/project-service';
 import { useSelectedProject } from '../../store/app.store';
+import {
+  useProjectSelector,
+  useProjectStore,
+} from '../../store/hooks/use-project-store';
+import openFolder from '../../helpers/open-folder';
+import { ModCard } from './components/ModCard';
 
 export default function Project() {
   useHorizontalScroll('tabs');
@@ -49,6 +52,10 @@ export default function Project() {
   const project = useSelectedProject();
   const mods = useModsStore((st) => Object.values(st.mods));
 
+  const projectStore = useProjectStore();
+  const openedTabs = useProjectSelector((st) => st.openedTabs);
+  const focusedTab = useProjectSelector((st) => st.focusedTab);
+
   const [modsFilter, setModsFilter] = useState('');
 
   const {
@@ -61,9 +68,6 @@ export default function Project() {
   useLayoutEffect(() => {
     ipcRenderer.send('resize', 1280, 900);
   }, []);
-
-  const [openedModTabs, setOpenedModTabs] = useState<any[]>([]);
-  const [selectedTab, setSelectedTab] = useState('recipes');
 
   async function build() {
     setIsBuilding(true);
@@ -94,29 +98,34 @@ export default function Project() {
   }
 
   function clickOnMod(addon: IMod) {
-    const exists = openedModTabs.find((tab) => tab.name === addon.name);
+    const exists = openedTabs.find((tab) => tab.name === addon.name);
 
     if (!exists) {
-      setOpenedModTabs([...openedModTabs, addon]);
+      projectStore.setState((st) => {
+        st.openedTabs.push(addon);
+      });
     }
 
     setTimeout(() => {
-      setSelectedTab(addon.name);
+      projectStore.setState({ focusedTab: addon.name });
     }, 0);
   }
 
   function closeTab(tab: string) {
-    const newTabs = openedModTabs.filter((addon) => addon.name !== tab);
+    const newTabs = openedTabs.filter((addon) => addon.name !== tab);
 
-    if (tab === selectedTab) {
-      const selectedTabIndex = openedModTabs.findIndex(
+    if (tab === focusedTab) {
+      const selectedTabIndex = openedTabs.findIndex(
         (opened) => opened.name === tab,
       );
-      const beforeSelectedTab = openedModTabs[selectedTabIndex - 1];
-      setSelectedTab(beforeSelectedTab?.name ?? 'recipes');
+      const beforeSelectedTab = openedTabs[selectedTabIndex - 1];
+
+      projectStore.setState({
+        focusedTab: beforeSelectedTab?.name ?? 'recipes',
+      });
     }
 
-    setOpenedModTabs(newTabs);
+    projectStore.setState({ openedTabs: newTabs });
   }
 
   function getModFromTab(tab: string) {
@@ -149,7 +158,11 @@ export default function Project() {
   }
 
   function isVisible(current: string) {
-    return current === selectedTab;
+    return current === focusedTab;
+  }
+
+  function openProjectFolder() {
+    openFolder(project!.path);
   }
 
   const filteredMods = modsFilter
@@ -177,6 +190,14 @@ export default function Project() {
         <AppBarHeaderContainer>
           <div className="flex-1 app-bar-drag h-full" />
           <Button
+            size="sm"
+            className="mr-2"
+            isIconOnly
+            onPress={() => openProjectFolder()}
+          >
+            <Folder size={18} />
+          </Button>
+          <Button
             startContent={isBuilding ? undefined : <Hammer size={16} />}
             className="my-3"
             color="primary"
@@ -199,32 +220,24 @@ export default function Project() {
         />
 
         <div className="flex-1 min-h-0">
-          <ScrollShadow className="flex flex-col gap-2 h-full max-h-full pb-5 px-5">
-            {filteredMods.map((mod) => (
-              <div>
-                <Card
-                  className="w-full"
-                  isPressable
-                  key={mod.name}
-                  isHoverable
-                  onPress={() => clickOnMod(mod)}
-                >
-                  <CardBody className="min-h-fit flex flex-row">
-                    <Image
-                      src={mod.icon ? `textures://${mod.icon}` : NoThumb}
-                      className="w-full h-full"
-                      classNames={{
-                        wrapper: 'min-w-10 min-h-10 w-10 h-10 mr-3',
-                      }}
-                    />
-                    <span className="font-bold text-left flex-1">
-                      {mod.name}
-                    </span>
-                  </CardBody>
-                </Card>
-              </div>
-            ))}
-          </ScrollShadow>
+          <AutoSizer>
+            {({ height, width }) => (
+              <List
+                itemCount={filteredMods.length}
+                height={height}
+                width={width}
+                className="pb-3"
+                itemData={{
+                  onClickMod: clickOnMod,
+                  mods: filteredMods,
+                  wrapperStyle: { padding: '0 18px' },
+                }}
+                itemSize={80}
+              >
+                {ModCard}
+              </List>
+            )}
+          </AutoSizer>
         </div>
       </div>
 
@@ -235,15 +248,17 @@ export default function Project() {
           id="tabs"
         >
           <Tabs
-            selectedKey={selectedTab}
-            onSelectionChange={(tab) => setSelectedTab(tab.toString())}
+            selectedKey={focusedTab}
+            onSelectionChange={(tab) =>
+              projectStore.setState({ focusedTab: tab.toString() })
+            }
           >
             <Tab key="recipes" title="Recipes" />
             <Tab key="items" title="Items" />
             <Tab key="blocks" title="Blocks" />
             <Tab key="configs" title="Configs" />
             <Tab key="progression" title="Progression" />
-            {openedModTabs.map((addon) => (
+            {openedTabs.map((addon) => (
               <Tab
                 key={addon.name}
                 title={
@@ -268,7 +283,7 @@ export default function Project() {
         <PageHider isVisible={isVisible('configs')}>
           <Configs />
         </PageHider>
-        {openedModTabs.map((addon) => getModViewFromTab(addon.name))}
+        {openedTabs.map((addon) => getModViewFromTab(addon.name))}
       </div>
       <BuildErrorReport
         isOpen={isReportOpen}

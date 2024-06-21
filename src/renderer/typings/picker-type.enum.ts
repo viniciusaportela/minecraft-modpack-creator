@@ -3,6 +3,7 @@ export enum PickerType {
   Item = 'item',
   Block = 'block',
   Mod = 'mod',
+  ItemTag = 'item-tag',
   Tag = 'tag',
   SkillTreeIcon = 'skill-tree-icon',
   SkillTreeBorder = 'skill-tree-border',

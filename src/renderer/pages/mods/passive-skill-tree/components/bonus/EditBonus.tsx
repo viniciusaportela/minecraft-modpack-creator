@@ -1,9 +1,6 @@
 import {
   Autocomplete,
   AutocompleteItem,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
   ScrollShadow,
 } from '@nextui-org/react';
 import { Key } from 'react';

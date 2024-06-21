@@ -94,6 +94,7 @@
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^6.16.0",
+    "react-virtualized-auto-sizer": "^1.0.24",
     "react-window": "^1.8.10",
     "reactflow": "^11.10.4",
     "recursive-readdir": "^2.2.3",

@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import EditTree from './subpages/EditTree';
 import { Page, Pager } from '../../../components/pager/Pager';
 import SkillTreeDashboard from './subpages/SkillTreeDashboard';
 
-export default function PassiveSkillTree() {
+const PassiveSkillTree = memo(() => {
   return (
     <Pager initialPage="dashboard">
       <Page name="dashboard">
@@ -13,4 +14,6 @@ export default function PassiveSkillTree() {
       </Page>
     </Pager>
   );
-}
+});
+
+export default PassiveSkillTree;

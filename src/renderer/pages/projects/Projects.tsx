@@ -14,7 +14,7 @@ import { useErrorHandler } from '../../core/errors/hooks/useErrorHandler';
 import { MinecraftVersionPickerModal } from './components/MinecraftVersionPickerModal';
 import SearchBar from '../../components/search-bar/SearchBar';
 import { IProject } from '../../store/interfaces/project.interface';
-import { ContextStoreRegistry } from '../../store/context-store-registry';
+import { LazyStoreRegistry } from '../../store/lazy-store-registry';
 import { useAppStore } from '../../store/app.store';
 
 export default function Projects() {
@@ -91,7 +91,7 @@ export default function Projects() {
 
   const open = async (projectIdx: number) => {
     try {
-      ContextStoreRegistry.getInstance().clear();
+      LazyStoreRegistry.getInstance().clear();
 
       ProjectService.getInstance().selectProject(projectIdx);
 
@@ -198,6 +198,7 @@ export default function Projects() {
         {orderedProjects.map((p) => (
           <ProjectCard
             title={p.name}
+            path={p.path}
             projectIdx={p.index}
             key={p.path}
             launcher={p.launcher}

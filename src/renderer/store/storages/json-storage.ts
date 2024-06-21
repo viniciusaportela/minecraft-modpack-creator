@@ -4,21 +4,42 @@ import { existsSync } from 'node:fs';
 import debounce from 'lodash.debounce';
 import { CachedCallbacks } from '../cached-callbacks';
 
-const debounceWrite = debounce(
-  async (name: string, value: any, dataFolder: string) => {
-    await writeFile(
-      path.join(dataFolder, `${name}.json`),
-      JSON.stringify(value),
-    );
-  },
-  1000,
-);
-
 export class JsonStorage {
+  private debounceWrite: (
+    name: string,
+    value: any,
+    dataFolder: string,
+  ) => Promise<void>;
+
+  private cachedExists: boolean | null = null;
+
   constructor(
     private readonly basePathGetter: () => any,
     private readonly useCache = true,
-  ) {}
+  ) {
+    // @ts-ignore
+    this.debounceWrite = debounce(
+      async (name: string, value: any, dataFolder: string) => {
+        if (this.cachedExists === null) {
+          this.cachedExists = existsSync(dataFolder);
+        }
+
+        console.log(
+          'write',
+          path.join(dataFolder, `${name}.json`),
+          this.cachedExists,
+        );
+
+        if (this.cachedExists) {
+          await writeFile(
+            path.join(dataFolder, `${name}.json`),
+            JSON.stringify(value),
+          );
+        }
+      },
+      1000,
+    );
+  }
 
   async getItem(name: string) {
     const dataFolder = await this.getBaseFolder();
@@ -34,7 +55,7 @@ export class JsonStorage {
   }
 
   async setItem(name: string, value: any) {
-    debounceWrite(name, value, await this.getBaseFolder());
+    this.debounceWrite(name, value, await this.getBaseFolder());
   }
 
   async removeItem(name: string) {

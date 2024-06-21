@@ -1,7 +1,7 @@
 import { memo, PropsWithChildren, useMemo } from 'react';
 import { Spinner } from '@nextui-org/react';
 import { useStore } from 'zustand';
-import { ContextStoreRegistry } from '../context-store-registry';
+import { LazyStoreRegistry } from '../lazy-store-registry';
 import { IMod } from '../interfaces/mods-store.interface';
 import { ModConfigContext } from '../context/mod-config-context';
 
@@ -12,7 +12,7 @@ interface ModConfigProviderProps extends PropsWithChildren {
 export const ModConfigProvider = memo(
   ({ children, mod }: ModConfigProviderProps) => {
     const store = useMemo(
-      () => ContextStoreRegistry.getInstance().get(mod),
+      () => LazyStoreRegistry.getInstance().get(mod),
       [mod],
     );
 

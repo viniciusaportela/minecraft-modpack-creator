@@ -11,14 +11,15 @@ export default memo(({ data, id }: { data: any; id: string }) => {
   const isTarget = connectionNodeId && connectionNodeId !== id;
 
   useLayoutEffect(() => {
-    const textureId = data.backgroundTexture
-      .replace('textures/', '')
-      .replace('.png', '');
-
     setBackgroundImg(
-      TextureLoader.getInstance().getTextureSource(textureId) as string,
+      TextureLoader.getInstance().getTextureSource(
+        data.backgroundTexture,
+        true,
+      ) as string,
     );
   }, [data.backgroundTexture]);
+
+  console.log('TreeNode', `url('${backgroundImg}')`);
 
   return (
     <div
@@ -28,7 +29,7 @@ export default memo(({ data, id }: { data: any; id: string }) => {
         height: data.buttonSize,
         pointerEvents: isConnecting ? 'none' : 'all',
         ...(backgroundImg && {
-          backgroundImage: `url("${backgroundImg}")`,
+          backgroundImage: `url('${backgroundImg}')`,
           backgroundSize: `${3 * data.buttonSize}px ${data.buttonSize}px`,
           backgroundRepeat: 'no-repeat',
           backgroundPosition: '0px 0px',
@@ -36,7 +37,9 @@ export default memo(({ data, id }: { data: any; id: string }) => {
       }}
     >
       <LazyTexture
-        path={data.iconTexture.replace('textures/', '').replace('.png', '')}
+        textureId={data.iconTexture
+          .replace('textures/', '')
+          .replace('.png', '')}
         className="pixelated h-3 w-3 object-contain rounded-none"
       />
 

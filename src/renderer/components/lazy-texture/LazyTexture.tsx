@@ -1,21 +1,43 @@
 import { Image } from '@nextui-org/react';
-import { Placeholder } from '@phosphor-icons/react';
 import clsx from 'clsx';
+import { CSSProperties } from 'react';
 import { TextureLoader } from '../../core/domains/minecraft/texture/texture-loader';
+import NoRecipe from '../../assets/no-recipe.png';
 
 interface ILazyTextureProps {
-  path: string | null | undefined;
+  textureId: string | null | undefined;
   className?: string;
+  fallback?: string;
+  style?: CSSProperties;
 }
 
-export default function LazyTexture({ path, className }: ILazyTextureProps) {
-  const texturePath = TextureLoader.getInstance().getTextureSource(path);
+export default function LazyTexture({
+  textureId,
+  className,
+  fallback,
+  style,
+}: ILazyTextureProps) {
+  const texturePath = TextureLoader.getInstance().getTextureSource(textureId);
 
   if (!texturePath) {
-    return <Placeholder className={className} />;
+    return (
+      <Image
+        src={fallback ?? NoRecipe}
+        style={style}
+        className={clsx(className, 'pixelated')}
+      />
+    );
   }
 
   return (
-    <Image src={texturePath} className={clsx(className, 'rounded-none')} />
+    <Image
+      style={style}
+      src={texturePath}
+      fallbackSrc={NoRecipe}
+      className={clsx(className, 'rounded-none pixelated')}
+      classNames={{
+        wrapper: 'bg-cover',
+      }}
+    />
   );
 }

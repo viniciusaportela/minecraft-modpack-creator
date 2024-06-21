@@ -15,7 +15,7 @@ export class MinecraftLauncher extends BaseLauncher {
   }
 
   async getModpacksFolders(): Promise<string[]> {
-    const minecraftPath = this.getMinecraftRoot();
+    const minecraftPath = await this.getMinecraftRoot();
 
     if (!minecraftPath) {
       return [];

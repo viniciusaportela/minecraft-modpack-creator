@@ -1,3 +1,4 @@
+import { v4 } from 'uuid';
 import { FunctionWithDefaultConfig } from '../../../../interfaces/function-with-default-config';
 import { ComponentChoice } from '../ComponentChoice';
 import { AllAttributes } from '../../bonuses/AllAttributes';
@@ -6,7 +7,6 @@ import {
   EBonus,
   ReadableByBonus,
 } from '../../../../../../../core/domains/mods/skilltree/enums/skill-bonus.enum';
-import { useModConfigSelector } from '../../../../../../../store/hooks/use-mod-config-selector';
 
 const OPTIONS = () =>
   Object.entries(COMPONENTS_BY_BONUS()).map(([bonus, component]) => ({
@@ -16,16 +16,10 @@ const OPTIONS = () =>
   }));
 
 export const ItemBonusSkillBonus: FunctionWithDefaultConfig = ({ path }) => {
-  const [value] = useModConfigSelector(path);
-
-  const getLabel = (type: string) => {
-    return OPTIONS().find((option) => option.value === type)?.label ?? '';
-  };
-
   return (
     <ComponentChoice
       path={[...path, 'skill_bonus']}
-      label={getLabel(value?.type)}
+      label="Bonus"
       options={OPTIONS()}
     />
   );
@@ -36,6 +30,8 @@ ItemBonusSkillBonus.getDefaultConfig = () => {
     type: 'skilltree:skill_bonus',
     skill_bonus: {
       ...AllAttributes.getDefaultConfig(),
+      name: 'Skill',
+      id: v4(),
     },
   };
 };
