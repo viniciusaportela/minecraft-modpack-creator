@@ -39,12 +39,20 @@ export class LazyStoreRegistry {
     return instance;
   }
 
+  hasConfig(mod: IMod) {
+    return (
+      this.stores.has(mod.id) &&
+      this.stores.get(mod.id)!.getState().isLoaded &&
+      this.stores.get(mod.id)!.getState().isSetupDone
+    );
+  }
+
   clear() {
     this.stores.clear();
   }
 
-  get<T extends IBaseModConfig>(mod: IMod): StoreApi<T> {
-    const modId = mod.id;
+  get<T extends IBaseModConfig>(modData: IMod): StoreApi<T> {
+    const modId = modData.id;
 
     if (!this.stores.has(modId)) {
       this.stores.set(
@@ -54,7 +62,7 @@ export class LazyStoreRegistry {
             immer((set) => ({
               isLoaded: false,
               isSetupDone: false,
-              load: () => set({ isLoaded: true, isSetupDone: true }),
+              load: () => set({ isLoaded: true }),
               set,
             })),
             {
@@ -65,17 +73,17 @@ export class LazyStoreRegistry {
                   if (err) {
                     console.error(err);
                   } else {
-                    if (!st!.isSetupDone) {
+                    if (st && !st.isLoaded) {
                       let additionalData = {};
-                      if (mod) {
-                        const modInstance = ModFactory.create(
+                      if (modData) {
+                        const mod = ModFactory.create(
                           useAppStore.getState().selectedProject(),
-                          mod,
-                          { isLoaded: false, isSetupDone: false },
+                          modData,
+                          st,
                         );
-                        additionalData = await modInstance.makeConfig();
+                        additionalData = await mod.makeConfig();
 
-                        st.set({ ...additionalData });
+                        st.set({ ...additionalData, isSetupDone: true });
                       }
                     }
 

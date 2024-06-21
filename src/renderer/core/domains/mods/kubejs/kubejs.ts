@@ -72,7 +72,7 @@ export class KubeJS extends DefaultMod {
 
   private getRecipeId(recipe: IRecipe) {
     const modId = recipe.filePath.split('/')[1];
-    const JsonName = path.basename(recipe.filePath);
+    const JsonName = path.basename(recipe.filePath).split('.')[0];
     return `${modId}:${JsonName}`;
   }
 

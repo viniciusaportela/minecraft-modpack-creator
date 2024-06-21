@@ -35,15 +35,17 @@ export default class ModpackBuilder {
         `Building ${modDb.id}... (${index}/${mods.length})`,
         mods.length,
       );
-      const mod = ModFactory.create(
-        project,
-        modDb,
-        modCfgStore.get(modDb).getState(),
-      );
-      console.log(mod);
-      await mod.preBuild();
-      await mod.build();
-      await mod.postBuild();
+      if (modCfgStore.hasConfig(modDb)) {
+        const mod = ModFactory.create(
+          project,
+          modDb,
+          modCfgStore.get(modDb).getState(),
+        );
+        console.log(mod);
+        await mod.preBuild();
+        await mod.build();
+        await mod.postBuild();
+      }
       index += 1;
     }
   }
