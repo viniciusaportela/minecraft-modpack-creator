@@ -37,7 +37,7 @@ export const RecipeCardItemWrapper = memo(
     return (
       <RecipeCard
         recipe={isCustomRecipe(recipe) ? JSON.parse(recipe.json) : recipe}
-        wrapperStyle={{ ...style, paddingLeft: 10 }}
+        wrapperStyle={{ ...style, paddingLeft: columnIndex === 0 ? 0 : 10 }}
         onSelect={data.onSelectRecipe}
         isSelected={data.selectedRecipes?.includes(recipe.index)}
         style={{ marginTop: 10 }}
@@ -132,26 +132,38 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                     <ArrowCounterClockwise />
                   </Button>
                 )}
-                <Dropdown>
-                  <DropdownTrigger>
-                    <Button isIconOnly size="sm" variant="light">
-                      <DotsThree />
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownMenu
-                    onAction={(key) => {
-                      if (key === 'edit') onEdit?.(customRecipe ?? recipe);
-                      if (key === 'delete') onDelete?.(customRecipe ?? recipe);
-                    }}
+                {customRecipe ? (
+                  <Button
+                    color="danger"
+                    isIconOnly
+                    size="sm"
+                    onPress={() => onDelete?.(customRecipe)}
                   >
-                    <DropdownItem startContent={<PencilSimple />} key="edit">
-                      Edit
-                    </DropdownItem>
-                    <DropdownItem startContent={<TrashSimple />} key="delete">
-                      Delete
-                    </DropdownItem>
-                  </DropdownMenu>
-                </Dropdown>
+                    <TrashSimple />
+                  </Button>
+                ) : (
+                  <Dropdown>
+                    <DropdownTrigger>
+                      <Button isIconOnly size="sm" variant="light">
+                        <DotsThree />
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      onAction={(key) => {
+                        if (key === 'edit') onEdit?.(customRecipe ?? recipe);
+                        if (key === 'delete')
+                          onDelete?.(customRecipe ?? recipe);
+                      }}
+                    >
+                      <DropdownItem startContent={<PencilSimple />} key="edit">
+                        Edit
+                      </DropdownItem>
+                      <DropdownItem startContent={<TrashSimple />} key="delete">
+                        Delete
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
+                )}
               </div>
             </div>
           </div>

@@ -3,7 +3,8 @@ import clsx from 'clsx';
 import { PickerType } from '../../typings/picker-type.enum';
 import Block3D from '../block-3d/Block3D';
 import LazyTexture from '../lazy-texture/LazyTexture';
-import { useItemsStore } from '../../store/items.store';
+import { useTagsStore } from '../../store/tags.store';
+import { TextureLoader } from '../../core/domains/minecraft/texture/texture-loader';
 
 interface MinecraftTextureProps {
   type: PickerType;
@@ -11,8 +12,8 @@ interface MinecraftTextureProps {
   className?: string;
   size?: number;
   classNames?: {
-    block3D: string;
-    lazyTexture: string;
+    block3D?: string;
+    lazyTexture?: string;
   };
 }
 
@@ -25,31 +26,32 @@ const MinecraftTexture = memo(
     size = 16,
   }: MinecraftTextureProps) => {
     if (typeof value === 'string') {
-      if (type === PickerType.Item) {
-        const item = useItemsStore((st) =>
-          st.items.find((i) => i.id === value),
-        );
+      if ([PickerType.Tag, PickerType.ItemTag].includes(type)) {
+        const firstItemOfTag = useTagsStore
+          .getState()
+          .tags.find((t) => t.name === value)?.items[0];
 
-        const modId = item?.mod;
-        const withoutModId = value.split(':')[1];
+        console.log('tag/item tag?', type, value, firstItemOfTag);
 
-        const textureId = `${modId}:textures/${item?.isBlock ? 'block' : 'item'}/${withoutModId}.png`;
+        if (firstItemOfTag) {
+          return (
+            <ItemMinecraftTexture
+              value={firstItemOfTag!}
+              size={size}
+              className={className}
+              classNames={classNames}
+            />
+          );
+        }
+      }
 
-        return item?.isBlock ? (
-          <Block3D
-            textureId={textureId}
+      if ([PickerType.Item, PickerType.ItemTag].includes(type)) {
+        return (
+          <ItemMinecraftTexture
+            value={value}
             size={size}
-            className={clsx('h-6 w-6', className, classNames?.block3D)}
-          />
-        ) : (
-          <LazyTexture
-            textureId={textureId}
-            style={{ width: size, height: size }}
-            className={clsx(
-              'h-6 w-6 object-contain',
-              className,
-              classNames?.lazyTexture,
-            )}
+            className={className}
+            classNames={classNames}
           />
         );
       }
@@ -70,6 +72,22 @@ const MinecraftTexture = memo(
           />
         );
       }
+
+      if (type === PickerType.ItemTag) {
+        const isTag = useTagsStore
+          .getState()
+          .tags.some((t) => t.name === value);
+
+        if (isTag) {
+          return (
+            <LazyTexture
+              textureId={null}
+              style={{ width: size, height: size }}
+              className={clsx('h-6 w-6', className, classNames?.lazyTexture)}
+            />
+          );
+        }
+      }
     }
 
     return (
@@ -77,6 +95,49 @@ const MinecraftTexture = memo(
         style={{ width: size, height: size }}
         textureId={null}
         className={clsx('h-6 w-6', className, classNames?.lazyTexture)}
+      />
+    );
+  },
+);
+
+interface ItemMinecraftTextureProps {
+  value: string;
+  size?: number;
+  className?: string;
+  classNames?: {
+    block3D?: string;
+    lazyTexture?: string;
+  };
+}
+
+const ItemMinecraftTexture = memo(
+  ({ value, size, classNames, className }: ItemMinecraftTextureProps) => {
+    const { isBlock, textureId } =
+      TextureLoader.getInstance().getTextureFromItem(value);
+
+    console.log(
+      'item minecraft',
+      value,
+      isBlock,
+      textureId,
+      TextureLoader.getInstance().getTextureSource(textureId),
+    );
+
+    return isBlock ? (
+      <Block3D
+        textureId={textureId}
+        size={size}
+        className={clsx('h-6 w-6', className, classNames?.block3D)}
+      />
+    ) : (
+      <LazyTexture
+        textureId={textureId}
+        style={{ width: size, height: size }}
+        className={clsx(
+          'h-6 w-6 object-contain max-w-[none]',
+          className,
+          classNames?.lazyTexture,
+        )}
       />
     );
   },

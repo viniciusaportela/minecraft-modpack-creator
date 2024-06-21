@@ -34,7 +34,7 @@ export default function LazyTexture({
       style={style}
       src={texturePath}
       fallbackSrc={NoRecipe}
-      className={clsx(className, 'rounded-none pixelated bg-img-inherit')}
+      className={clsx(className, 'rounded-none pixelated')}
       classNames={{
         wrapper: 'bg-cover',
       }}

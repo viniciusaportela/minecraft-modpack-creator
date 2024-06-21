@@ -6,7 +6,7 @@ import { useAppStore } from '../../store/app.store';
 
 interface ItemPickerProps {
   value: string | null;
-  onPick: (value: string) => void;
+  onPick: (value: string, type: PickerType) => void;
   type: PickerType;
   className?: string;
   variant?: 'default' | 'ghost';
@@ -22,9 +22,17 @@ export default function PickerButton({
   const projectIdx = useAppStore((st) => st.selectedProjectIndex);
 
   const onPress = async () => {
-    const picked = await ipcRenderer.invoke('open', 'picker', projectIdx, type);
-    if (picked === null) return;
-    onPick(picked);
+    const pickedData = await ipcRenderer.invoke(
+      'open',
+      'picker',
+      projectIdx,
+      type,
+    );
+    if (pickedData === null) return;
+
+    const [pickedType, pickedId] = pickedData.split('&');
+
+    onPick(pickedId, pickedType);
   };
 
   return (

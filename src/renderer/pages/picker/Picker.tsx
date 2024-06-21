@@ -13,33 +13,8 @@ import useParams from '../../hooks/use-params.hook';
 import PickerItem from './components/PickerItem';
 import { PickerType } from '../../typings/picker-type.enum';
 import { useItemsStore } from '../../store/items.store';
-import { IItem } from '../../store/interfaces/items-store.interface';
-import { IBlock } from '../../store/interfaces/blocks-store.interface';
-import { ITexture } from '../../store/interfaces/textures-store.interface';
 import { useTexturesStore } from '../../store/textures.store';
-
-interface PickerListItemProps {
-  item: IItem | IBlock | ITexture;
-  style: React.CSSProperties;
-  select: (item: IItem | IBlock | ITexture) => void;
-  type: PickerType;
-}
-
-export function PickerListItem({
-  item,
-  style,
-  select,
-  type,
-}: PickerListItemProps) {
-  return (
-    <PickerItem
-      item={item}
-      onPress={() => select(item)}
-      style={style}
-      type={type}
-    />
-  );
-}
+import { useTagsStore } from '../../store/tags.store';
 
 function reflectOnRef(ref: React.MutableRefObject<any>) {
   return (prev: any, newValue: any) => {
@@ -63,8 +38,6 @@ export default function Picker() {
   const requestId = useParams('requestId');
 
   const [type, setType] = useState(PickerType.Item);
-
-  console.log('textures', textures, 'type', type);
 
   const [listItems, setListItems] = useState<
     {
@@ -147,19 +120,20 @@ export default function Picker() {
         },
         ...filteredTextures(type).map((texture) => ({
           render: ({ style }: { style: React.CSSProperties }) => (
-            <PickerListItem
+            <PickerItem
+              item={texture}
+              onPress={() => select(texture.id)}
               style={style}
               type={type}
-              item={texture}
-              select={(item) => select((item as ITexture).id)}
             />
           ),
           type: 'item',
           value: texture.id,
         })),
       ]);
-    } else if (type === PickerType.Item) {
+    } else if (type === PickerType.Item || type === PickerType.ItemTag) {
       const { items } = useItemsStore.getState();
+      const { tags } = useTagsStore.getState();
 
       setListItems([
         {
@@ -192,14 +166,28 @@ export default function Picker() {
           showOnSearch: true,
           value: null,
         },
+        ...(type === PickerType.ItemTag
+          ? Object.values(tags).map((tag) => ({
+              render: ({ style }: { style: React.CSSProperties }) => (
+                <PickerItem
+                  style={style}
+                  item={tag}
+                  type={PickerType.Tag}
+                  onPress={() => select(`tag&${tag.name}`)}
+                />
+              ),
+              type: 'tag',
+              value: tag.name,
+            }))
+          : []),
         ...Object.values(items).map((item) => ({
           // eslint-disable-next-line react/no-unused-prop-types
           render: ({ style }: { style: React.CSSProperties }) => (
-            <PickerListItem
+            <PickerItem
               style={style}
               item={item}
-              type={type}
-              select={(item) => select((item as IItem).id)}
+              type={PickerType.Item}
+              onPress={() => select(`item&${item.id}`)}
             />
           ),
           type: 'item',
@@ -209,8 +197,8 @@ export default function Picker() {
     }
   }, [type]);
 
-  const select = (block: string) => {
-    ipcRenderer.send('windowResponse', requestId, block);
+  const select = (pickerId: string) => {
+    ipcRenderer.send('windowResponse', requestId, pickerId);
   };
 
   const filteredItems = listItems.filter((item) => {

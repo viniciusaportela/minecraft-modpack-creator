@@ -230,7 +230,7 @@ export default function Project() {
                 itemData={{
                   onClickMod: clickOnMod,
                   mods: filteredMods,
-                  wrapperStyle: { padding: '0 5px' },
+                  wrapperStyle: { padding: '0 18px' },
                 }}
                 itemSize={80}
               >

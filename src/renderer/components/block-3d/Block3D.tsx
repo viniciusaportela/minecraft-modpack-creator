@@ -22,13 +22,22 @@ export default function Block3D({
     setFallbackImage(NoRecipe);
   };
 
+  const realSize = (size ?? 16) * 0.8;
+
   return (
-    <div className={className} style={{ transform: 'translateY(4px)' }}>
+    <div
+      className={className}
+      style={{
+        transform: 'translateX(2px)',
+        width: size ?? 16,
+        height: size ?? 16,
+      }}
+    >
       <div
         className="relative"
         style={{
-          width: size ?? '16px',
-          height: size ?? '16px',
+          width: realSize ?? '16px',
+          height: realSize ?? '16px',
           transformStyle: 'preserve-3d',
           transform: 'rotateX(-30deg) rotateY(45deg)',
         }}
@@ -40,12 +49,12 @@ export default function Block3D({
           onError={handleImageError}
           className="rounded-none absolute"
           style={{
-            transform: `rotateX(90deg) translateZ(${(size ?? 16) / 2}px)`,
+            transform: `rotateX(90deg) translateZ(${(realSize ?? 16) / 2}px)`,
             backgroundSize: 'cover',
-            width: size ?? '16px',
-            height: size ?? '16px',
-            lineHeight: size ?? '16px',
-            fontSize: size ?? '16px',
+            width: realSize ?? '16px',
+            height: realSize ?? '16px',
+            lineHeight: realSize ?? '16px',
+            fontSize: realSize ?? '16px',
             filter: 'brightness(55%)',
           }}
         />
@@ -58,11 +67,11 @@ export default function Block3D({
           }}
           className="rounded-none absolute"
           style={{
-            transform: `rotateY(-90deg) translateZ(${(size ?? 16) / 2}px)`,
-            width: size ?? '16px',
-            height: size ?? '16px',
-            lineHeight: size ?? '16px',
-            fontSize: size ?? '16px',
+            transform: `rotateY(-90deg) translateZ(${(realSize ?? 16) / 2}px)`,
+            width: realSize ?? '16px',
+            height: realSize ?? '16px',
+            lineHeight: realSize ?? '16px',
+            fontSize: realSize ?? '16px',
           }}
         />
         <Image
@@ -72,13 +81,13 @@ export default function Block3D({
           removeWrapper
           className="rounded-none absolute"
           style={{
-            transform: `translateZ(${(size ?? 16) / 2}px)`,
-            width: size ?? '16px',
-            height: size ?? '16px',
-            minWidth: size ?? '16px',
-            minHeight: size ?? '16px',
-            lineHeight: size ?? '16px',
-            fontSize: size ?? '16px',
+            transform: `translateZ(${(realSize ?? 16) / 2}px)`,
+            width: realSize ?? '16px',
+            height: realSize ?? '16px',
+            minWidth: realSize ?? '16px',
+            minHeight: realSize ?? '16px',
+            lineHeight: realSize ?? '16px',
+            fontSize: realSize ?? '16px',
             filter: 'brightness(35%)',
           }}
         />

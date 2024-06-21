@@ -5,6 +5,15 @@ export interface IProjectStore {
   addedRecipes: ICustomRecipe[];
   deletedRecipes: IDeleteRecipe[];
   editedRecipes: IEditRecipe[];
+
+  // Recipes filter
+  recipeIdFilter: string;
+  recipeTypeFilter: string;
+  recipeItemFilter: string;
+  recipeModFilter: string;
+  recipeRemovedOnlyFilter: boolean;
+  recipeModifiedOnlyFilter: boolean;
+
   items: any[];
   blocks: any[];
   loaded: boolean;

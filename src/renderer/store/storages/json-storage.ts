@@ -21,8 +21,14 @@ export class JsonStorage {
     this.debounceWrite = debounce(
       async (name: string, value: any, dataFolder: string) => {
         if (this.cachedExists === null) {
-          this.cachedExists = existsSync(path.join(dataFolder, `${name}.json`));
+          this.cachedExists = existsSync(dataFolder);
         }
+
+        console.log(
+          'write',
+          path.join(dataFolder, `${name}.json`),
+          this.cachedExists,
+        );
 
         if (this.cachedExists) {
           await writeFile(

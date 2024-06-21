@@ -61,6 +61,10 @@ export default function RecipeForm() {
     return recipe ? recipe.index : undefined;
   };
 
+  useEffect(() => {
+    console.log('RecipeForm');
+  }, []);
+
   const [chosenRecipeType, setChosenRecipeType] = useState(
     'minecraft:crafting_shaped',
   );
@@ -79,28 +83,37 @@ export default function RecipeForm() {
 
   useEffect(() => {
     if (selectedRecipe) {
-      setRecipeJson(
-        isCustomRecipe(selectedRecipe)
-          ? selectedRecipe.json
-          : JSON.stringify(
-              { ...selectedRecipe, filePath: undefined, index: undefined },
-              null,
-              2,
-            ),
-      );
-      setRecipeName(
-        isCustomRecipe(selectedRecipe)
-          ? selectedRecipe.name
-          : selectedRecipe.filePath,
-      );
-      updateRecipeType(
-        (isCustomRecipe(selectedRecipe)
-          ? JSON.parse(selectedRecipe.json)?.type
-          : selectedRecipe.type) ?? 'custom',
-      );
+      if (isCustomRecipe(selectedRecipe)) {
+        setRecipeJson(selectedRecipe.json);
+        setRecipeName(selectedRecipe.name);
+        setChosenRecipeType(JSON.parse(selectedRecipe.json)?.type ?? 'custom');
+      } else {
+        const wasEdited = projectStore
+          .getState()
+          .editedRecipes.find((er) => er.filePath === selectedRecipe.filePath);
+
+        setRecipeJson(
+          wasEdited
+            ? wasEdited.json
+            : JSON.stringify(
+                {
+                  ...selectedRecipe,
+                  filePath: undefined,
+                  index: undefined,
+                  mod: undefined,
+                  id: undefined,
+                },
+                null,
+                2,
+              ),
+        );
+        setRecipeName(selectedRecipe.filePath);
+        setChosenRecipeType(selectedRecipe.type ?? 'custom');
+      }
     } else {
       setRecipeJson(DEFAULT_RECIPE_JSON);
       setRecipeName('Name of recipe');
+      setChosenRecipeType('minecraft:crafting_shaped');
     }
   }, [selectedRecipe]);
 
@@ -131,10 +144,6 @@ export default function RecipeForm() {
     }
   };
 
-  const onAdded = () => {
-    navigate('recipe-list');
-  };
-
   const onChangeExample = (index: Key) => {
     const recipe = useRecipesStore
       .getState()
@@ -155,11 +164,24 @@ export default function RecipeForm() {
     setRecipeJson(exampleJson);
   };
 
-  const addRecipe = (json: string) => {};
+  const addRecipe = (json: string) => {
+    projectStore.setState((st) => {
+      st.selectedRecipe = null;
+      st.addedRecipes.push({
+        index: st.addedRecipes.length,
+        isCustomRecipe: true,
+        name: recipeName,
+        json,
+      });
+    });
+
+    navigate('recipe-list');
+  };
 
   const editRecipe = (json: string) => {
     if (isCustomRecipe(selectedRecipe)) {
       projectStore.setState((st) => {
+        st.selectedRecipe = null;
         st.addedRecipes[selectedRecipe.index] = {
           ...selectedRecipe,
           json,
@@ -174,6 +196,7 @@ export default function RecipeForm() {
 
       if (editedIndex !== -1) {
         projectStore.setState((st) => {
+          st.selectedRecipe = null;
           st.editedRecipes[editedIndex] = {
             ...st.editedRecipes[editedIndex],
             json,
@@ -181,6 +204,7 @@ export default function RecipeForm() {
         });
       } else {
         projectStore.setState((st) => {
+          st.selectedRecipe = null;
           st.editedRecipes.push({
             filePath: selectedRecipe.filePath ?? '',
             json,
@@ -188,6 +212,8 @@ export default function RecipeForm() {
         });
       }
     }
+
+    navigate('recipe-list');
   };
 
   const renderPage = () => {
@@ -219,7 +245,13 @@ export default function RecipeForm() {
   return (
     <>
       <div className="flex">
-        <Title goBack={() => navigate('recipe-list')} className="mb-3">
+        <Title
+          goBack={() => {
+            projectStore.setState({ selectedRecipe: null });
+            navigate('recipe-list');
+          }}
+          className="mb-3"
+        >
           {selectedRecipe ? 'Edit recipe' : 'Add custom Recipe'}
         </Title>
         <Title className="ml-auto w-[350px]">Templates</Title>
@@ -231,7 +263,7 @@ export default function RecipeForm() {
             <Input
               value={recipeName}
               onValueChange={setRecipeName}
-              isDisabled={!isCustomRecipe(selectedRecipe)}
+              isDisabled={!!selectedRecipe && !isCustomRecipe(selectedRecipe)}
               size="sm"
               classNames={{ inputWrapper: 'h-10' }}
             />

@@ -2,7 +2,6 @@ import {
   Autocomplete,
   AutocompleteItem,
   Button,
-  Checkbox,
   Divider,
   Input,
   Popover,
@@ -17,7 +16,7 @@ import {
   Plus,
   TrashSimple,
 } from '@phosphor-icons/react';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FixedSizeGrid as Grid } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { usePager } from '../../../components/pager/hooks/usePager';
@@ -26,9 +25,8 @@ import {
   useProjectSelector,
   useProjectStore,
 } from '../../../store/hooks/use-project-store';
-import CustomRecipeCard from '../components/CustomRecipeCard';
 import { useRecipesStore } from '../../../store/recipes.store';
-import { RecipeCard, RecipeCardItemWrapper } from '../components/RecipeCard';
+import { RecipeCardItemWrapper } from '../components/RecipeCard';
 import { IRecipe } from '../../../store/interfaces/recipes-store.interface';
 import {
   ICustomRecipe,
@@ -48,23 +46,53 @@ export default function RecipeList() {
 
   const [selectedRecipes, setSelectedRecipes] = useState<number[]>([]);
 
-  const [idFilter, setIdFilter] = useState('');
-  const [inputFilter, setInputFilter] = useState('');
-  const [outputFilter, setOutputFilter] = useState('');
-  const [modFilter, setModFilter] = useState('');
-  const [removedOnlyFilter, setRemovedOnlyFilter] = useState(false);
-  const [modifiedOnlyFilter, setModifiedOnlyFilter] = useState(false);
-  const [typeFilter, setTypeFilter] = useState('');
+  const idFilter = useProjectSelector((st) => st.recipeIdFilter);
+  const itemFilter = useProjectSelector((st) => st.recipeItemFilter);
+  const modFilter = useProjectSelector((st) => st.recipeModFilter);
+  const removedOnlyFilter = useProjectSelector(
+    (st) => st.recipeRemovedOnlyFilter,
+  );
+  const modifiedOnlyFilter = useProjectSelector(
+    (st) => st.recipeModifiedOnlyFilter,
+  );
+  const typeFilter = useProjectSelector((st) => st.recipeTypeFilter);
 
-  const filter = (recipes: any[]) => {
-    const filtered = recipes;
+  const filter = (recipes: IRecipe[]) => {
+    let filtered = recipes;
+
+    if (modFilter) {
+      filtered = filtered.filter((r) => r.mod.includes(modFilter));
+    }
+
+    if (idFilter) {
+      filtered = filtered.filter((r) => r.id.includes(idFilter));
+    }
+
+    if (itemFilter) {
+      filtered = filtered.filter((r) => {
+        // TODO
+        return true;
+      });
+    }
+
+    if (typeFilter) {
+      filtered = filtered.filter((r) => r.type === typeFilter);
+    }
 
     if (removedOnlyFilter) {
-      // Look for custom recipes that are removed
+      const deletedPaths = projectStore
+        .getState()
+        .deletedRecipes.map((dr) => dr.filePath);
+
+      filtered = filtered.filter((r) => deletedPaths.includes(r.filePath));
     }
 
     if (modifiedOnlyFilter) {
-      // ...
+      const modifiedPaths = projectStore
+        .getState()
+        .editedRecipes.map((er) => er.filePath);
+
+      filtered = filtered.filter((r) => modifiedPaths.includes(r.filePath));
     }
 
     return filtered;
@@ -73,8 +101,7 @@ export default function RecipeList() {
   const isFilterActive = () => {
     return (
       idFilter ||
-      inputFilter ||
-      outputFilter ||
+      itemFilter ||
       modFilter ||
       removedOnlyFilter ||
       modifiedOnlyFilter ||
@@ -82,7 +109,19 @@ export default function RecipeList() {
     );
   };
 
-  const filteredRecipes = filter(allRecipes);
+  const filteredRecipes = useMemo(
+    () => filter(allRecipes),
+    [
+      idFilter,
+      itemFilter,
+      modFilter,
+      removedOnlyFilter,
+      modifiedOnlyFilter,
+      typeFilter,
+      deletedRecipes,
+      editedRecipes,
+    ],
+  );
 
   const onSelectRecipe = useCallback(
     (recipe: IRecipe) => {
@@ -210,7 +249,11 @@ export default function RecipeList() {
 
   const onDelete = (recipe: IRecipe | ICustomRecipe) => {
     if (isCustomRecipe(recipe)) {
-      // ...
+      projectStore.setState((st) => {
+        st.addedRecipes = st.addedRecipes.filter(
+          (r) => r.index !== recipe.index,
+        );
+      });
     } else {
       const isDeleted = projectStore
         .getState()
@@ -229,14 +272,16 @@ export default function RecipeList() {
   };
 
   const onEdit = (recipe: IRecipe | ICustomRecipe) => {
-    if (isCustomRecipe(recipe)) {
-      // ...
-    } else {
-      navigate('recipe-form');
-      projectStore.setState((st) => {
-        st.selectedRecipe = recipe;
-      });
-    }
+    console.log('edit', recipe);
+
+    projectStore.setState((st) => {
+      st.selectedRecipe = recipe;
+    });
+    navigate('recipe-form');
+  };
+
+  const onClickCustomRecipeCard = (recipe: ICustomRecipe) => {
+    onEdit(recipe);
   };
 
   const onClickAddButton = () => {
@@ -246,8 +291,6 @@ export default function RecipeList() {
     });
   };
 
-  console.log(customRecipes);
-
   return (
     <>
       <div className="flex">
@@ -255,7 +298,7 @@ export default function RecipeList() {
         <Button
           color="primary"
           size="sm"
-          className="min-w-10 min-h-10 ml-auto mr-3"
+          className="min-w-10 min-h-10 ml-auto"
           onPress={onClickAddButton}
         >
           <Plus size={16} />
@@ -279,7 +322,7 @@ export default function RecipeList() {
           </Button>
         )}
 
-        <div className="mt-3 gap-2 flex flex-col flex-1">
+        <div className="gap-2 flex flex-col flex-1">
           <AutoSizer>
             {({ height, width }) => (
               <Grid
@@ -289,6 +332,7 @@ export default function RecipeList() {
                 rowHeight={110}
                 itemData={{
                   data: customRecipes,
+                  onSelectRecipe: onClickCustomRecipeCard,
                   onEdit,
                   onDelete,
                   width,
@@ -352,51 +396,51 @@ export default function RecipeList() {
             <PopoverContent>
               <div className="flex flex-col py-4 px-1 gap-4">
                 <div className="gap-4 flex">
-                  <div>
+                  <div className="flex-1">
                     <span>Recipe ID</span>
                     <Input
                       size="sm"
                       classNames={{ inputWrapper: 'h-10' }}
                       value={idFilter}
-                      onValueChange={(txt) => setIdFilter(txt)}
+                      isClearable
+                      onValueChange={(txt) =>
+                        projectStore.setState({ recipeIdFilter: txt })
+                      }
                     />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <span>Mod ID</span>
                     <Input
                       size="sm"
+                      isClearable
                       classNames={{ inputWrapper: 'h-10' }}
                       value={modFilter}
-                      onValueChange={(txt) => setModFilter(txt)}
-                    />
-                  </div>
-                </div>
-                <div className="gap-4 flex">
-                  <div>
-                    <span>Input Filter</span>
-                    <Input
-                      size="sm"
-                      classNames={{ inputWrapper: 'h-10' }}
-                      value={inputFilter}
-                      onValueChange={(txt) => setInputFilter(txt)}
-                    />
-                  </div>
-                  <div>
-                    <span>Output Filter</span>
-                    <Input
-                      size="sm"
-                      classNames={{ inputWrapper: 'h-10' }}
-                      value={outputFilter}
-                      onValueChange={(txt) => setOutputFilter(txt)}
+                      onValueChange={(txt) =>
+                        projectStore.setState({ recipeModFilter: txt })
+                      }
                     />
                   </div>
                 </div>
                 <div className="gap-4 flex">
                   <div className="flex-1">
+                    <span>Item Filter</span>
+                    <Input
+                      size="sm"
+                      isClearable
+                      classNames={{ inputWrapper: 'h-10' }}
+                      value={itemFilter}
+                      onValueChange={(txt) =>
+                        projectStore.setState({ recipeItemFilter: txt })
+                      }
+                    />
+                  </div>
+                  <div className="flex-1">
                     <span>By Type</span>
                     <Autocomplete
                       inputValue={typeFilter}
-                      onInputChange={(key) => setTypeFilter(key)}
+                      onInputChange={(key) =>
+                        projectStore.setState({ recipeTypeFilter: key })
+                      }
                       allowsCustomValue
                       inputProps={{ classNames: { inputWrapper: 'h-10' } }}
                     >
@@ -409,7 +453,9 @@ export default function RecipeList() {
                 <div className="gap-4 flex">
                   <Switch
                     isSelected={removedOnlyFilter}
-                    onValueChange={(val) => setRemovedOnlyFilter(val)}
+                    onValueChange={(val) =>
+                      projectStore.setState({ recipeRemovedOnlyFilter: val })
+                    }
                   >
                     Show removed only
                   </Switch>
@@ -417,7 +463,9 @@ export default function RecipeList() {
                 <div className="gap-4 flex">
                   <Switch
                     isSelected={modifiedOnlyFilter}
-                    onValueChange={(val) => setModifiedOnlyFilter(val)}
+                    onValueChange={(val) =>
+                      projectStore.setState({ recipeModifiedOnlyFilter: val })
+                    }
                   >
                     Show modified only
                   </Switch>

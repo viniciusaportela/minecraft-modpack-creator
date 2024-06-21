@@ -24,6 +24,11 @@ interface IShaped {
   show_notification?: boolean;
 }
 
+interface IShapedItem {
+  value: string | null;
+  type: PickerType;
+}
+
 export default function ShapedRecipe({
   json,
   onChange,
@@ -34,20 +39,29 @@ export default function ShapedRecipe({
   const parsed: IShaped = JSON.parse(json);
 
   const normalizePattern = (pattern: string[]) => {
-    const normalized = [];
+    const normalized: IShapedItem[][] = [];
 
     for (let row = 0; row < 3; row++) {
-      const curRow: (string | null)[] = [];
+      const curRow: IShapedItem[] = [];
 
       for (let col = 0; col < 3; col++) {
         const gottenChar = pattern?.[row]?.[col];
 
         if (gottenChar) {
-          curRow.push(parsed.key[gottenChar]?.item ?? null);
+          console.log('gottenChar', gottenChar, parsed);
+
+          const item = parsed.key[gottenChar]?.item ?? null;
+          const tag = parsed.key[gottenChar]?.tag ?? null;
+
+          curRow.push({
+            value: item ?? tag,
+            type: item ? PickerType.Item : PickerType.ItemTag,
+          });
+
           continue;
         }
 
-        curRow.push(null);
+        curRow.push({ value: null, type: PickerType.Item });
       }
 
       normalized.push(curRow);
@@ -56,14 +70,26 @@ export default function ShapedRecipe({
     return normalized;
   };
 
-  const getInput = () => {
+  const getInput = (): IShapedItem[][] => {
     const pattern = parsed?.pattern;
 
     if (!pattern) {
       return [
-        [null, null, null],
-        [null, null, null],
-        [null, null, null],
+        [
+          { value: null, type: PickerType.Item },
+          { value: null, type: PickerType.Item },
+          { value: null, type: PickerType.Item },
+        ],
+        [
+          { value: null, type: PickerType.Item },
+          { value: null, type: PickerType.Item },
+          { value: null, type: PickerType.Item },
+        ],
+        [
+          { value: null, type: PickerType.Item },
+          { value: null, type: PickerType.Item },
+          { value: null, type: PickerType.Item },
+        ],
       ];
     }
 
@@ -89,7 +115,7 @@ export default function ShapedRecipe({
   const input = getInput();
   const { output, outputCount, setOutput, setOutputCount } = getOutput();
 
-  const convertInputToJson = (inputToConvert: (string | null)[][]) => {
+  const convertInputToJson = (inputToConvert: IShapedItem[][]) => {
     const key: IShaped['key'] = {};
     const POSSIBLE_KEYS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'];
     const pattern = ['   ', '   ', '   '];
@@ -100,13 +126,13 @@ export default function ShapedRecipe({
       for (let colIdx = 0; colIdx < 3; colIdx++) {
         const item = row[colIdx];
 
-        if (!item) {
+        if (!item.value) {
           continue;
         }
 
         const [itemKey] =
           Object.entries(key).find(
-            ([, val]) => val.item === item || val.tag === item,
+            ([, val]) => val.item === item.value || val.tag === item.value,
           ) ?? [];
 
         if (itemKey) {
@@ -123,8 +149,11 @@ export default function ShapedRecipe({
         const keyChar = POSSIBLE_KEYS.shift();
 
         if (keyChar) {
-          // TODO has to consider if item is actually a tag
-          key[keyChar] = { item };
+          console.log('keyChar', keyChar, item);
+          key[keyChar] =
+            item.type === PickerType.Item
+              ? { item: item.value || undefined }
+              : { tag: item.value || undefined };
           pattern[rowIdx] =
             pattern[rowIdx].substring(0, colIdx) +
             keyChar +
@@ -139,8 +168,19 @@ export default function ShapedRecipe({
     return { pattern, key };
   };
 
-  const onPickInput = (value: string, row: number, col: number) => {
-    input[row][col] = value === '@custom:removeItem' ? null : value;
+  const onPickInput = (
+    value: string,
+    type: PickerType,
+    row: number,
+    col: number,
+  ) => {
+    console.log('on pick input', value, type, row, col);
+
+    // TODO consider type
+    input[row][col].value = value === '@custom:removeItem' ? null : value;
+    input[row][col].type = type ?? PickerType.Item;
+
+    console.log('after', input);
 
     const { pattern, key } = convertInputToJson(input);
 
@@ -172,67 +212,67 @@ export default function ShapedRecipe({
           />
 
           <PickerButton
-            value={input[0][0]}
-            onPick={(value) => onPickInput(value, 0, 0)}
-            type={PickerType.Item}
+            value={input[0][0].value}
+            onPick={(value, type) => onPickInput(value, type, 0, 0)}
+            type={PickerType.ItemTag}
             variant="ghost"
             className="absolute left-[55px] top-[55px] h-[50px] w-[50px] min-w-0 min-h-0"
           />
           <PickerButton
-            value={input[0][1]}
-            onPick={(value) => onPickInput(value, 0, 1)}
-            type={PickerType.Item}
+            value={input[0][1].value}
+            onPick={(value, type) => onPickInput(value, type, 0, 1)}
+            type={PickerType.ItemTag}
             variant="ghost"
             className="absolute left-[105px] top-[55px] h-[50px] w-[50px] min-w-0 min-h-0"
           />
           <PickerButton
-            value={input[0][2]}
-            onPick={(value) => onPickInput(value, 0, 2)}
-            type={PickerType.Item}
+            value={input[0][2].value}
+            onPick={(value, type) => onPickInput(value, type, 0, 2)}
+            type={PickerType.ItemTag}
             variant="ghost"
             className="absolute left-[155px] top-[55px] h-[50px] w-[50px] min-w-0 min-h-0"
           />
 
           <PickerButton
-            value={input[1][0]}
-            onPick={(value) => onPickInput(value, 1, 0)}
-            type={PickerType.Item}
+            value={input[1][0].value}
+            onPick={(value, type) => onPickInput(value, type, 1, 0)}
+            type={PickerType.ItemTag}
             variant="ghost"
             className="absolute left-[55px] top-[105px] h-[50px] w-[50px] min-w-0 min-h-0"
           />
           <PickerButton
-            value={input[1][1]}
-            onPick={(value) => onPickInput(value, 1, 1)}
-            type={PickerType.Item}
+            value={input[1][1].value}
+            onPick={(value, type) => onPickInput(value, type, 1, 1)}
+            type={PickerType.ItemTag}
             variant="ghost"
             className="absolute left-[105px] top-[105px] h-[50px] w-[50px] min-w-0 min-h-0"
           />
           <PickerButton
-            value={input[1][2]}
-            onPick={(value) => onPickInput(value, 1, 2)}
-            type={PickerType.Item}
+            value={input[1][2].value}
+            onPick={(value, type) => onPickInput(value, type, 1, 2)}
+            type={PickerType.ItemTag}
             variant="ghost"
             className="absolute left-[155px] top-[105px] h-[50px] w-[50px] min-w-0 min-h-0"
           />
 
           <PickerButton
-            value={input[2][0]}
-            onPick={(value) => onPickInput(value, 2, 0)}
-            type={PickerType.Item}
+            value={input[2][0].value}
+            onPick={(value, type) => onPickInput(value, type, 2, 0)}
+            type={PickerType.ItemTag}
             variant="ghost"
             className="absolute left-[55px] top-[155px] h-[50px] w-[50px] min-w-0 min-h-0"
           />
           <PickerButton
-            value={input[2][1]}
-            onPick={(value) => onPickInput(value, 2, 1)}
-            type={PickerType.Item}
+            value={input[2][1].value}
+            onPick={(value, type) => onPickInput(value, type, 2, 1)}
+            type={PickerType.ItemTag}
             variant="ghost"
             className="absolute left-[105px] top-[155px] h-[50px] w-[50px] min-w-0 min-h-0"
           />
           <PickerButton
-            value={input[2][2]}
-            onPick={(value) => onPickInput(value, 2, 2)}
-            type={PickerType.Item}
+            value={input[2][2].value}
+            onPick={(value, type) => onPickInput(value, type, 2, 2)}
+            type={PickerType.ItemTag}
             variant="ghost"
             className="absolute left-[155px] top-[155px] h-[50px] w-[50px] min-w-0 min-h-0"
           />

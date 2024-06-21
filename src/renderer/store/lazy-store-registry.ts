@@ -27,10 +27,7 @@ export class LazyStoreRegistry {
   private stores: Map<
     string,
     UseBoundStore<
-      Mutate<
-        StoreApi<any>,
-        [['zustand/immer', null], ['zustand/persist', null]]
-      >
+      Mutate<StoreApi<any>, [['zustand/immer', null], ['zustand/persist', any]]>
     >
   > = new Map();
 
@@ -112,6 +109,13 @@ export class LazyStoreRegistry {
                   addedRecipes: [],
                   deletedRecipePaths: [],
                   deletedRecipes: [],
+                  recipeModifiedOnlyFilter: false,
+                  recipeRemovedOnlyFilter: false,
+                  recipeIdFilter: '',
+                  recipeItemFilter: '',
+                  recipeModFilter: '',
+                  recipeTypeFilter: '',
+                  selectedRecipe: null,
                   editedRecipePaths: [],
                   editedRecipes: [],
                   items: [],
@@ -124,6 +128,22 @@ export class LazyStoreRegistry {
             ),
             {
               name: 'project',
+              partialize: (st) =>
+                Object.fromEntries(
+                  Object.entries(st).filter(
+                    ([k]) =>
+                      ![
+                        'recipeIdFilter',
+                        'recipeTypeFilter',
+                        'recipeItemFilter',
+                        'recipeModFilter',
+                        'recipeRemovedOnlyFilter',
+                        'recipeModifiedOnlyFilter',
+                        'selectedRecipe',
+                        'load',
+                      ].includes(k),
+                  ),
+                ),
               storage: new JsonStorage(
                 () =>
                   path.join(

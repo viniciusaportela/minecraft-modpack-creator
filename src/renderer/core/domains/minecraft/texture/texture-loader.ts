@@ -1,5 +1,6 @@
 import path from 'path';
 import { useAppStore } from '../../../../store/app.store';
+import { useItemsStore } from '../../../../store/items.store';
 
 let instance: TextureLoader;
 
@@ -11,26 +12,18 @@ export class TextureLoader {
     return instance;
   }
 
-  getTextureSourceFromItem(itemId: string) {
-    return this.getTextureSource(this.getTextureFromItem(itemId));
-  }
-
   getTextureFromItem(itemId: string) {
-    const itemSplitted = itemId.split(':');
+    const item = useItemsStore((st) => st.items.find((i) => i.id === itemId));
 
-    const modId = itemSplitted[0];
-    const itemName = itemSplitted[1];
+    const modId = item?.mod;
+    const withoutModId = itemId.split(':')[1];
 
-    return `${modId}:textures/item/${itemName}.png`;
-  }
+    const textureId = `${modId}:textures/${item?.isBlock ? 'block' : 'item'}/${withoutModId}.png`;
 
-  getTextureFromBlock(blockId: string) {
-    const blockSplitted = blockId.split(':');
-
-    const modId = blockSplitted[0];
-    const blockName = blockSplitted[1];
-
-    return `${modId}:textures/block/${blockName}.png`;
+    return {
+      isBlock: item?.isBlock,
+      textureId,
+    };
   }
 
   getTextureSource(textureId: string | null | undefined, isURI?: boolean) {
