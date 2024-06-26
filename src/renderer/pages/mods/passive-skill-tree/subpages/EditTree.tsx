@@ -96,22 +96,43 @@ export default function EditTree() {
 
   const onNodesChange = useCallback(
     (changes) => {
-      if (changes.find((c) => c.type === 'remove')) {
-        rebuildMainTree();
+      console.log('on nodes change', changes);
+      let needToUpdateMainTree = false;
+
+      const deletedNodes = changes
+        .filter((c) => c.type === 'remove')
+        .map((c) => c.id);
+
+      if (deletedNodes.length > 0) {
+        needToUpdateMainTree = true;
 
         if (focusedNode) {
           const hasDeletedFocused = changes.find(
             (c) => c.type === 'remove' && c.id === focusedNode.id,
           );
+
           if (hasDeletedFocused) {
             setFocusedNode(null);
             setFocusedNodePath(null);
             focusedNodePathRef.current = null;
           }
         }
+
+        const updatedEdges = configStore
+          .getState()
+          .tree.edges.filter(
+            (edg) =>
+              !deletedNodes.includes(edg.source) &&
+              !deletedNodes.includes(edg.target),
+          );
+        setEdges(updatedEdges);
       }
 
       setNodes(applyNodeChanges(changes, configStore.getState().tree.nodes));
+
+      if (needToUpdateMainTree) {
+        rebuildMainTree();
+      }
     },
     [focusedNode],
   );
@@ -125,6 +146,7 @@ export default function EditTree() {
   };
 
   const onEdgesChange = useCallback((changes) => {
+    console.log('on edges change', changes);
     setEdges(applyEdgeChanges(changes, configStore.getState().tree.edges));
   }, []);
 
@@ -183,6 +205,7 @@ export default function EditTree() {
   );
 
   console.log(nodes);
+  console.log(edges);
 
   const rebuildMainTree = () => {
     const { mainTree } = configStore.getState().tree;
