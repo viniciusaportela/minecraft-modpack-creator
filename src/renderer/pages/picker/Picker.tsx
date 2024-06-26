@@ -33,7 +33,7 @@ export default function Picker() {
   const inputTextRef = useRef('');
   const [inputText, setInputText] = useReducer(reflectOnRef(inputTextRef), '');
 
-  const textures = useTexturesStore((state) => state.recipes);
+  const textures = useTexturesStore((state) => state.textures);
 
   const requestId = useParams('requestId');
 
@@ -52,6 +52,8 @@ export default function Picker() {
       value: string | null;
     }[]
   >([]);
+
+  console.log('type', type);
 
   useEffect(() => {
     setInputText('');
@@ -76,6 +78,7 @@ export default function Picker() {
   };
 
   const filteredTextures = (type: PickerType) => {
+    console.log('textures length', textures.length);
     if (type === PickerType.SkillTreeBackground) {
       return textures.filter((texture) =>
         texture.id.startsWith('skilltree:textures/icons/background'),
@@ -101,6 +104,8 @@ export default function Picker() {
       ].includes(type)
     ) {
       // TODO should also create textures object
+
+      console.log('rendering here', filteredTextures(type).length);
 
       setListItems([
         {

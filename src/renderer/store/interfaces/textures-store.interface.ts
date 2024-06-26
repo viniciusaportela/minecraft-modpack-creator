@@ -1,5 +1,5 @@
 export interface ITexturesStore {
-  recipes: ITexture[];
+  textures: ITexture[];
   version: number;
 }
 
