@@ -67,13 +67,14 @@ export default class ProjectService {
     });
     await Promise.all(promises);
 
-    const { projects } = useAppStore.getState();
-    const orphanedProjects = projects.filter(
-      (p) => !modpackFolders.includes(p.path),
-    );
+    useAppStore.setState((st) => {
+      const orphanedProjects = st.projects.filter(
+        (p) => !modpackFolders.includes(p.path),
+      );
 
-    orphanedProjects.forEach((p) => {
-      p.orphan = true;
+      orphanedProjects.forEach((p) => {
+        p.orphan = true;
+      });
     });
   }
 

@@ -96,7 +96,6 @@ export default function EditTree() {
 
   const onNodesChange = useCallback(
     (changes) => {
-      console.log('on nodes change', changes);
       let needToUpdateMainTree = false;
 
       const deletedNodes = changes
@@ -146,7 +145,6 @@ export default function EditTree() {
   };
 
   const onEdgesChange = useCallback((changes) => {
-    console.log('on edges change', changes);
     setEdges(applyEdgeChanges(changes, configStore.getState().tree.edges));
   }, []);
 
@@ -203,9 +201,6 @@ export default function EditTree() {
     },
     [nodes],
   );
-
-  console.log(nodes);
-  console.log(edges);
 
   const rebuildMainTree = () => {
     const { mainTree } = configStore.getState().tree;

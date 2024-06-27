@@ -19,27 +19,29 @@ export default memo(({ data, id }: { data: any; id: string }) => {
     );
   }, [data.backgroundTexture]);
 
-  console.log('TreeNode', `url('${backgroundImg}')`);
+  const buttonSize = Math.max(data.buttonSize, 8);
 
   return (
     <div
       className="flex items-center justify-center relative pixelated"
       style={{
-        width: data.buttonSize,
-        height: data.buttonSize,
+        width: buttonSize,
+        height: buttonSize,
         pointerEvents: isConnecting ? 'none' : 'all',
         ...(backgroundImg && {
           backgroundImage: `url('${backgroundImg}')`,
-          backgroundSize: `${3 * data.buttonSize}px ${data.buttonSize}px`,
+          backgroundSize: `${3 * buttonSize}px ${buttonSize}px`,
           backgroundRepeat: 'no-repeat',
           backgroundPosition: '0px 0px',
         }),
       }}
     >
       <LazyTexture
-        textureId={data.iconTexture
-          .replace('textures/', '')
-          .replace('.png', '')}
+        textureId={
+          data.iconTexture
+            ? data.iconTexture.replace('textures/', '').replace('.png', '')
+            : null
+        }
         className="pixelated h-3 w-3 object-contain rounded-none"
       />
 

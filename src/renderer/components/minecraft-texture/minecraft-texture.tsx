@@ -31,8 +31,6 @@ const MinecraftTexture = memo(
           .getState()
           .tags.find((t) => t.name === value)?.items[0];
 
-        console.log('tag/item tag?', type, value, firstItemOfTag);
-
         if (firstItemOfTag) {
           return (
             <ItemMinecraftTexture
@@ -114,14 +112,6 @@ const ItemMinecraftTexture = memo(
   ({ value, size, classNames, className }: ItemMinecraftTextureProps) => {
     const { isBlock, textureId } =
       TextureLoader.getInstance().getTextureFromItem(value);
-
-    console.log(
-      'item minecraft',
-      value,
-      isBlock,
-      textureId,
-      TextureLoader.getInstance().getTextureSource(textureId),
-    );
 
     return isBlock ? (
       <Block3D

@@ -9,9 +9,6 @@ interface PageHiderProps extends PropsWithChildren {
 
 const PageHider = memo(
   ({ isVisible, withScroll, children }: PageHiderProps) => {
-    const [id, setId] = useState(v4());
-
-    console.log('pageHider', id, isVisible, withScroll, children);
     return (
       <div
         style={{ maxHeight: 'calc(100% - 80px)' }}

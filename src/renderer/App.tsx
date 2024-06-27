@@ -18,7 +18,7 @@ export default function App() {
   const [hasLoadedProject, setHasLoadedProject] = useState(false);
 
   useEffect(() => {
-    if (isLoaded && projectIndex) {
+    if (isLoaded && projectIndex !== undefined) {
       const project = useAppStore.getState().projects[projectIndex];
       ProjectPreloader.getInstance()
         .load(project)

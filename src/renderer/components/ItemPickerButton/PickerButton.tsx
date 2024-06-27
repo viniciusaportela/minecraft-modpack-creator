@@ -28,9 +28,12 @@ export default function PickerButton({
       projectIdx,
       type,
     );
+    console.log('pickedData', pickedData);
     if (pickedData === null) return;
 
     const [pickedType, pickedId] = pickedData.split('&');
+
+    console.log('onPick', pickedId, pickedType);
 
     onPick(pickedId, pickedType);
   };
