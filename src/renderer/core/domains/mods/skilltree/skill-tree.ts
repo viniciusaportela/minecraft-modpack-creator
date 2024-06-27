@@ -1,6 +1,7 @@
 import path from 'path';
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { Edge, Node } from 'reactflow';
+import { existsSync } from 'node:fs';
 import { DefaultMod } from '../default-mod';
 import { ISkillTreeConfig } from './interfaces/skill-tree-config.interface';
 import { useModsStore } from '../../../../store/mods.store';
@@ -171,6 +172,11 @@ export class SkillTree extends DefaultMod {
       'data',
       'skilltree',
     );
+
+    const exists = existsSync(
+      path.join(basePath, 'skill_trees', 'main_tree.json'),
+    );
+    if (!exists) return { skillTree: [], skills: [] };
 
     const skillTree = JSON.parse(
       await readFile(

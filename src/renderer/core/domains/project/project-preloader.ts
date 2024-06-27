@@ -79,7 +79,6 @@ export class ProjectPreloader {
   async loadStore(storeName: string) {
     const basePath = path.join(this.project.path, 'minecraft-toolkit');
     const store: UseBoundStore<StoreApi<any>> = this.getStore(storeName);
-
     const json = JSON.parse(
       await readFile(path.join(basePath, `${storeName}.json`), 'utf-8'),
     );
