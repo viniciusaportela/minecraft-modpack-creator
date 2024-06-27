@@ -11,8 +11,6 @@ import { X } from '@phosphor-icons/react';
 import PickerButton from '../../../../../components/ItemPickerButton/PickerButton';
 import { PickerType } from '../../../../../typings/picker-type.enum';
 import BonusModal from '../bonus/BonusModal';
-import { formatTextureInput } from './utils/format-texture-input';
-import { formatTextureOutput } from './utils/format-texture-output';
 import { useModConfigSelector } from '../../../../../store/hooks/use-mod-config-selector';
 
 interface EditSkillPanelProps {
@@ -147,9 +145,12 @@ export default function EditSkillPanel({
               label="Button Size"
               size="sm"
               variant="bordered"
-              placeholder="16"
-              value={buttonSize ?? 16}
-              onValueChange={(text) => setButtonSize(parseFloat(text))}
+              value={buttonSize}
+              onValueChange={(text) =>
+                !Number.isNaN(parseFloat(text))
+                  ? setButtonSize(parseFloat(text))
+                  : setButtonSize(undefined)
+              }
             />
 
             <Switch

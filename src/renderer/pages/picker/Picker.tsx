@@ -114,7 +114,7 @@ export default function Picker() {
               className="justify-start min-h-7 h-7 w-full"
               variant="light"
               style={style}
-              onPress={() => select(calculateItemIdFromSearch())}
+              onPress={() => select(`texture&${calculateItemIdFromSearch()}`)}
             >
               {calculateItemIdFromSearch()}
             </Button>
@@ -127,7 +127,7 @@ export default function Picker() {
           render: ({ style }: { style: React.CSSProperties }) => (
             <PickerItem
               item={texture}
-              onPress={() => select(texture.id)}
+              onPress={() => select(`texture&${texture.id}`)}
               style={style}
               type={type}
             />
@@ -203,6 +203,7 @@ export default function Picker() {
   }, [type]);
 
   const select = (pickerId: string) => {
+    console.log('select', pickerId);
     ipcRenderer.send('windowResponse', requestId, pickerId);
   };
 
